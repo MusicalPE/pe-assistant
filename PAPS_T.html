@@ -1,0 +1,609 @@
+<!-- PAPS · 교사 화면 (모듈 PAPS) — 공통 도우미(PAPSX)도 여기서 정의합니다 (PAPS_S.html 이 같이 씁니다) -->
+<style>
+/* PAPS 공통 (교사·학생) — 등급 색·칩·탭·기타 */
+.paps-ui{--g0:#EDF1F4;--g1:#1F4E9C;--g2:#2E7BD6;--g3:#5FA8F0;--g4:#B4D4F5;--g5:#DCE8F5;--pmark:#FFD66B;}
+.paps-ui .ptabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.paps-ui .ptab{background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:12px;padding:8px 14px;font-weight:700;display:flex;flex-direction:column;align-items:flex-start;gap:1px;}
+.paps-ui .ptab .fac{font-size:10px;font-weight:600;color:var(--ink-3);letter-spacing:.04em;}
+.paps-ui .ptab[aria-selected=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);}
+.paps-ui .ptab[aria-selected=true] .fac{color:var(--accent);}
+.paps-ui .chip{display:inline-flex;align-items:center;justify-content:center;min-width:54px;height:26px;border-radius:8px;font-size:12px;font-weight:700;background:var(--g0);color:var(--ink-3);white-space:nowrap;}
+.paps-ui .chip.g1{background:var(--g1);color:#fff;} .paps-ui .chip.g2{background:var(--g2);color:#fff;} .paps-ui .chip.g3{background:var(--g3);color:#fff;}
+.paps-ui .chip.g4{background:var(--g4);color:var(--ink);} .paps-ui .chip.g5{background:var(--g5);color:var(--ink);}
+.paps-ui .chip.sm{min-width:44px;height:22px;font-size:11px;}
+.paps-ui .dist{display:flex;height:9px;width:170px;border-radius:99px;overflow:hidden;background:var(--g0);}
+.paps-ui .dist i{display:block;height:100%;}
+.paps-ui .cellval{font-size:11px;color:var(--ink-3);display:block;}
+.paps-ui .matrix th,.paps-ui .matrix td{white-space:nowrap;}
+.paps-ui .matrix tbody td:first-child,.paps-ui .matrix tbody td:nth-child(2){position:sticky;background:#fff;z-index:1;}
+.paps-ui .matrix tbody td:first-child{left:0;} .paps-ui .matrix tbody td:nth-child(2){left:52px;box-shadow:1px 0 0 var(--line-2);}
+.paps-ui .matrix thead th:first-child{position:sticky;left:0;z-index:2;} .paps-ui .matrix thead th:nth-child(2){position:sticky;left:52px;z-index:2;}
+.paps-ui .opts{display:flex;flex-wrap:wrap;gap:9px;}
+.paps-ui .opt{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;background:#fff;font-size:13.5px;}
+.paps-ui .opt input{margin:0;width:16px;height:16px;accent-color:var(--accent);}
+.paps-ui .opt.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);}
+.paps-ui .opt .u{font-size:11px;color:var(--ink-3);}
+.paps-ui .fgroup{border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+.paps-ui .fgroup > h4{margin:0;padding:10px 15px;background:var(--soft);font-size:13px;font-weight:800;}
+.paps-ui .fgroup .opts{padding:12px 15px;}
+.paps-ui td input.pv{width:96px;text-align:right;}
+.paps-ui .pick-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px;}
+.paps-ui .stats{display:flex;gap:12px;flex-wrap:wrap;}
+.paps-ui .stat{display:flex;flex-direction:column;gap:4px;min-width:104px;background:var(--soft);border-radius:14px;padding:10px 14px;}
+.paps-ui .stat .lab{font-size:12px;font-weight:700;color:var(--ink-3);}
+.paps-ui .stat .box{font-size:22px;font-weight:800;letter-spacing:-.04em;}
+.paps-ui .stat .box .of{font-size:13px;color:var(--ink-3);font-weight:600;}
+.paps-ui .stat.hl{background:var(--accent-soft);color:var(--accent-ink);}
+</style>
+
+<div class="mroot hide paps-ui" data-mod="PAPS" data-role="T" id="paps_T">
+
+  <!-- ===== 기록 입력 ===== -->
+  <div class="page" id="paps_tp_input">
+    <div class="page-head"><h2>PAPS 기록 입력</h2><span class="sub" id="pInHead">값을 넣으면 등급이 바로 나옵니다</span></div>
+    <div class="pick-bar">
+      <div class="field"><label>학년</label><select id="pInGrade"></select></div>
+      <div class="field"><label>반</label><select id="pInClass"></select></div>
+      <div class="field"><label>회차</label><select id="pInRound"></select></div>
+      <div class="spacer"></div>
+      <span class="tag brand" id="pInTarget"><i class="ti ti-users"></i>–</span>
+    </div>
+    <div id="pNoScale" class="note warn hide"><i class="ti ti-alert-triangle"></i><div>기준표가 비어 있어 등급이 나오지 않습니다. <b>PAPS_Data.gs</b> 파일이 들어 있으면 오른쪽 버튼으로 채울 수 있습니다.</div><div class="spacer"></div><button class="mini" id="pBtnFillScale"><i class="ti ti-table-import"></i>기준표 채우기</button></div>
+    <div class="ptabs" id="pTabs"></div>
+    <div class="panel">
+      <div class="panel-head" id="pPanelHead"><h3>종목</h3></div>
+      <div class="scroll-x" id="pGrid"><div class="empty">학년·반을 골라 주세요.</div></div>
+      <div class="savebar"><button id="pBtnSave" disabled><i class="ti ti-device-floppy"></i>기록 저장</button><span class="status" id="pStatus">–</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 전체 조회 ===== -->
+  <div class="page hide" id="paps_tp_overview">
+    <div class="page-head"><h2>전체 조회</h2><span class="sub" id="pOvMeta">–</span></div>
+    <div class="pick-bar">
+      <div class="field"><label>학년</label><select id="pOvGrade"></select></div>
+      <div class="field"><label>반</label><select id="pOvClass"></select></div>
+      <div class="field"><label>회차</label><select id="pOvRound"></select></div>
+      <div class="spacer"></div>
+      <button class="ghost mini" id="pBtnCopyTsv"><i class="ti ti-copy"></i>표 복사</button>
+    </div>
+    <div class="panel"><div class="panel-head"><h3><i class="ti ti-table"></i>학생별 등급</h3></div>
+      <div class="scroll-x" id="pOvTable"><div class="empty">–</div></div></div>
+    <div class="panel"><div class="panel-head"><h3><i class="ti ti-chart-bar"></i>종목별 등급 분포</h3></div>
+      <div class="panel-body" id="pOvDist"></div></div>
+  </div>
+
+  <!-- ===== 내보내기 ===== -->
+  <div class="page hide" id="paps_tp_export">
+    <div class="page-head"><h2>나이스 내보내기</h2><span class="sub">나이스 일괄입력 양식에 붙여넣을 표를 만듭니다</span></div>
+    <div class="note"><i class="ti ti-info-circle"></i><div>나이스 <b>PAPS → 측정결과입력 → 일괄입력</b>에서 <b>양식내려받기</b>로 양식을 먼저 받으세요. 그 양식의 <b>머리글 한 줄</b>을 아래에 붙여넣으면 그 순서에 맞춰 값을 만듭니다. 비워 두면 기본 구성으로 만듭니다.</div></div>
+    <div class="pick-bar">
+      <div class="field"><label>학년</label><select id="pExGrade"></select></div>
+      <div class="field"><label>반</label><select id="pExClass"></select></div>
+      <div class="field"><label>회차</label><select id="pExRound"></select></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-file-export"></i>양식 머리글</h3></div>
+      <div class="panel-body">
+        <textarea id="pExHeader" style="min-height:60px;width:100%" placeholder="번호&#9;이름&#9;왕복오래달리기&#9;앉아윗몸앞으로굽히기&#9;윗몸말아올리기&#9;50m달리기&#9;키&#9;몸무게"></textarea>
+        <div class="opts" style="margin-top:12px">
+          <label class="opt on"><input type="checkbox" id="pExNo" checked><span>번호</span></label>
+          <label class="opt on"><input type="checkbox" id="pExName" checked><span>이름</span></label>
+          <label class="opt"><input type="checkbox" id="pExSex"><span>성별</span></label>
+          <label class="opt on"><input type="checkbox" id="pExBmi" checked><span>체질량지수를 키·몸무게로</span></label>
+          <div class="field"><label>값 종류</label><select id="pExKind"><option value="측정값">측정값만</option><option value="등급">등급만</option><option value="둘다">측정값 + 등급</option></select></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center">
+          <button class="ghost" id="pBtnExPreview"><i class="ti ti-refresh"></i>미리보기</button>
+          <button class="ghost" id="pBtnExCopy"><i class="ti ti-copy"></i>표 복사</button>
+          <button id="pBtnExSheet"><i class="ti ti-table-export"></i>시트로 내보내기</button>
+          <span class="status" id="pExStatus">–</span>
+        </div>
+      </div>
+    </div>
+    <div class="panel"><div class="panel-head"><h3>미리보기</h3><div class="spacer"></div><span class="unit" id="pExMeta">–</span></div>
+      <div class="scroll-x" id="pExTable"><div class="empty">–</div></div></div>
+  </div>
+
+  <!-- ===== 측정 종목 ===== -->
+  <div class="page hide" id="paps_tp_events">
+    <div class="page-head"><h2>측정 종목</h2><span class="sub">체력요인별로 우리 학교에서 실시하는 종목을 고릅니다</span></div>
+    <div class="note"><i class="ti ti-info-circle"></i><div>고른 종목만 기록 입력·조회·학생 화면에 나타납니다. 종목을 껐다 켜도 저장된 기록은 지워지지 않습니다.</div></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-list-check"></i>요인별 종목</h3><div class="spacer"></div><span class="unit" id="pEvCount">–</span></div>
+      <div class="panel-body" id="pEvPick"><div class="empty">–</div></div>
+      <div class="savebar"><button id="pBtnSaveEvents"><i class="ti ti-device-floppy"></i>종목 적용</button><span class="status" id="pEvStatus">–</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 참고 영상 ===== -->
+  <div class="page hide" id="paps_tp_videos">
+    <div class="page-head"><h2>참고 영상</h2><span class="sub">학생 화면에서 종목 이름 옆 버튼을 누르면 재생됩니다</span></div>
+    <div class="note"><i class="ti ti-info-circle"></i><div>유튜브 주소는 화면 안에서 바로 재생되고, 다른 주소는 새 창으로 열립니다. 한 종목에 여러 개를 넣을 수 있습니다.</div></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-video"></i>영상 목록</h3><div class="spacer"></div><button class="ghost mini" id="pBtnAddVideo"><i class="ti ti-plus"></i>영상 추가</button></div>
+      <div class="scroll-x" id="pVidTable"><div class="empty">–</div></div>
+      <div class="savebar"><button id="pBtnSaveVideos"><i class="ti ti-device-floppy"></i>영상 저장</button><span class="status" id="pVidStatus">–</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 자료 정리 ===== -->
+  <div class="page hide" id="paps_tp_cleanup">
+    <div class="page-head"><h2>자료 정리</h2><span class="sub">학생 한 명이나 한 반의 이번 학년도 PAPS 자료만 지웁니다. 전체 초기화는 공통 초기화 메뉴에 있습니다.</span></div>
+    <div class="note warn"><i class="ti ti-alert-triangle"></i><div>지운 자료는 되돌릴 수 없습니다. 학생 명단은 지워지지 않습니다.</div></div>
+    <div class="pick-bar">
+      <div class="field"><label>학년</label><select id="pRsGrade"></select></div>
+      <div class="field"><label>반</label><select id="pRsClass"></select></div>
+      <div class="field"><label>회차</label><select id="pRsRound"><option value="전체">전체 회차</option></select></div>
+    </div>
+    <div class="grid g2">
+      <div class="panel" style="margin:0">
+        <div class="panel-head"><h3><i class="ti ti-user-minus"></i>학생 한 명</h3></div>
+        <div class="panel-body">
+          <div class="field" style="margin-bottom:10px"><label>학생</label><select id="pRsStudent" style="min-width:160px"></select></div>
+          <div class="opts" style="margin-bottom:12px">
+            <label class="opt on"><input type="checkbox" id="pRsS기록" checked><span>측정 기록</span></label>
+            <label class="opt on"><input type="checkbox" id="pRsS목표" checked><span>목표</span></label>
+            <label class="opt"><input type="checkbox" id="pRsS도전"><span>도전 기록</span></label>
+          </div>
+          <button class="danger" id="pBtnResetStudent"><i class="ti ti-eraser"></i>이 학생 자료 지우기</button>
+          <span class="status" id="pRsSStatus" style="margin-left:10px"></span>
+        </div>
+      </div>
+      <div class="panel" style="margin:0">
+        <div class="panel-head"><h3><i class="ti ti-users-minus"></i>반 전체</h3><div class="spacer"></div><span class="unit" id="pRsCTarget">–</span></div>
+        <div class="panel-body">
+          <div class="opts" style="margin-bottom:12px">
+            <label class="opt on"><input type="checkbox" id="pRsC기록" checked><span>측정 기록</span></label>
+            <label class="opt on"><input type="checkbox" id="pRsC목표" checked><span>목표</span></label>
+            <label class="opt"><input type="checkbox" id="pRsC도전"><span>도전 기록</span></label>
+          </div>
+          <button class="danger" id="pBtnResetClass"><i class="ti ti-eraser"></i>이 반 자료 지우기</button>
+          <span class="status" id="pRsCStatus" style="margin-left:10px"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= PAPS 공통 도우미 (교사·학생) ================= */
+var PAPSX = {
+  isNum: function (x) { return String(x).trim() !== '' && !isNaN(Number(x)); },
+  step: function (d) { return d === 0 ? '1' : (d === 1 ? '0.1' : '0.01'); },
+  round2: function (n) { return Math.round(n * 100) / 100; },
+  bands: function (e) { if (!e) return []; if (Array.isArray(e)) return e; return e.구간 || []; },
+  findBand: function (bands, v) {
+    for (var i = 0; i < bands.length; i++) {
+      var lo = bands[i].하한 === null ? -Infinity : bands[i].하한, hi = bands[i].상한 === null ? Infinity : bands[i].상한;
+      if (v >= lo && v <= hi) return i;
+    }
+    var best = -1, bestLo = -Infinity;
+    bands.forEach(function (b, i) { var lo = b.하한 === null ? -Infinity : b.하한; if (lo <= v && lo >= bestLo) { bestLo = lo; best = i; } });
+    return best;
+  },
+  higher: function (e) {
+    if (e && !Array.isArray(e) && e.클수록 === false) return false;
+    if (e && !Array.isArray(e) && e.클수록 === true) return true;
+    var bands = PAPSX.bands(e), best = null, worst = null;
+    bands.forEach(function (b) { var n = Number(b.라벨); if (isNaN(n) || b.라벨 === '') return; if (best === null || n < Number(best.라벨)) best = b; if (worst === null || n > Number(worst.라벨)) worst = b; });
+    if (best === null || worst === null || best === worst) return true;
+    var rep = function (b) { return b.하한 === null ? b.상한 : b.하한; };
+    var a = rep(best), c = rep(worst);
+    if (a === null || c === null) return true;
+    return a > c;
+  },
+  /* 기준표에 없는 학년·성별·종목 → 가장 낮은 등급으로 미리 보기 (저장 때 실제 등급은 서버 기준표를 따름) */
+  guessChip: function (t) {
+    var 판정 = t && t.방식 === 'BMI';
+    return '<span class="chip g5" title="이 학년·성별·종목의 기준표가 없어 가장 낮은 등급으로 미리 보여 줍니다. 저장하면 기준표에 따라 다시 판정됩니다.">' + (판정 ? '판정 없음' : '5등급') + ' <small style="font-weight:600;opacity:.7;margin-left:3px">예상</small></span>';
+  },
+  noScale: function (small) { return '<span class="chip' + (small ? ' sm' : '') + '" title="이 학년·성별·종목의 기준표를 찾지 못했습니다">기준 없음</span>'; },
+  chip: function (label, 색, small) {
+    var cls = 'chip' + (small ? ' sm' : '');
+    if (label === '' || label === null || label === undefined) return '<span class="' + cls + '">–</span>';
+    var c = 색;
+    if (c === undefined || c === null || c === 0) {
+      var n = Number(label);
+      c = (!isNaN(n) && n >= 1 && n <= 5) ? n : ({ '정상': 1, '과체중': 3, '마름': 4, '경도비만': 4, '고도비만': 5 }[label] || 3);
+    }
+    return '<span class="' + cls + ' g' + c + '">' + esc(PAPSX.isNum(label) ? label + '등급' : label) + '</span>';
+  },
+  youtube: function (url) {
+    var m = String(url).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+    return m ? 'https://www.youtube.com/embed/' + m[1] : null;
+  }
+};
+
+MODS.PAPS = MODS.PAPS || {};
+MODS.PAPS.teacher = (function () {
+  var CFG = null, CLS = null, CURRENT = null, OV = null, EX = null, CHOICES = null, VIDEOS = null;
+  var 상태 = { 학년: 0, 반: 0, 회차: '1차' };
+  var DIRTY = { 기록: false, 영상: false, 종목: false };
+  var pages = ['input', 'overview', 'export', 'events', 'videos', 'cleanup'];
+  var nav = [
+    { section: 'PAPS' },
+    { id: 'input', label: '기록 입력', icon: 'pencil' },
+    { id: 'overview', label: '전체 조회', icon: 'table' },
+    { id: 'export', label: '나이스 내보내기', icon: 'file-export' },
+    { id: 'events', label: '측정 종목', icon: 'list-check' },
+    { id: 'videos', label: '참고 영상', icon: 'video' },
+    { id: 'cleanup', label: '자료 정리', icon: 'eraser' }
+  ];
+  var 학년칸 = ['pInGrade', 'pOvGrade', 'pExGrade', 'pRsGrade'], 반칸 = ['pInClass', 'pOvClass', 'pExClass', 'pRsClass'], 회차칸 = ['pInRound', 'pOvRound', 'pExRound'];
+
+  function init(ctx) { CFG = null; CLS = null; DIRTY = { 기록: false, 영상: false, 종목: false }; }
+  function reset() { CFG = null; CLS = null; CURRENT = null; OV = null; EX = null; CHOICES = null; VIDEOS = null; }
+  function dirtyCheck() {
+    var 것 = [];
+    if (DIRTY.기록) 것.push('PAPS 측정 기록');
+    if (DIRTY.영상) 것.push('참고 영상');
+    if (DIRTY.종목) 것.push('측정 종목 선택');
+    return 것.join(', ');
+  }
+  function show(p) {
+    pages.forEach(function (id) { $('paps_tp_' + id).classList.toggle('hide', id !== p); });
+    UNSAVED.check = dirtyCheck;
+    var fn = { input: drawInput, overview: loadOverview, export: preview, events: loadEvents, videos: loadVideos, cleanup: drawCleanup }[p];
+    if (!fn) return;
+    if (!CFG) { boot(fn); return; }
+    fn();
+  }
+  function boot(then) {
+    api('paps_t_boot', TOKEN).then(function (cfg) {
+      CFG = cfg;
+      buildSelects();
+      $('pNoScale').classList.toggle('hide', cfg.기준있음);
+      load(then);
+    }).catch(handleErr);
+  }
+
+  $('pBtnFillScale').onclick = function () {
+    $('pBtnFillScale').disabled = true;
+    api('paps_t_fillScale', TOKEN).then(function (r) {
+      $('pBtnFillScale').disabled = false;
+      if (!r.ok) { toast(r.message, 'err'); return; }
+      toast('기준표 ' + r.구간 + '개 구간을 채웠습니다');
+      CFG = null; CLS = null; boot(drawInput);
+    }).catch(function (e) { $('pBtnFillScale').disabled = false; handleErr(e); });
+  };
+
+  /* ---------- 학년·반·회차 선택 ---------- */
+  function buildSelects() {
+    var 학년opts = CFG.학년범위.map(function (g) { return '<option value="' + g + '">' + g + '학년</option>'; }).join('');
+    var 반opts = ''; for (var b = 1; b <= (CTX.설정.반범위 || 15); b++) 반opts += '<option value="' + b + '">' + b + '반</option>';
+    var 회차opts = CFG.회차.map(function (r) { return '<option value="' + r + '">' + r + '</option>'; }).join('');
+    if (!상태.학년) {
+      if (CFG.학급.length) { 상태.학년 = CFG.학급[0].학년; 상태.반 = CFG.학급[0].반[0]; }
+      else { 상태.학년 = CFG.학년범위[0] || 4; 상태.반 = 1; }
+      상태.회차 = CFG.회차[0] || '1차';
+    }
+    학년칸.forEach(function (id) { $(id).innerHTML = 학년opts; $(id).onchange = function () { 바꾸기({ 학년: Number(this.value) }); }; });
+    반칸.forEach(function (id) { $(id).innerHTML = 반opts; $(id).onchange = function () { 바꾸기({ 반: Number(this.value) }); }; });
+    회차칸.forEach(function (id) { $(id).innerHTML = 회차opts; $(id).onchange = function () { 바꾸기({ 회차: this.value }); }; });
+    $('pRsRound').innerHTML = '<option value="전체">전체 회차</option>' + 회차opts;
+    syncSelects();
+  }
+  function syncSelects() {
+    학년칸.forEach(function (id) { $(id).value = 상태.학년; });
+    반칸.forEach(function (id) { $(id).value = 상태.반; });
+    회차칸.forEach(function (id) { $(id).value = 상태.회차; });
+  }
+  function 바꾸기(patch) {
+    if (!confirmLeave()) { syncSelects(); return; }
+    DIRTY.기록 = false;
+    Object.keys(patch).forEach(function (k) { 상태[k] = patch[k]; });
+    syncSelects();
+    load(function () { var p = CURRENT_PAGE(); if (p) p(); });
+  }
+  function CURRENT_PAGE() {
+    var vis = pages.filter(function (id) { return !$('paps_tp_' + id).classList.contains('hide'); })[0];
+    return { input: drawInput, overview: loadOverview, export: preview, events: null, videos: null, cleanup: drawCleanup }[vis] || null;
+  }
+  function 라벨() { return 상태.학년 + '학년 ' + 상태.반 + '반'; }
+
+  /** 학급 자료 한 번에 불러오기 */
+  function load(then) {
+    $('pInTarget').innerHTML = '<i class="ti ti-users"></i>' + 라벨() + ' · ' + esc(상태.회차);
+    setStatus($('pStatus'), '불러오는 중…');
+    api('paps_t_getClass', TOKEN, 상태.학년, 상태.반, 상태.회차).then(function (d) {
+      CLS = d; DIRTY.기록 = false;
+      setStatus($('pStatus'), d.학생.length ? d.학생.length + '명' : '학생이 없습니다.');
+      if (then) then();
+    }).catch(handleErr);
+  }
+
+  /* ---------- 기록 입력 ---------- */
+  function drawInput() {
+    if (!CLS) return;
+    drawTabs(); drawGrid();
+  }
+  function drawTabs() {
+    var box = $('pTabs');
+    box.innerHTML = '';
+    if (!CURRENT || !CFG.종목.some(function (t) { return t.종목 === CURRENT.종목; })) CURRENT = CFG.종목[0] || null;
+    CFG.종목.forEach(function (t) {
+      var b = document.createElement('button');
+      b.className = 'ptab'; b.setAttribute('aria-selected', CURRENT && t.종목 === CURRENT.종목 ? 'true' : 'false');
+      b.innerHTML = '<span class="fac">' + esc(t.요인) + '</span>' + esc(t.종목);
+      b.onclick = function () {
+        if (CURRENT && CURRENT.종목 === t.종목) return;
+        if (!confirmLeave()) return;
+        DIRTY.기록 = false; CURRENT = t; drawTabs(); drawGrid();
+      };
+      box.appendChild(b);
+    });
+    head();
+  }
+  function head() {
+    if (!CURRENT) { $('pPanelHead').innerHTML = '<h3>종목이 없습니다</h3>'; return; }
+    $('pPanelHead').innerHTML = '<h3>' + esc(CURRENT.종목) + '</h3>' + (CURRENT.단위 ? '<span class="unit">단위 ' + esc(CURRENT.단위) + '</span>' : '') +
+      '<div class="spacer"></div><div class="dist" id="pDist"></div><span class="unit" id="pDistText">–</span>';
+  }
+  function drawGrid() {
+    if (!CURRENT) { $('pGrid').innerHTML = '<div class="empty">측정 종목 메뉴에서 종목을 골라 주세요.</div>'; $('pBtnSave').disabled = true; return; }
+    if (!CLS.학생.length) {
+      $('pGrid').innerHTML = '<div class="empty"><strong>' + 라벨() + '에 학생이 없습니다</strong>학생 명단 메뉴에서 등록하세요.</div>';
+      $('pBtnSave').disabled = true; return;
+    }
+    var isBMI = CURRENT.방식 === 'BMI';
+    var html = '<table><thead><tr><th>번호</th><th>이름</th><th>성별</th>' +
+      (isBMI ? '<th>키 (cm)</th><th>몸무게 (kg)</th><th>BMI</th>' : '<th>측정값' + (CURRENT.단위 ? ' (' + esc(CURRENT.단위) + ')' : '') + '</th>') +
+      '<th>판정</th><th>학생 목표</th><th>도전</th></tr></thead><tbody>';
+    CLS.학생.forEach(function (s) {
+      var prev = (CLS.기록[s.학생ID] || {})[CURRENT.종목] || {};
+      var goal = (CLS.목표[s.학생ID] || {})[CURRENT.종목];
+      html += '<tr data-id="' + esc(s.학생ID) + '" data-sex="' + esc(s.성별) + '"><td class="num">' + s.번호 + '</td><td class="name">' + esc(s.이름) + '</td><td class="unit">' + esc(s.성별) + '</td>';
+      if (isBMI) {
+        html += '<td><input type="number" step="0.1" class="pv h" value="' + esc(prev.참고1) + '"></td><td><input type="number" step="0.1" class="pv w" value="' + esc(prev.참고2) + '"></td>' +
+                '<td class="pw bmi">' + (prev.값 === undefined ? '–' : esc(prev.값)) + '</td>';
+      } else {
+        html += '<td><input type="number" step="' + PAPSX.step(CURRENT.소수) + '" class="pv v" value="' + esc(prev.값) + '"></td>';
+      }
+      html += '<td data-role="chip">' + PAPSX.chip(prev.등급) + '</td><td class="unit">' + (goal === undefined ? '–' : esc(goal)) + '</td>' +
+              '<td class="unit">' + (CLS.도전수[s.학생ID] ? CLS.도전수[s.학생ID] + '회' : '') + '</td></tr>';
+    });
+    $('pGrid').innerHTML = html + '</tbody></table>';
+    $('pBtnSave').disabled = false;
+    Array.prototype.forEach.call($('pGrid').querySelectorAll('input'), function (inp) {
+      inp.addEventListener('input', function () { refreshRow(inp.closest('tr')); });
+      inp.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); var all = Array.prototype.slice.call($('pGrid').querySelectorAll('input')), i = all.indexOf(inp); if (all[i + 1]) all[i + 1].focus(); }
+      });
+    });
+    drawDist();
+  }
+  function refreshRow(tr) {
+    var bands = PAPSX.bands((CLS.기준[tr.dataset.sex] || {})[CURRENT.종목]), val;
+    if (CURRENT.방식 === 'BMI') {
+      var h = Number(tr.querySelector('.h').value), w = Number(tr.querySelector('.w').value);
+      val = (h && w) ? Math.round((w / Math.pow(h / 100, 2)) * 10) / 10 : null;
+      tr.querySelector('.bmi').textContent = val === null ? '–' : val;
+    } else { var raw = tr.querySelector('.v').value; val = raw === '' ? null : Number(raw); }
+    var cell = tr.querySelector('[data-role=chip]');
+    DIRTY.기록 = true;
+    setStatus($('pStatus'), '저장하지 않은 변경이 있습니다. 기록 저장을 눌러 주세요.', 'err');
+    if (val === null) { cell.innerHTML = PAPSX.chip(''); return; }
+    if (!bands.length) { cell.innerHTML = PAPSX.guessChip(CURRENT); return; }
+    var i = PAPSX.findBand(bands, val);
+    cell.innerHTML = i < 0 ? PAPSX.guessChip(CURRENT) : PAPSX.chip(bands[i].라벨, bands[i].색);
+  }
+  function drawDist() {
+    var box = $('pDist'); if (!box) return;
+    var cnt = {}, total = 0;
+    CLS.학생.forEach(function (s) {
+      var r = (CLS.기록[s.학생ID] || {})[CURRENT.종목];
+      if (!r || r.등급 === '' || r.등급 === undefined) return;
+      var bands = PAPSX.bands((CLS.기준[s.성별] || {})[CURRENT.종목]), 색 = 3;
+      bands.forEach(function (b) { if (String(b.라벨) === String(r.등급)) 색 = b.색; });
+      cnt[색] = (cnt[색] || 0) + 1; total++;
+    });
+    if (!total) { box.innerHTML = ''; $('pDistText').textContent = '–'; return; }
+    var html = '';
+    for (var g = 1; g <= 5; g++) if (cnt[g]) html += '<i style="width:' + (cnt[g] / total * 100) + '%;background:var(--g' + g + ')"></i>';
+    box.innerHTML = html;
+    $('pDistText').textContent = total + ' / ' + CLS.학생.length + '명';
+  }
+  $('pBtnSave').onclick = function () {
+    var 기록 = [];
+    Array.prototype.forEach.call($('pGrid').querySelectorAll('tbody tr'), function (tr) {
+      var id = tr.dataset.id;
+      if (CURRENT.방식 === 'BMI') {
+        var h = tr.querySelector('.h').value, w = tr.querySelector('.w').value;
+        if (h && w) 기록.push({ 학생ID: id, 종목: CURRENT.종목, 값: '', 참고1: h, 참고2: w });
+      } else { var v = tr.querySelector('.v').value; if (v !== '') 기록.push({ 학생ID: id, 종목: CURRENT.종목, 값: v }); }
+    });
+    if (!기록.length) { setStatus($('pStatus'), '입력된 값이 없습니다.', 'err'); return; }
+    $('pBtnSave').disabled = true; setStatus($('pStatus'), '저장 중…');
+    api('paps_t_saveRecords', TOKEN, { 회차: 상태.회차, 기록: 기록 }).then(function (res) {
+      $('pBtnSave').disabled = false;
+      if (!res.ok) { setStatus($('pStatus'), res.message, 'err'); return; }
+      res.결과.forEach(function (r) {
+        if (!CLS.기록[r.학생ID]) CLS.기록[r.학생ID] = {};
+        CLS.기록[r.학생ID][r.종목] = { 값: r.값, 등급: r.등급, 참고1: r.참고1, 참고2: r.참고2 };
+        var tr = $('pGrid').querySelector('tr[data-id="' + r.학생ID + '"]');
+        if (tr) tr.querySelector('[data-role=chip]').innerHTML = PAPSX.chip(r.등급);
+      });
+      DIRTY.기록 = false; OV = null; drawDist();
+      var 미산출 = res.결과.filter(function (r) { return !r.등급; }).length;
+      setStatus($('pStatus'), res.저장수 + '건 저장했습니다.' + (미산출 ? ' 등급이 비어 있는 ' + 미산출 + '건은 기준표를 확인하세요.' : ''), 미산출 ? 'err' : 'ok');
+      toast(res.저장수 + '건 저장');
+    }).catch(function (e) { $('pBtnSave').disabled = false; handleErr(e); });
+  };
+
+  /* ---------- 전체 조회 ---------- */
+  function loadOverview() {
+    if (!CLS.학생.length) { $('pOvTable').innerHTML = '<div class="empty">' + 라벨() + '에 학생이 없습니다.</div>'; $('pOvDist').innerHTML = ''; $('pOvMeta').textContent = 라벨(); return; }
+    api('paps_t_getOverview', TOKEN, 상태.학년, 상태.반, 상태.회차).then(function (ov) {
+      OV = ov;
+      $('pOvMeta').textContent = 라벨() + ' · ' + 상태.회차 + ' · ' + ov.인원 + '명';
+      var html = '<table class="matrix"><thead><tr><th>번호</th><th>이름</th>';
+      ov.종목.forEach(function (t) { html += '<th>' + esc(t.종목) + '</th>'; });
+      html += '</tr></thead><tbody>';
+      ov.행.forEach(function (row) {
+        html += '<tr><td class="num">' + row.학생.번호 + '</td><td class="name">' + esc(row.학생.이름) + '</td>';
+        row.칸.forEach(function (c) { html += '<td>' + PAPSX.chip(c.라벨, c.색, true) + (c.값 === '' ? '' : '<span class="cellval">' + esc(c.값) + '</span>') + '</td>'; });
+        html += '</tr>';
+      });
+      $('pOvTable').innerHTML = html + '</tbody></table>';
+      var d = '<table><tbody>';
+      ov.종목.forEach(function (t) {
+        var c = ov.분포[t.종목], 측정 = c[1] + c[2] + c[3] + c[4] + c[5], bar = '';
+        for (var g = 1; g <= 5; g++) if (c[g]) bar += '<i style="width:' + (c[g] / (측정 || 1) * 100) + '%;background:var(--g' + g + ')" title="' + g + '등급 ' + c[g] + '명"></i>';
+        d += '<tr><td class="name" style="width:180px">' + esc(t.종목) + '</td><td><div class="dist" style="width:100%">' + bar + '</div></td><td class="unit" style="width:110px;text-align:right">' + 측정 + ' / ' + ov.인원 + '명</td></tr>';
+      });
+      $('pOvDist').innerHTML = d + '</tbody></table>';
+    }).catch(handleErr);
+  }
+  $('pBtnCopyTsv').onclick = function () {
+    if (!OV) return;
+    var lines = [['번호', '이름'].concat(OV.종목.map(function (t) { return t.종목; })).join('\t')];
+    OV.행.forEach(function (row) { lines.push([row.학생.번호, row.학생.이름].concat(row.칸.map(function (c) { return c.라벨; })).join('\t')); });
+    copyText(lines.join('\n')); toast('표를 복사했습니다');
+  };
+
+  /* ---------- 내보내기 ---------- */
+  function exOptions() { return { 머리글: $('pExHeader').value, 번호: $('pExNo').checked, 이름: $('pExName').checked, 성별: $('pExSex').checked, BMI분리: $('pExBmi').checked, 값종류: $('pExKind').value }; }
+  function preview() {
+    if (!CLS.학생.length) { $('pExTable').innerHTML = '<div class="empty">' + 라벨() + '에 학생이 없습니다.</div>'; $('pExMeta').textContent = '–'; return; }
+    setStatus($('pExStatus'), '만드는 중…');
+    api('paps_t_export', TOKEN, 상태.학년, 상태.반, 상태.회차, exOptions()).then(function (d) {
+      EX = d;
+      var html = '<table class="matrix"><thead><tr>';
+      d.머리글.forEach(function (h, i) { var 모름 = d.해석[i] === '모름'; html += '<th' + (모름 ? ' style="color:var(--warn)"' : '') + '>' + esc(h) + (모름 ? ' ?' : '') + '</th>'; });
+      html += '</tr></thead><tbody>';
+      d.행.forEach(function (r) { html += '<tr>' + r.map(function (v) { return '<td class="pw">' + esc(v) + '</td>'; }).join('') + '</tr>'; });
+      $('pExTable').innerHTML = html + '</tbody></table>';
+      $('pExMeta').textContent = 라벨() + ' · ' + 상태.회차 + ' · ' + d.인원 + '명 · ' + d.머리글.length + '열';
+      setStatus($('pExStatus'), d.못알아본.length ? '알아보지 못한 열: ' + d.못알아본.join(', ') + ' — 빈 칸으로 자리만 맞췄습니다.' : '준비됐습니다. 표 복사를 눌러 양식에 붙여넣으세요.', d.못알아본.length ? 'err' : 'ok');
+    }).catch(handleErr);
+  }
+  $('pBtnExPreview').onclick = preview;
+  $('pBtnExCopy').onclick = function () {
+    if (!EX) { setStatus($('pExStatus'), '먼저 미리보기를 눌러 주세요.', 'err'); return; }
+    copyText(EX.행.map(function (r) { return r.join('\t'); }).join('\n'));
+    setStatus($('pExStatus'), '값 ' + EX.행.length + '줄을 복사했습니다. 양식의 첫 학생 칸에 붙여넣으세요. (머리글은 뺐습니다)', 'ok');
+  };
+  $('pBtnExSheet').onclick = function () {
+    $('pBtnExSheet').disabled = true; setStatus($('pExStatus'), '시트에 쓰는 중…');
+    api('paps_t_exportToSheet', TOKEN, 상태.학년, 상태.반, 상태.회차, exOptions()).then(function (res) {
+      $('pBtnExSheet').disabled = false;
+      setStatus($('pExStatus'), '스프레드시트의 ' + res.시트 + ' 시트에 ' + res.행수 + '행 ' + res.열수 + '열을 넣었습니다.', 'ok');
+    }).catch(function (e) { $('pBtnExSheet').disabled = false; handleErr(e); });
+  };
+  ['pExNo', 'pExName', 'pExSex', 'pExBmi', 'pRsS기록', 'pRsS목표', 'pRsS도전', 'pRsC기록', 'pRsC목표', 'pRsC도전'].forEach(function (id) {
+    $(id).addEventListener('change', function () { $(id).closest('.opt').classList.toggle('on', $(id).checked); });
+  });
+
+  /* ---------- 측정 종목 ---------- */
+  function loadEvents() {
+    api('paps_t_getEventChoices', TOKEN).then(function (list) { CHOICES = list || []; drawEvents(); }).catch(handleErr);
+  }
+  function drawEvents() {
+    var html = '';
+    CHOICES.forEach(function (f) {
+      html += '<div class="fgroup"><h4>' + esc(f.요인) + '</h4><div class="opts">';
+      f.종목들.forEach(function (t) {
+        html += '<label class="opt' + (t.사용 ? ' on' : '') + '"><input type="checkbox" class="pevchk" value="' + esc(t.종목) + '"' + (t.사용 ? ' checked' : '') + '><span>' + esc(t.종목) + '</span>' + (t.단위 ? '<span class="u">' + esc(t.단위) + '</span>' : '') + '</label>';
+      });
+      html += '</div></div>';
+    });
+    $('pEvPick').innerHTML = html || '<div class="empty">종목 시트가 비어 있습니다.</div>';
+    Array.prototype.forEach.call($('pEvPick').querySelectorAll('.pevchk'), function (c) {
+      c.addEventListener('change', function () { c.closest('.opt').classList.toggle('on', c.checked); countEvents(); DIRTY.종목 = true; setStatus($('pEvStatus'), '적용하려면 종목 적용을 눌러 주세요.'); });
+    });
+    countEvents(); DIRTY.종목 = false; setStatus($('pEvStatus'), '–');
+  }
+  function countEvents() { $('pEvCount').textContent = $('pEvPick').querySelectorAll('.pevchk:checked').length + '개 선택됨'; }
+  $('pBtnSaveEvents').onclick = function () {
+    var 선택 = [];
+    Array.prototype.forEach.call($('pEvPick').querySelectorAll('.pevchk:checked'), function (c) { 선택.push(c.value); });
+    if (!선택.length) { setStatus($('pEvStatus'), '적어도 한 종목은 골라 주세요.', 'err'); return; }
+    $('pBtnSaveEvents').disabled = true; setStatus($('pEvStatus'), '적용 중…');
+    api('paps_t_setEventChoices', TOKEN, 선택).then(function (res) {
+      $('pBtnSaveEvents').disabled = false;
+      if (!res.ok) { setStatus($('pEvStatus'), res.message, 'err'); return; }
+      CFG.종목 = res.종목; DIRTY.종목 = false; CURRENT = null; OV = null; VIDEOS = null;
+      setStatus($('pEvStatus'), res.선택수 + '개 종목을 적용했습니다.', 'ok'); toast('종목 적용');
+    }).catch(function (e) { $('pBtnSaveEvents').disabled = false; handleErr(e); });
+  };
+
+  /* ---------- 참고 영상 ---------- */
+  function loadVideos() {
+    if (VIDEOS) { drawVideos(); return; }
+    api('paps_t_getVideos', TOKEN).then(function (list) { VIDEOS = list || []; drawVideos(); }).catch(handleErr);
+  }
+  function drawVideos() {
+    var html = '<table><thead><tr><th>종목</th><th>제목</th><th>주소 (URL)</th><th>출처</th><th></th></tr></thead><tbody id="pVidBody">';
+    VIDEOS.forEach(function (v) { html += vidRow(v); });
+    html += '</tbody></table>';
+    $('pVidTable').innerHTML = (VIDEOS.length ? '' : '<div class="empty"><strong>등록된 영상이 없습니다</strong>영상 추가를 눌러 종목별로 링크를 넣어 주세요.</div>') + html;
+    DIRTY.영상 = false; setStatus($('pVidStatus'), '–');
+    Array.prototype.forEach.call($('pVidBody').querySelectorAll('input,select'), function (el) { el.addEventListener('input', markVid); el.addEventListener('change', markVid); });
+    Array.prototype.forEach.call($('pVidBody').querySelectorAll('.pvdel'), function (b) { b.onclick = function () { b.closest('tr').remove(); markVid(); }; });
+  }
+  function markVid() { DIRTY.영상 = true; setStatus($('pVidStatus'), '저장하지 않은 변경이 있습니다. 영상 저장을 눌러 주세요.', 'err'); }
+  function vidRow(v) {
+    v = v || { 종목: (CFG.종목[0] || {}).종목 || '', 제목: '', URL: '', 출처: '' };
+    var opts = CFG.종목.map(function (t) { return '<option value="' + esc(t.종목) + '"' + (t.종목 === v.종목 ? ' selected' : '') + '>' + esc(t.종목) + '</option>'; }).join('');
+    return '<tr><td><select class="pvev" style="min-width:150px">' + opts + '</select></td>' +
+      '<td><input type="text" class="pvtitle" value="' + esc(v.제목) + '" placeholder="예: 윗몸말아올리기 바른 자세" style="width:180px"></td>' +
+      '<td><input type="text" class="pvurl" value="' + esc(v.URL) + '" placeholder="https://www.youtube.com/watch?v=..." style="width:260px"></td>' +
+      '<td><input type="text" class="pvsrc" value="' + esc(v.출처) + '" placeholder="예: 교육부 학생건강정보센터" style="width:170px"></td>' +
+      '<td><button class="ghost mini pvdel" type="button">삭제</button></td></tr>';
+  }
+  $('pBtnAddVideo').onclick = function () {
+    if (!$('pVidBody')) { VIDEOS = VIDEOS || []; drawVideos(); }
+    $('pVidBody').insertAdjacentHTML('beforeend', vidRow(null));
+    var tr = $('pVidBody').lastElementChild;
+    Array.prototype.forEach.call(tr.querySelectorAll('input,select'), function (el) { el.addEventListener('input', markVid); el.addEventListener('change', markVid); });
+    tr.querySelector('.pvdel').onclick = function () { tr.remove(); markVid(); };
+    tr.querySelector('.pvurl').focus(); markVid();
+  };
+  $('pBtnSaveVideos').onclick = function () {
+    var list = [];
+    Array.prototype.forEach.call(document.querySelectorAll('#pVidBody tr'), function (tr) {
+      var url = tr.querySelector('.pvurl').value.trim(); if (!url) return;
+      list.push({ 종목: tr.querySelector('.pvev').value, 제목: tr.querySelector('.pvtitle').value.trim(), URL: url, 출처: tr.querySelector('.pvsrc').value.trim() });
+    });
+    $('pBtnSaveVideos').disabled = true; setStatus($('pVidStatus'), '저장 중…');
+    api('paps_t_saveVideos', TOKEN, list).then(function (res) {
+      VIDEOS = res.영상 || []; $('pBtnSaveVideos').disabled = false; drawVideos();
+      setStatus($('pVidStatus'), VIDEOS.length + '개 영상을 저장했습니다.', 'ok');
+    }).catch(function (e) { $('pBtnSaveVideos').disabled = false; handleErr(e); });
+  };
+
+  /* ---------- 자료 정리 ---------- */
+  function drawCleanup() {
+    $('pRsStudent').innerHTML = CLS.학생.length ? CLS.학생.map(function (s) { return '<option value="' + esc(s.학생ID) + '">' + s.번호 + '번 ' + esc(s.이름) + '</option>'; }).join('') : '<option value="">학생 없음</option>';
+    $('pRsCTarget').textContent = 라벨();
+  }
+  function 지움문구(지움) {
+    var p = [];
+    if (지움.기록) p.push('기록 ' + 지움.기록 + '건');
+    if (지움.목표) p.push('목표 ' + 지움.목표 + '건');
+    if (지움.도전) p.push('도전 ' + 지움.도전 + '건');
+    return p.length ? p.join(' · ') + ' 지웠습니다.' : '지울 자료가 없었습니다.';
+  }
+  $('pBtnResetStudent').onclick = function () {
+    var id = $('pRsStudent').value;
+    if (!id) { setStatus($('pRsSStatus'), '학생이 없습니다.', 'err'); return; }
+    var 이름 = $('pRsStudent').options[$('pRsStudent').selectedIndex].text, 회차 = $('pRsRound').value;
+    if (!confirm(이름 + ' 학생의 ' + 회차 + ' PAPS 자료를 지웁니다.\n되돌릴 수 없습니다. 계속할까요?')) return;
+    api('paps_t_resetStudent', TOKEN, id, 회차, { 기록: $('pRsS기록').checked, 목표: $('pRsS목표').checked, 도전: $('pRsS도전').checked }).then(function (res) {
+      if (!res.ok) { setStatus($('pRsSStatus'), res.message, 'err'); return; }
+      setStatus($('pRsSStatus'), 지움문구(res.지움), 'ok'); OV = null; load(null);
+    }).catch(handleErr);
+  };
+  $('pBtnResetClass').onclick = function () {
+    var 회차 = $('pRsRound').value;
+    if (!confirm(라벨() + '의 ' + 회차 + ' PAPS 자료를 지웁니다.\n되돌릴 수 없습니다. 계속할까요?')) return;
+    api('paps_t_resetClass', TOKEN, 상태.학년, 상태.반, 회차, { 기록: $('pRsC기록').checked, 목표: $('pRsC목표').checked, 도전: $('pRsC도전').checked }).then(function (res) {
+      if (!res.ok) { setStatus($('pRsCStatus'), res.message, 'err'); return; }
+      setStatus($('pRsCStatus'), res.학급 + ' — ' + 지움문구(res.지움), 'ok'); OV = null; load(null);
+    }).catch(handleErr);
+  };
+
+  return { nav: nav, init: init, show: show, reset: reset };
+})();
+</script>

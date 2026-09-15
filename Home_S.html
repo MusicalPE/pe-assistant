@@ -1,0 +1,228 @@
+<!-- 학생 홈 : 내 체력 프로필 · 비밀번호 바꾸기 (공통, 모듈 아님) -->
+<style>
+.pcards-s{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.pcard-s{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow);text-align:left;color:var(--ink);display:flex;flex-direction:column;gap:6px;border-top:5px solid var(--dc,var(--brand));transition:transform .08s,box-shadow .15s;}
+.pcard-s.go{cursor:pointer;}
+.pcard-s.go:hover{transform:translateY(-2px);box-shadow:0 12px 28px -12px rgba(22,35,46,.28);background:var(--card);border-color:var(--line);}
+.pcard-s .mod{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;letter-spacing:-.02em;}
+.pcard-s .mod i{width:26px;height:26px;border-radius:8px;background:var(--dc,var(--brand));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:15px;}
+.pcard-s .val{font-size:28px;font-weight:800;letter-spacing:-.04em;line-height:1.1;}
+.pcard-s .val small{font-size:13px;color:var(--ink-3);font-weight:600;margin-left:3px;}
+.pcard-s .ttl{font-size:13px;color:var(--ink-2);font-weight:600;}
+.pcard-s .dsc{font-size:12.5px;color:var(--ink-3);}
+.pcard-s .arrow{margin-top:auto;font-size:12px;color:var(--ink-3);font-weight:600;display:flex;align-items:center;gap:4px;}
+.pcard-s .badges{display:flex;gap:4px;flex-wrap:wrap;}
+.pcard-s .badges span{background:var(--soft);border-radius:8px;padding:2px 8px;font-size:11.5px;font-weight:700;}
+/* 배지 벽 (학생 내 배지 · 교사 학생 프로필 공용) */
+.bwall{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;}
+.bcard{border:1.5px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center;background:#fff;position:relative;}
+.bcard i{font-size:26px;color:var(--ink-3);display:block;margin-bottom:4px;}
+.bcard b{display:block;font-size:12.5px;letter-spacing:-.02em;line-height:1.3;}
+.bcard small{display:block;font-size:11px;color:var(--ink-3);margin-top:2px;line-height:1.3;}
+.bcard .prog{margin-top:6px;height:5px;}
+.bcard.on{border-color:var(--dc,var(--accent));background:color-mix(in srgb,var(--dc,var(--accent)) 12%,#fff);}
+.bcard.on i{color:var(--dc,var(--accent));}
+.bcard.on b{color:var(--ink);}
+.bcard.wait{border-style:dashed;}
+.bhead{display:flex;align-items:center;gap:8px;margin:18px 0 8px;}
+.bhead i.md{width:24px;height:24px;border-radius:7px;background:var(--dc,var(--accent));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;}
+.bhead h3{margin:0;font-size:15px;font-weight:800;letter-spacing:-.03em;}
+.bhead .unit{margin-left:auto;}
+.bsum{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.bsum .chip{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px;}
+.bsum .chip i{color:var(--dc,var(--accent));}
+</style>
+
+<div class="mroot hide" data-mod="core" data-role="S" id="core_S">
+
+  <!-- ===== 내 체력 프로필 ===== -->
+  <div class="page" id="core_sp_profile">
+    <div class="s-hero">
+      <div style="flex:1;min-width:200px">
+        <h2 id="prHello">안녕!</h2>
+        <p id="prSub"></p>
+      </div>
+      <div class="stats" id="prStats"></div>
+    </div>
+    <div id="prNotes"></div>
+    <div class="pcards-s" id="prCards"></div>
+    <div class="panel hide" id="prEmpty"><div class="empty"><i class="ti ti-mood-smile"></i><strong>아직 보여 줄 기록이 없어요</strong>선생님이 활동을 열어 주면 여기에 카드가 생겨요.</div></div>
+  </div>
+
+  <!-- ===== 내 배지 ===== -->
+  <div class="page hide" id="core_sp_badges">
+    <div class="s-hero">
+      <div style="flex:1;min-width:200px">
+        <h2 id="bgTitle">내 배지</h2>
+        <p id="bgSub">여러 활동에서 받은 배지를 한곳에 모았어요.</p>
+      </div>
+      <div class="stats" id="bgStats"></div>
+    </div>
+    <div id="bgBody"></div>
+    <div class="panel hide" id="bgEmpty"><div class="empty"><i class="ti ti-award"></i><strong>아직 배지가 없어요</strong>활동을 기록하면 배지가 하나씩 생겨요.</div></div>
+  </div>
+
+  <!-- ===== 비밀번호 바꾸기 ===== -->
+  <div class="page hide" id="core_sp_pw">
+    <div class="page-head"><h2>비밀번호 바꾸기</h2><span class="sub">숫자 4자리. 잊어버리면 선생님께 말씀드려요.</span></div>
+    <div class="panel" style="max-width:440px" id="pwPadPanel">
+      <div class="panel-head"><h3><i class="ti ti-lock"></i><span id="spwStep">지금 비밀번호를 눌러요</span></h3></div>
+      <div class="panel-body pin-lg" id="spwPad"></div>
+    </div>
+    <div class="panel hide" style="max-width:440px" id="pwInputPanel">
+      <div class="panel-body">
+        <div class="field" style="margin-bottom:12px"><label for="spwCur">지금 비밀번호</label><input type="password" id="spwCur" inputmode="numeric" maxlength="4"></div>
+        <div class="field" style="margin-bottom:12px"><label for="spwNew">새 비밀번호 (숫자 4자리)</label><input type="password" id="spwNew" inputmode="numeric" maxlength="4"></div>
+        <div class="field" style="margin-bottom:16px"><label for="spwNew2">새 비밀번호 다시 입력</label><input type="password" id="spwNew2" inputmode="numeric" maxlength="4"></div>
+        <button class="bigsave" id="btnSpw"><i class="ti ti-lock"></i>바꾸기</button>
+        <div class="status" id="spwStatus" style="margin-top:8px;text-align:center"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+MODS.core = MODS.core || {};
+MODS.core.student = (function () {
+  var D = null;
+  var pages = ['profile', 'badges', 'pw'];
+  var navTop = [
+    { section: '나의 기록' },
+    { id: 'profile', label: '내 체력 프로필', icon: 'id-badge-2' },
+    { id: 'badges', label: '내 배지', icon: 'award' }
+  ];
+  var navBottom = [
+    { section: '내 정보' },
+    { id: 'pw', label: '비밀번호 바꾸기', icon: 'lock' }
+  ];
+
+  var BADGES = null;
+  function init(ctx) { D = ctx; BADGES = null; if (ctx && ctx.배지수) setNavCount('core', 'badges', ctx.배지수); }
+  function reset() { D = null; BADGES = null; }
+  function show(p) {
+    pages.forEach(function (id) { $('core_sp_' + id).classList.toggle('hide', id !== p); });
+    if (!D) return;
+    ({ profile: renderProfile, badges: loadBadges, pw: renderPw }[p] || function () {})();
+  }
+  function modInfo(key) { return findOne(LOGIN.모듈, function (m) { return m.key === key; }) || { 이름: key, 색: 'mint', 아이콘: 'box' }; }
+  function colorVar(c) { return { mint: 'var(--brand)', sky: 'var(--sky)', coral: 'var(--coral)', blue: 'var(--blue)', sun: 'var(--sun)', violet: 'var(--violet)' }[c] || 'var(--brand)'; }
+
+  /* ================= 프로필 ================= */
+  function renderProfile() {
+    var me = D.학생, hour = new Date().getHours();
+    setNavCount('core', 'badges', D.배지수 || 0);
+    $('prHello').textContent = (hour < 12 ? '좋은 아침이에요' : hour < 17 ? '오늘도 힘차게' : '오늘 하루도 수고했어요') + ', ' + me.이름 + '!';
+    $('prSub').textContent = (D.설정.학교명 ? D.설정.학교명 + ' · ' : '') + me.학년 + '학년 ' + me.반 + '반 ' + me.번호 + '번';
+    var cards = D.카드 || [];
+    var stats = cards.filter(function (c) { return c.요약; }).slice(0, 3);
+    $('prStats').innerHTML = stats.map(function (c) {
+      return '<div class="stat"><div class="l">' + esc(c.요약.이름) + '</div><div class="v">' + esc(c.요약.값) + (c.요약.단위 ? '<small>' + esc(c.요약.단위) + '</small>' : '') + '</div></div>';
+    }).join('') + (D.배지전체 ? '<button class="stat" id="prBadgeStat" type="button"><div class="l">내 배지</div><div class="v">' + D.배지수 + '<small>/ ' + D.배지전체 + '개</small></div></button>' : '');
+    if ($('prBadgeStat')) $('prBadgeStat').onclick = function () { go('core', 'badges'); };
+    var notes = '';
+    if (D.초기비번여부) notes += '<div class="note"><i class="ti ti-key"></i><div>선생님이 준 비밀번호를 쓰고 있어요. 나만 아는 번호로 바꿀 수 있어요. <button class="mini soft" id="goPw">비밀번호 바꾸기</button></div></div>';
+    cards.forEach(function (c) {
+      if (c.알림) notes += '<div class="note sun"><i class="ti ti-bell-ringing"></i><div>' + esc(c.알림) + (c.이동 && D.메뉴[c.모듈] ? ' <button class="mini soft" data-go="' + esc(c.모듈) + ':' + esc(c.이동) + '">보러 가기</button>' : '') + '</div></div>';
+    });
+    $('prNotes').innerHTML = notes;
+    $('prEmpty').classList.toggle('hide', cards.length > 0);
+    $('prCards').innerHTML = cards.map(function (c, i) {
+      var m = modInfo(c.모듈), can = !!(c.이동 && D.메뉴[c.모듈]);
+      return '<' + (can ? 'button' : 'div') + ' class="pcard-s' + (can ? ' go' : '') + '" data-i="' + i + '" style="--dc:' + colorVar(m.색) + '">' +
+        '<span class="mod"><i class="ti ti-' + m.아이콘 + '"></i>' + esc(m.이름) + '</span>' +
+        (c.제목 ? '<span class="ttl">' + esc(c.제목) + '</span>' : '') +
+        (c.값 !== undefined && c.값 !== '' ? '<span class="val">' + esc(c.값) + (c.단위 ? '<small>' + esc(c.단위) + '</small>' : '') + '</span>' : '') +
+        (c.진행 !== undefined ? '<div class="prog thin"><i style="width:' + pct(c.진행, 100) + '%;background:' + colorVar(m.색) + '"></i></div>' : '') +
+        (c.배지목록 && c.배지목록.length ? '<span class="badges">' + c.배지목록.map(function (b) { return '<span><i class="ti ti-award"></i> ' + esc(b) + '</span>'; }).join('') + '</span>' : '') +
+        (c.설명 ? '<span class="dsc">' + esc(c.설명) + '</span>' : '') +
+        (can ? '<span class="arrow">들어가기 <i class="ti ti-arrow-right"></i></span>' : '') +
+        '</' + (can ? 'button' : 'div') + '>';
+    }).join('');
+    Array.prototype.forEach.call($('prCards').querySelectorAll('button[data-i]'), function (b) {
+      b.onclick = function () { var c = cards[Number(b.getAttribute('data-i'))]; go(c.모듈, c.이동); };
+    });
+    Array.prototype.forEach.call($('prNotes').querySelectorAll('[data-go]'), function (b) {
+      b.onclick = function () { var p = b.getAttribute('data-go').split(':'); go(p[0], p[1]); };
+    });
+    if ($('goPw')) $('goPw').onclick = function () { go('core', 'pw'); };
+  }
+
+  /* ================= 내 배지 ================= */
+  function loadBadges() {
+    if (BADGES) { renderBadges(); return; }
+    api('s_badges', TOKEN).then(function (b) { BADGES = b; D.배지수 = b.총달성; D.배지전체 = b.총전체; setNavCount('core', 'badges', b.총달성); renderBadges(); }).catch(handleErr);
+  }
+  function renderBadges() {
+    var b = BADGES, 최근 = [];
+    b.모듈.forEach(function (m) { m.배지.forEach(function (x) { if (x.달성) 최근.push(x.이름); }); });
+    $('bgTitle').textContent = b.총달성 ? '배지 ' + b.총달성 + '개를 모았어요!' : '내 배지';
+    $('bgSub').textContent = b.총달성 ? (최근.length ? '최근 배지: ' + 최근.slice(-3).join(', ') : '') : '여러 활동에서 받은 배지를 한곳에 모았어요.';
+    $('bgStats').innerHTML = '<div class="stat"><div class="l">받은 배지</div><div class="v">' + b.총달성 + '<small>/ ' + b.총전체 + '개</small></div></div>' + b.모듈.map(function (m) { return '<div class="stat"><div class="l">' + esc(m.이름) + '</div><div class="v">' + m.달성수 + '<small>/ ' + m.전체수 + '</small></div></div>'; }).join('');
+    $('bgEmpty').classList.toggle('hide', b.모듈.length > 0);
+    $('bgBody').innerHTML = badgeWallHTML(b, LOGIN.모듈);
+  }
+
+  /* ================= 비밀번호 바꾸기 ================= */
+  function renderPw() {
+    var pad = D.설정.학생로그인 === '숫자판';
+    $('pwPadPanel').classList.toggle('hide', !pad);
+    $('pwInputPanel').classList.toggle('hide', pad);
+    setStatus('spwStatus', '');
+    $('spwCur').value = ''; $('spwNew').value = ''; $('spwNew2').value = '';
+    if (!pad) return;
+    var stage = 'current', cur = '', first = '';
+    var titles = { current: '지금 비밀번호를 눌러요', 'new': '새 비밀번호 4자리를 눌러요', again: '한 번 더 눌러요' };
+    var pp = makePinPad($('spwPad'), function (pin) {
+      if (stage === 'current') { cur = pin; stage = 'new'; $('spwStep').textContent = titles[stage]; pp.reset(''); return; }
+      if (stage === 'new') {
+        if (pin === cur) { pp.reset('지금 비밀번호와 다른 번호로 정해요.'); return; }
+        first = pin; stage = 'again'; $('spwStep').textContent = titles[stage]; pp.reset(''); return;
+      }
+      if (pin !== first) { stage = 'new'; $('spwStep').textContent = titles[stage]; pp.reset('두 번 누른 번호가 달라요. 새 번호를 다시 눌러요.'); return; }
+      pp.message('바꾸는 중…');
+      change(cur, first, pin, function (ok, message) {
+        if (ok) return;
+        stage = 'current'; $('spwStep').textContent = titles[stage]; pp.reset(message || '다시 해 봐요.');
+      });
+    });
+    $('spwStep').textContent = titles.current;
+  }
+  function change(cur, nw, nw2, done) {
+    api('s_changePin', TOKEN, cur, nw, nw2).then(function (r) {
+      if (!r.ok) { done(false, r.message); return; }
+      D.초기비번여부 = false;
+      toast('비밀번호를 바꿨어요. 잊지 말아요!');
+      done(true);
+      go('core', 'profile');
+    }).catch(function (e) { done(false, (e && e.message) || String(e)); });
+  }
+  $('btnSpw').onclick = function () {
+    var cur = $('spwCur').value.trim(), nw = $('spwNew').value.trim(), nw2 = $('spwNew2').value.trim();
+    if (!cur) { setStatus('spwStatus', '지금 비밀번호를 입력해 주세요.', 'err'); return; }
+    if (!/^\d{4}$/.test(nw)) { setStatus('spwStatus', '새 비밀번호는 숫자 4자리예요.', 'err'); return; }
+    if (nw !== nw2) { setStatus('spwStatus', '새 비밀번호 두 개가 서로 달라요.', 'err'); return; }
+    var btn = this; btn.disabled = true; setStatus('spwStatus', '바꾸는 중…');
+    change(cur, nw, nw2, function (ok, message) { btn.disabled = false; if (!ok) setStatus('spwStatus', message, 'err'); });
+  };
+
+  return { navTop: navTop, navBottom: navBottom, init: init, show: show, reset: reset };
+})();
+
+/** 배지 묶음(s_badges / t_studentProfile.배지) → HTML. 학생·교사 화면 공용 */
+function badgeWallHTML(b, 모듈목록) {
+  var colorOf = function (c) { return { mint: 'var(--brand)', sky: 'var(--sky)', coral: 'var(--coral)', blue: 'var(--blue)', sun: 'var(--sun)', violet: 'var(--violet)' }[c] || 'var(--brand)'; };
+  var show = function (v) { return typeof v === 'number' ? fmt(v) : esc(String(v)); };
+  var unitOf = function (x) { return x.기준 !== undefined && x.값 !== undefined && !x.달성 ? '<small>' + show(x.값) + ' / ' + show(x.기준) + '</small>' : ''; };
+  var card = function (x) {
+    return '<div class="bcard' + (x.달성 ? ' on' : (x.진행 && x.진행 >= 50 && x.상태 ? ' wait' : '')) + '" title="' + esc(x.설명) + '"><i class="ti ti-' + (x.아이콘 || 'award') + '"></i><b>' + esc(x.이름) + '</b><small>' + esc(x.설명) + '</small>' +
+      (x.달성 ? '' : '<div class="prog"><i style="width:' + (x.진행 || 0) + '%"></i></div>' + unitOf(x)) + '</div>';
+  };
+  var h = '<div class="bhead" style="--dc:var(--brand);margin-top:0"><i class="md ti ti-sparkles"></i><h3>통합 배지</h3><span class="unit">' + b.통합.filter(function (x) { return x.달성; }).length + ' / ' + b.통합.length + '</span></div><div class="bwall" style="--dc:var(--brand)">' + b.통합.map(card).join('') + '</div>';
+  b.모듈.forEach(function (m) {
+    var info = findOne(모듈목록 || [], function (x) { return x.key === m.key; }) || { 아이콘: m.아이콘, 색: m.색 };
+    var dc = colorOf(info.색 || m.색);
+    h += '<div class="bhead" style="--dc:' + dc + '"><i class="md ti ti-' + (info.아이콘 || m.아이콘) + '"></i><h3>' + esc(m.이름) + '</h3><span class="unit">' + m.달성수 + ' / ' + m.전체수 + '</span></div><div class="bwall" style="--dc:' + dc + '">' + m.배지.map(card).join('') + '</div>';
+  });
+  return h;
+}
+</script>

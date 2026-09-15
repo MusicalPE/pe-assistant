@@ -1,0 +1,663 @@
+<!-- 교사 홈 : 대시보드 · 학생 명단 · 설정 · 초기화 (공통, 모듈 아님) -->
+<style>
+.dash-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
+.dcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;gap:4px;text-align:left;color:var(--ink);border-left:4px solid var(--dc,var(--brand));transition:transform .08s,box-shadow .15s;}
+.dcard:hover{transform:translateY(-1px);box-shadow:0 10px 26px -12px rgba(22,35,46,.25);background:var(--card);border-color:var(--line);}
+.dcard .mod{font-size:11.5px;font-weight:700;color:var(--ink-3);display:flex;align-items:center;gap:6px;letter-spacing:.02em;}
+.dcard .ttl{font-size:14.5px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:8px;}
+.dcard .ttl .cnt{background:var(--coral);color:#fff;font-size:11px;font-weight:800;padding:1px 7px;border-radius:99px;}
+.dcard .val{font-size:26px;font-weight:800;letter-spacing:-.04em;line-height:1.1;}
+.dcard .val small{font-size:13px;color:var(--ink-3);font-weight:600;margin-left:3px;}
+.dcard .dsc{font-size:12.5px;color:var(--ink-2);}
+.grade-row{display:flex;gap:8px;flex-wrap:wrap;}
+.grade-row span{background:var(--soft);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;}
+.grade-row span b{font-size:16px;margin-left:4px;}
+.stu-filter{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+.mod-toggle{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff;}
+.mod-toggle .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0;}
+.mod-toggle b{display:block;letter-spacing:-.02em;}
+.mod-toggle small{color:var(--ink-3);font-size:12.5px;}
+.mod-toggle.off{opacity:.6;}
+.mod-toggle .sw{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-2);}
+.mod-toggle .sw input{width:20px;height:20px;accent-color:var(--brand);}
+.grade-picks{display:flex;gap:6px;flex-wrap:wrap;}
+.grade-picks label{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer;background:#fff;font-size:14px;font-weight:600;}
+.grade-picks label.on{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-ink);}
+.grade-picks input{margin:0;width:16px;height:16px;accent-color:var(--brand);}
+.opt{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:14px;cursor:pointer;}
+.opt input{width:17px;height:17px;accent-color:var(--warn);margin-top:3px;}
+.reset-box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.reset-box b{display:block;margin-bottom:4px;}
+</style>
+
+<div class="mroot hide" data-mod="core" data-role="T" id="core_T">
+
+  <!-- ===== 대시보드 ===== -->
+  <div class="page" id="core_tp_dash">
+    <div class="page-head"><h2>오늘 할 일</h2><span class="sub" id="dashSub"></span></div>
+    <div id="dashPwNote" class="note sun hide"><i class="ti ti-key"></i><div>교사 비밀번호가 초기값(1234)입니다. <b>설정</b>에서 바꿔 주세요.</div></div>
+    <div id="dashUpdNote" class="note hide"><i class="ti ti-sparkles"></i><div>새 버전 <b id="dashUpdVer"></b>이 있어요. <b>설정 → 업데이트</b>에서 한 번에 받을 수 있습니다.</div></div>
+    <div id="dashEmptyNote" class="note hide"><i class="ti ti-users"></i><div>아직 학생이 없습니다. <b>학생 명단</b>에서 명렬을 붙여 넣어 주세요. <button class="mini soft" id="dashGoStudents">학생 명단으로</button></div></div>
+    <div id="dashUnassigned" class="note sun hide"><i class="ti ti-alert-triangle"></i><div><b><span id="dashUnassignedN">0</span>명</b>은 반·번호가 아직 없어 로그인할 수 없습니다. 학생 명단에서 명렬 붙여넣기(기존 학생 채우기)로 넣어 주세요.</div></div>
+    <div class="kpis" id="dashKpis"></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-layout-grid"></i>모듈별 현황</h3><div class="spacer"></div><button class="mini ghost" id="dashRefresh"><i class="ti ti-refresh"></i>새로고침</button></div>
+      <div class="panel-body"><div class="dash-cards" id="dashCards"></div><div class="unit hide" id="dashNoMods" style="padding:6px 0">켜진 모듈이 없습니다. 설정 > 모듈에서 켜 주세요.</div></div>
+    </div>
+  </div>
+
+  <!-- ===== 학생 프로필 ===== -->
+  <div class="page hide" id="core_tp_profile">
+    <div class="page-head"><h2>학생 프로필</h2><span class="sub">한 학생의 모든 활동과 배지를 한눈에 봅니다. 반 전체의 배지 현황표도 여기서 봅니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>학년</label><select id="pfGrade"></select></div>
+      <div class="field"><label>반</label><select id="pfClass"></select></div>
+      <div class="field"><label>학생</label><select id="pfStudent" style="min-width:160px"><option value="">반 전체 배지 현황</option></select></div>
+      <div class="spacer"></div>
+      <button class="mini soft hide" id="pfCopy"><i class="ti ti-table-export"></i>표 복사</button>
+    </div>
+    <div id="pfOne" class="hide">
+      <div class="s-hero" style="padding:18px 22px">
+        <div style="flex:1;min-width:200px"><h2 id="pfName"></h2><p id="pfSub"></p></div>
+        <div class="stats" id="pfStats"></div>
+      </div>
+      <div class="dash-cards" id="pfCards" style="margin-bottom:6px"></div>
+      <div class="unit hide" id="pfNoCards" style="padding:6px 0 10px">참여 중인 활동이 없습니다.</div>
+      <div id="pfBadges"></div>
+    </div>
+    <div id="pfClassBox" class="panel">
+      <div class="panel-head"><h3><i class="ti ti-award"></i>배지 현황표</h3><span class="unit" id="pfClassSub"></span></div>
+      <div class="scroll-x"><table id="pfTable"><thead id="pfHead"></thead><tbody id="pfRows"></tbody></table></div>
+      <div class="empty hide" id="pfEmpty"><i class="ti ti-users"></i><strong>학생이 없습니다</strong></div>
+    </div>
+  </div>
+
+  <!-- ===== 학생 명단 ===== -->
+  <div class="page hide" id="core_tp_students">
+    <div class="page-head"><h2>학생 명단</h2><span class="sub">모든 모듈이 이 명단 하나를 씁니다. 학생ID는 바뀌지 않고, 학년·반·번호는 매년 바뀝니다.</span></div>
+    <div class="bar">
+      <button id="btnStuAdd"><i class="ti ti-user-plus"></i>학생 추가</button>
+      <button class="ghost" id="btnStuBulk"><i class="ti ti-clipboard-text"></i>명렬 붙여넣기</button>
+      <button class="ghost" id="btnStuReset"><i class="ti ti-key"></i>비밀번호 초기화</button>
+      <button class="soft" id="btnStuCards"><i class="ti ti-printer"></i>비밀번호 카드 인쇄</button>
+      <button class="ghost" id="btnStuPromote"><i class="ti ti-arrow-big-up-lines"></i>학년 올리기</button>
+      <select id="stuStatusSel" style="min-width:110px"><option value="">상태 바꾸기…</option><option value="재학">재학으로</option><option value="졸업">졸업 처리</option><option value="전출">전출 처리</option></select>
+      <div class="spacer"></div>
+      <div class="stu-filter">
+        <div class="field"><label for="stuGrade">학년</label><select id="stuGrade"><option value="">전체</option></select></div>
+        <div class="field"><label for="stuState">상태</label><select id="stuState"><option value="재학">재학</option><option value="졸업">졸업</option><option value="전출">전출</option><option value="">전체</option></select></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="scroll-x"><table><thead><tr>
+        <th><input type="checkbox" id="chkStuAll" title="모두 선택"></th><th>학년</th><th>반</th><th>번호</th><th>이름</th><th>성별</th><th>비밀번호</th><th>상태</th><th>비고</th><th>ID</th><th></th>
+      </tr></thead><tbody id="stuRows"></tbody></table></div>
+      <div class="empty hide" id="stuEmpty"><i class="ti ti-users"></i><strong>학생이 없습니다</strong>학생 추가나 명렬 붙여넣기로 등록해 주세요.</div>
+      <div class="savebar"><span class="status" id="stuStatus"></span><div class="spacer"></div><span class="unit" id="stuCount"></span></div>
+    </div>
+    <div class="note"><i class="ti ti-lock"></i><div>학생이 직접 바꾼 비밀번호는 암호화되어 선생님도 볼 수 없습니다. 잊어버리면 선택해서 <b>비밀번호 초기화</b>하거나 <b>수정</b>에서 직접 정해 주세요. 5번 틀려 잠긴 학생도 초기화하면 바로 풀립니다.</div></div>
+    <div class="note sun"><i class="ti ti-arrow-big-up-lines"></i><div><b>학년 올리기</b>는 새 학기에 씁니다. 선택한 학생의 학년이 +1 되고 반·번호가 비워지며, 6학년은 졸업 처리됩니다. 그 다음 <b>명렬 붙여넣기 → 기존 학생 채우기</b>로 새 반·번호를 넣으면 기록이 이어집니다.</div></div>
+  </div>
+
+  <!-- ===== 설정 ===== -->
+  <div class="page hide" id="core_tp_settings">
+    <div class="page-head"><h2>설정</h2></div>
+    <div class="grid g2" style="align-items:start">
+      <div>
+        <div class="panel">
+          <div class="panel-head"><h3><i class="ti ti-school"></i>프로그램 · 학교</h3></div>
+          <div class="panel-body grid g2">
+            <div class="field"><label for="setTitle">프로그램 이름 (선생님 화면)</label><input type="text" id="setTitle" maxlength="30"></div>
+            <div class="field"><label for="setStuTitle">학생·학부모가 보는 이름</label><input type="text" id="setStuTitle" maxlength="30" placeholder="예: 봉동초 체육 기록장"></div>
+            <div class="field"><label for="setYear">학년도</label><input type="number" id="setYear" min="2020" max="2100"></div>
+            <div class="field"><label for="setSchool">학교명</label><input type="text" id="setSchool"></div>
+            <div class="field"><label for="setPrincipal">학교장</label><input type="text" id="setPrincipal"></div>
+            <div class="field"><label for="setTeacher">담당 교사</label><input type="text" id="setTeacher"></div>
+            <div class="field"><label for="setPhone">전화</label><input type="tel" id="setPhone"></div>
+            <div class="field" style="grid-column:1/-1"><label for="setEmail">이메일</label><input type="email" id="setEmail"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3><i class="ti ti-users"></i>학생 등록 · 로그인</h3></div>
+          <div class="panel-body">
+            <div class="field" style="margin-bottom:12px"><label>등록할 수 있는 학년</label><div class="grade-picks" id="setGrades"></div></div>
+            <div class="grid g3">
+              <div class="field"><label for="setClasses">반 수 (1~N)</label><input type="number" id="setClasses" min="1" max="30"></div>
+              <div class="field"><label for="setLoginMode">학생 비밀번호 입력</label><select id="setLoginMode"><option value="숫자판">숫자판 (태블릿)</option><option value="입력칸">입력칸 (키보드)</option></select></div>
+              <div class="field"><label for="setIdle">학생 자동 나가기 (분)</label><input type="number" id="setIdle" min="1" max="60"></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3><i class="ti ti-key"></i>교사 비밀번호</h3></div>
+          <div class="panel-body bar" style="margin:0;border:none;box-shadow:none;padding:16px 18px">
+            <div class="field"><label for="pwCur">현재</label><input type="password" id="pwCur"></div>
+            <div class="field"><label for="pwNew">새 비밀번호</label><input type="password" id="pwNew"></div>
+            <div class="field"><label for="pwNew2">다시 입력</label><input type="password" id="pwNew2"></div>
+            <button class="ghost" id="btnPwChange"><i class="ti ti-lock"></i>변경</button>
+            <span class="status" id="pwStatus"></span>
+          </div>
+          <div class="panel-body unit" style="padding-top:0">잊어버리면 스프레드시트 메뉴 <code>체육교사 보조 → 교사 비밀번호 초기화</code>로 1234로 되돌립니다.</div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-head"><h3><i class="ti ti-layout-grid"></i>모듈</h3><div class="spacer"></div><span class="unit">끄면 메뉴에서 사라지지만 시트와 기록은 남습니다</span></div>
+          <div class="panel-body" id="setMods"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3><i class="ti ti-link"></i>접속 주소</h3></div>
+          <div class="panel-body" id="setLinks"></div>
+        </div>
+        <div class="panel"><div class="panel-head"><h3><i class="ti ti-refresh"></i>업데이트</h3></div>
+          <div class="panel-body" id="setUpdate"><div class="unit">불러오는 중…</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="savebar" style="border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)"><span class="status" id="setStatus"></span><div class="spacer"></div><button id="btnSetSave"><i class="ti ti-device-floppy"></i>설정 저장</button></div>
+  </div>
+
+  <!-- ===== 초기화 ===== -->
+  <div class="page hide" id="core_tp_reset">
+    <div class="page-head"><h2>초기화</h2><span class="sub">지운 자료는 되돌릴 수 없습니다</span></div>
+    <div class="note warn"><i class="ti ti-alert-triangle"></i><div>지우기 전에 스프레드시트를 <b>파일 → 사본 만들기</b>로 복사해 두시길 권합니다. 설정·기준표는 어떤 경우에도 지워지지 않습니다.</div></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-eraser"></i>지울 자료 고르기</h3><div class="spacer"></div><button class="mini ghost" id="rsRefresh"><i class="ti ti-refresh"></i>새로고침</button></div>
+      <div class="panel-body" id="rsBody"><div class="unit">불러오는 중…</div></div>
+      <div class="savebar">
+        <div class="field"><label for="rsConfirm">확인 — 초기화 라고 입력</label><input type="text" id="rsConfirm" placeholder="초기화" style="width:140px"></div>
+        <button class="danger" id="btnResetAll"><i class="ti ti-trash"></i>선택한 자료 지우기</button>
+        <span class="status" id="rsStatus"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 모달: 학생 추가/수정 ===== -->
+<div id="mdStudent" class="modal hide">
+  <div style="max-width:520px">
+    <div class="panel-head"><h3 id="mdStuTitle"><i class="ti ti-user-plus"></i>학생 추가</h3><div class="spacer"></div><button class="ghost mini" data-close="mdStudent"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body">
+      <input type="hidden" id="msId">
+      <div class="trio" style="margin-bottom:10px">
+        <div class="field"><label for="msGrade">학년</label><select id="msGrade"></select></div>
+        <div class="field"><label for="msClass">반</label><select id="msClass"></select></div>
+        <div class="field"><label for="msNo">번호</label><input type="number" id="msNo" min="1" max="99"></div>
+      </div>
+      <div class="grid g3" style="margin-bottom:10px">
+        <div class="field"><label for="msName">이름</label><input type="text" id="msName"></div>
+        <div class="field"><label for="msSex">성별</label><select id="msSex"><option value="">–</option><option value="남">남</option><option value="여">여</option></select></div>
+        <div class="field"><label for="msPin" id="msPinLabel">비밀번호 (비우면 자동)</label><input type="text" id="msPin" inputmode="numeric" maxlength="4" placeholder="숫자 4자리"></div>
+      </div>
+      <div class="grid g2">
+        <div class="field"><label for="msMemo">비고</label><input type="text" id="msMemo" placeholder="예: 건강체력교실 참가"></div>
+        <div class="field"><label for="msState">상태</label><select id="msState"><option value="재학">재학</option><option value="졸업">졸업</option><option value="전출">전출</option></select></div>
+      </div>
+    </div>
+    <div class="savebar"><span class="status" id="msStatus"></span><div class="spacer"></div><button id="btnStuSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+  </div>
+</div>
+
+<!-- ===== 모달: 명렬 붙여넣기 ===== -->
+<div id="mdBulk" class="modal hide">
+  <div style="max-width:600px">
+    <div class="panel-head"><h3><i class="ti ti-clipboard-text"></i>명렬 붙여넣기</h3><div class="spacer"></div><button class="ghost mini" data-close="mdBulk"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body">
+      <div class="bar" style="margin-bottom:10px;box-shadow:none">
+        <div class="field"><label for="bkGrade">학년</label><select id="bkGrade"></select></div>
+        <div class="field"><label for="bkClass">반</label><select id="bkClass"></select></div>
+        <label class="chk" id="bkMatchWrap" style="margin-left:auto"><input type="checkbox" id="bkMatch"><span>기존 학생 채우기 (학년 올리기 뒤)</span></label>
+      </div>
+      <p class="unit" style="margin:0 0 8px">한 줄에 <b>번호 이름 성별</b> 순서 (탭·쉼표·공백 모두 됩니다). 줄에 <b>학년 반 번호 이름</b>을 쓰면 그 값이 우선합니다. 성별을 빼도 됩니다. 나이스나 엑셀에서 복사해 붙여도 됩니다.</p>
+      <textarea id="bkText" placeholder="1&#9;김하늘&#9;여&#10;2&#9;박도윤&#9;남&#10;3&#9;이서준"></textarea>
+    </div>
+    <div class="savebar"><span class="status" id="bkStatus"></span><div class="spacer"></div><button id="btnBulkSave"><i class="ti ti-users-plus"></i>등록</button></div>
+  </div>
+</div>
+
+<!-- ===== 모달: 비밀번호 카드 ===== -->
+<div id="mdCards" class="modal hide">
+  <div style="max-width:860px">
+    <div class="panel-head"><h3><i class="ti ti-printer"></i>비밀번호 카드</h3><span class="unit" id="cardsInfo"></span><div class="spacer"></div>
+      <button class="mini" id="btnCardsPrint"><i class="ti ti-printer"></i>인쇄</button>
+      <button class="ghost mini" data-close="mdCards"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body"><div id="printSheet"><div class="pcards" id="cardsGrid"></div></div></div>
+  </div>
+</div>
+
+<script>
+MODS.core = MODS.core || {};
+MODS.core.teacher = (function () {
+  var D = null;        // t_boot 응답
+  var HOME = null;     // t_home 응답
+  var MODLIST = [];    // 켜진 모듈
+  var pages = ['dash', 'students', 'profile', 'settings', 'reset'];
+
+  var navTop = [
+    { section: '홈' },
+    { id: 'dash', label: '오늘 할 일', icon: 'layout-dashboard' },
+    { id: 'students', label: '학생 명단', icon: 'users' },
+    { id: 'profile', label: '학생 프로필', icon: 'id-badge-2' }
+  ];
+  var navBottom = [
+    { section: '설정' },
+    { id: 'settings', label: '설정', icon: 'settings' },
+    { id: 'reset', label: '초기화', icon: 'trash' }
+  ];
+
+  function init(ctx) {
+    D = ctx; if (D.홈) D.홈시각 = Date.now();
+    MODLIST = (ctx.모듈 || []).filter(function (m) { return m.사용; });
+    fillSelects();
+  }
+  function reset() { D = null; HOME = null; MODLIST = []; }
+  function show(p) {
+    pages.forEach(function (id) { $('core_tp_' + id).classList.toggle('hide', id !== p); });
+    if (!D) return;
+    ({ dash: renderDash, students: renderStudents, profile: renderProfilePage, settings: renderSettings, reset: renderReset }[p] || function () {})();
+  }
+
+  function range(a, b) { var out = []; for (var i = a; i <= b; i++) out.push(i); return out; }
+  function options(list, cur, label) {
+    return list.map(function (v) { return '<option value="' + esc(v) + '"' + (String(v) === String(cur) ? ' selected' : '') + '>' + esc(label ? label(v) : v) + '</option>'; }).join('');
+  }
+  function fillSelects() {
+    var gs = D.설정.학년범위, cs = range(1, D.설정.반범위);
+    ['msGrade', 'bkGrade'].forEach(function (id) { $(id).innerHTML = options(gs, gs[0], function (g) { return g + '학년'; }); });
+    ['msClass', 'bkClass'].forEach(function (id) { $(id).innerHTML = options(cs, 1, function (c) { return c + '반'; }); });
+    var cur = $('stuGrade').value;
+    $('stuGrade').innerHTML = '<option value="">전체</option>' + options(gs, cur, function (g) { return g + '학년'; });
+  }
+  function modInfo(key) { return findOne(D.모듈, function (m) { return m.key === key; }) || { 이름: key, 색: 'mint', 아이콘: 'box' }; }
+  function colorVar(c) { return { mint: 'var(--brand)', sky: 'var(--sky)', coral: 'var(--coral)', blue: 'var(--blue)', sun: 'var(--sun)', violet: 'var(--violet)' }[c] || 'var(--brand)'; }
+  Array.prototype.forEach.call(document.querySelectorAll('#mdStudent [data-close], #mdBulk [data-close], #mdCards [data-close]'), function (b) {
+    b.onclick = function () { $(b.getAttribute('data-close')).classList.add('hide'); };
+  });
+
+  /* ================= 대시보드 ================= */
+  function kpi(lab, val, unit, icon, cls) {
+    return '<div class="kpi ' + (cls || '') + '"><div class="lab"><i class="ti ti-' + icon + '"></i>' + lab + '</div><div class="val">' + val + (unit ? '<small>' + unit + '</small>' : '') + '</div></div>';
+  }
+  function renderDash() {
+    $('dashPwNote').classList.toggle('hide', !D.기본비번여부);
+    var up = D.업데이트; $('dashUpdNote').classList.toggle('hide', !(up && up.새버전)); if (up && up.새버전) $('dashUpdVer').textContent = 'v' + up.최신;
+    $('dashSub').textContent = (D.설정.학교명 ? D.설정.학교명 + ' · ' : '') + D.설정.학년도 + '학년도';
+    $('dashCards').innerHTML = '<div class="unit">불러오는 중…</div>';
+    var pre = (D.홈 && Date.now() - (D.홈시각 || 0) < 15000) ? D.홈 : null; D.홈 = null;   // 로그인 직후 첫 화면에만 미리 받은 자료를 쓰고, 다음부터는 새로 읽음
+    (pre ? Promise.resolve(pre) : api('t_home', TOKEN)).then(function (h) {
+      HOME = h;
+      $('dashEmptyNote').classList.toggle('hide', h.학생수 > 0);
+      $('dashUnassigned').classList.toggle('hide', !h.미배정);
+      $('dashUnassignedN').textContent = h.미배정;
+      var grades = Object.keys(h.학년별).sort();
+      $('dashKpis').innerHTML =
+        kpi('재학생', h.학생수, '명', 'users', 'brand') +
+        kpi('켜진 모듈', MODLIST.length, '개', 'layout-grid', '') +
+        grades.map(function (g) { return kpi(g + '학년', h.학년별[g], '명', 'user', ''); }).join('');
+      var 대기합 = 0;
+      Object.keys(h.대기 || {}).forEach(function (k) { 대기합 += Number(h.대기[k]) || 0; });
+      MODLIST.forEach(function (m) { var n = (h.대기 || {})[m.key]; if (n && MODS[m.key] && MODS[m.key].teacher && MODS[m.key].teacher.pendingPage) setNavCount(m.key, MODS[m.key].teacher.pendingPage, n); });
+      var cards = (h.카드 || []).map(function (c, i) {
+        var m = modInfo(c.모듈);
+        return '<button class="dcard" data-i="' + i + '" style="--dc:' + colorVar(m.색) + '"><span class="mod"><i class="ti ti-' + m.아이콘 + '"></i>' + esc(m.이름) + '</span>' +
+          '<span class="ttl">' + esc(c.제목) + (c.배지 ? '<span class="cnt">' + esc(c.배지) + '</span>' : '') + '</span>' +
+          (c.값 !== undefined && c.값 !== '' ? '<span class="val">' + esc(c.값) + (c.단위 ? '<small>' + esc(c.단위) + '</small>' : '') + '</span>' : '') +
+          (c.설명 ? '<span class="dsc">' + esc(c.설명) + '</span>' : '') + '</button>';
+      }).join('');
+      $('dashCards').innerHTML = cards;
+      $('dashNoMods').classList.toggle('hide', MODLIST.length > 0);
+      Array.prototype.forEach.call($('dashCards').querySelectorAll('[data-i]'), function (b) {
+        b.onclick = function () { var c = h.카드[Number(b.getAttribute('data-i'))]; if (c.이동) go(c.모듈, c.이동); };
+      });
+    }).catch(handleErr);
+  }
+  $('dashRefresh').onclick = renderDash;
+  $('dashGoStudents').onclick = function () { go('core', 'students'); };
+
+  /* ================= 학생 명단 ================= */
+  function applyRoster(r) { if (D) D.홈 = null; if (r && r.학생) { D.학생 = r.학생; if (D.학생 && CTX) CTX.학생 = D.학생; } }
+  function studentById(id) { return findOne(D.학생, function (s) { return s.학생ID === id; }); }
+  function filtered() {
+    var g = $('stuGrade').value, st = $('stuState').value;
+    return D.학생.filter(function (s) { return (!g || String(s.학년) === g) && (!st || s.상태 === st); });
+  }
+  function renderStudents() {
+    fillSelects();
+    var list = filtered();
+    $('chkStuAll').checked = false;
+    $('stuEmpty').classList.toggle('hide', list.length > 0);
+    $('stuCount').textContent = list.length + '명 표시 · 전체 재학 ' + D.학생.filter(function (s) { return s.상태 === '재학'; }).length + '명';
+    $('stuRows').innerHTML = list.map(function (s) {
+      var pin = s.비번상태 === '초기' ? '<span class="pw">' + esc(s.초기비밀번호) + '</span> <span class="tag">초기</span>'
+        : s.비번상태 === '변경함' ? '<span class="tag brand"><i class="ti ti-lock"></i>학생이 바꿈</span>' : '<span class="tag warn">없음</span>';
+      var st = s.상태 === '재학' ? '' : '<span class="tag ' + (s.상태 === '졸업' ? 'sun' : 'warn') + '">' + esc(s.상태) + '</span>';
+      var miss = s.상태 === '재학' && (!s.반 || !s.번호) ? ' <span class="tag warn">반·번호 없음</span>' : '';
+      return '<tr><td><input type="checkbox" data-stu="' + esc(s.학생ID) + '"></td><td class="num">' + s.학년 + '</td><td class="num">' + (s.반 || '–') + '</td><td class="num">' + (s.번호 || '–') + '</td>' +
+        '<td class="name">' + esc(s.이름) + miss + '</td><td class="num">' + esc(s.성별 || '–') + '</td><td>' + pin + '</td><td>' + st + '</td>' +
+        '<td style="font-size:13px;color:var(--ink-2)">' + esc(s.비고 || '') + '</td><td class="unit pw">' + esc(s.학생ID) + '</td>' +
+        '<td style="white-space:nowrap"><button class="mini ghost" data-edit="' + esc(s.학생ID) + '"><i class="ti ti-pencil"></i>수정</button> <button class="mini danger" data-del="' + esc(s.학생ID) + '"><i class="ti ti-trash"></i>삭제</button></td></tr>';
+    }).join('');
+    Array.prototype.forEach.call($('stuRows').querySelectorAll('[data-edit]'), function (b) { b.onclick = function () { openStudent(studentById(b.getAttribute('data-edit'))); }; });
+    Array.prototype.forEach.call($('stuRows').querySelectorAll('[data-del]'), function (b) {
+      b.onclick = function () {
+        var s = studentById(b.getAttribute('data-del'));
+        var t = prompt(학생표시(s) + ' 학생과 모든 모듈의 그 학생 기록을 지웁니다.\n되돌릴 수 없습니다. 계속하려면 "삭제"라고 입력하세요.\n\n(기록은 두고 명단에서만 빼려면 삭제 대신 졸업·전출 처리를 쓰세요)');
+        if (t === null) return;
+        api('t_deleteStudents', TOKEN, [s.학생ID], t).then(function (r) {
+          if (!r.ok) { toast(r.message, 'err'); return; }
+          applyRoster(r); renderStudents(); toast('삭제했습니다');
+        }).catch(handleErr);
+      };
+    });
+  }
+  $('stuGrade').onchange = renderStudents;
+  $('stuState').onchange = renderStudents;
+  $('chkStuAll').onchange = function () {
+    var on = this.checked;
+    Array.prototype.forEach.call($('stuRows').querySelectorAll('[data-stu]'), function (cb) { cb.checked = on; });
+  };
+  function selectedIds() { return Array.prototype.map.call($('stuRows').querySelectorAll('[data-stu]:checked'), function (cb) { return cb.getAttribute('data-stu'); }); }
+  function needSelection() { var ids = selectedIds(); if (!ids.length) toast('표에서 학생을 먼저 선택해 주세요', 'err'); return ids; }
+
+  function openStudent(s) {
+    $('mdStuTitle').innerHTML = '<i class="ti ti-user-' + (s ? 'edit' : 'plus') + '"></i>' + (s ? '학생 수정' : '학생 추가');
+    $('msId').value = s ? s.학생ID : '';
+    var f = $('stuGrade').value;
+    $('msGrade').value = s ? s.학년 : (f || $('msGrade').value);
+    $('msClass').value = s ? (s.반 || 1) : $('msClass').value;
+    $('msNo').value = s ? (s.번호 || '') : '';
+    $('msName').value = s ? s.이름 : '';
+    $('msSex').value = s ? s.성별 : '';
+    $('msMemo').value = s ? s.비고 || '' : '';
+    $('msState').value = s ? s.상태 : '재학';
+    $('msPin').value = '';
+    $('msPinLabel').textContent = s ? '새 비밀번호 (입력할 때만 바뀜)' : '비밀번호 (비우면 자동)';
+    setStatus('msStatus', '');
+    $('mdStudent').classList.remove('hide');
+    setTimeout(function () { (s ? $('msName') : $('msNo')).focus(); }, 30);
+  }
+  $('btnStuAdd').onclick = function () { openStudent(null); };
+  $('btnStuSave').onclick = function () {
+    var m = { 학생ID: $('msId').value, 학년: Number($('msGrade').value), 반: Number($('msClass').value), 번호: Number($('msNo').value),
+      이름: $('msName').value, 성별: $('msSex').value, 비고: $('msMemo').value, 상태: $('msState').value, 비밀번호: $('msPin').value.trim() };
+    var btn = this; btn.disabled = true; setStatus('msStatus', '저장 중…');
+    api('t_saveStudent', TOKEN, m).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { setStatus('msStatus', r.message, 'err'); return; }
+      applyRoster(r); renderStudents();
+      if (m.학생ID) { $('mdStudent').classList.add('hide'); toast('저장했습니다'); }
+      else {
+        toast(m.이름 + ' 학생을 추가했습니다');
+        $('msNo').value = m.번호 + 1; $('msName').value = ''; $('msMemo').value = ''; $('msPin').value = ''; $('msSex').value = '';
+        setStatus('msStatus', '추가했어요. 이어서 다음 학생을 입력하세요.', 'ok');
+        $('msName').focus();
+      }
+    }).catch(function (e) { btn.disabled = false; setStatus('msStatus', ''); handleErr(e); });
+  };
+  $('msName').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('btnStuSave').click(); });
+
+  $('btnStuBulk').onclick = function () {
+    var f = $('stuGrade').value;
+    $('bkGrade').value = f || $('msGrade').value; $('bkClass').value = $('msClass').value;
+    $('bkText').value = ''; setStatus('bkStatus', '');
+    var 대기 = D.학생.filter(function (s) { return s.상태 === '재학' && (!s.반 || !s.번호); }).length;
+    $('bkMatch').checked = 대기 > 0;
+    $('bkMatchWrap').classList.toggle('on', 대기 > 0);
+    $('bkMatchWrap').querySelector('span').textContent = '기존 학생 채우기' + (대기 ? ' (반·번호 없는 ' + 대기 + '명)' : ' (학년 올리기 뒤)');
+    $('mdBulk').classList.remove('hide');
+    setTimeout(function () { $('bkText').focus(); }, 30);
+  };
+  $('bkMatch').onchange = function () { $('bkMatchWrap').classList.toggle('on', this.checked); };
+  $('btnBulkSave').onclick = function () {
+    if (!$('bkText').value.trim()) return;
+    var btn = this; btn.disabled = true; setStatus('bkStatus', '등록 중…');
+    api('t_bulkAdd', TOKEN, Number($('bkGrade').value), Number($('bkClass').value), $('bkText').value, { 매칭: $('bkMatch').checked }).then(function (r) {
+      btn.disabled = false;
+      applyRoster(r); renderStudents();
+      var m = (r.ok ? (r.added ? r.added + '명 등록' : '') + (r.matched ? (r.added ? ', ' : '') + r.matched + '명 반·번호 채움' : '') + '. ' : r.message + ' ') +
+              (r.failed.length ? '건너뜀: ' + r.failed.join(' / ') : '');
+      setStatus('bkStatus', m, r.ok && !r.failed.length ? 'ok' : 'err');
+      if (r.ok && !r.failed.length) setTimeout(function () { $('mdBulk').classList.add('hide'); }, 900);
+    }).catch(function (e) { btn.disabled = false; handleErr(e); });
+  };
+
+  $('btnStuReset').onclick = function () {
+    var ids = needSelection(); if (!ids.length) return;
+    if (!confirm(ids.length + '명의 비밀번호를 새 초기 비밀번호로 바꿉니다.\n학생이 바꾼 비밀번호도 초기화됩니다. 계속할까요?')) return;
+    api('t_resetPins', TOKEN, ids).then(function (r) {
+      if (!r.ok) { toast(r.message, 'err'); return; }
+      applyRoster(r); renderStudents();
+      toast(r.count + '명의 비밀번호를 새로 만들었습니다. 카드로 인쇄해 나눠 주세요.');
+    }).catch(handleErr);
+  };
+  $('btnStuCards').onclick = function () {
+    var ids = selectedIds();
+    var base = ids.length ? D.학생.filter(function (s) { return ids.indexOf(s.학생ID) >= 0; }) : filtered();
+    var list = base.filter(function (s) { return s.비번상태 === '초기'; });
+    var skipped = base.length - list.length;
+    if (!list.length) { toast('인쇄할 초기 비밀번호가 없습니다. 학생이 이미 바꿨다면 초기화부터 해 주세요.', 'err'); return; }
+    $('cardsInfo').textContent = list.length + '장' + (skipped ? ' · 학생이 비밀번호를 바꾼 ' + skipped + '명은 빠짐' : '');
+    $('cardsGrid').innerHTML = list.map(function (s) {
+      return '<div class="pcard"><div class="t">' + esc((D.설정.학교명 ? D.설정.학교명 + ' · ' : '') + D.설정.학생용이름) + '</div><div class="n">' + esc(s.이름) + '</div><div class="m">' + s.학년 + '학년 ' + (s.반 || '?') + '반 ' + (s.번호 || '?') + '번</div>' +
+        '<div class="p">' + esc(s.초기비밀번호) + '</div><div class="h">학년·반·번호를 고르고 이 번호를 눌러요.<br>들어간 뒤 나만 아는 번호로 바꿀 수 있어요.</div></div>';
+    }).join('');
+    $('mdCards').classList.remove('hide');
+  };
+  $('btnCardsPrint').onclick = function () { window.print(); };
+  $('btnStuPromote').onclick = function () {
+    var ids = needSelection(); if (!ids.length) return;
+    if (!confirm(ids.length + '명의 학년을 한 학년 올립니다.\n반·번호는 비워지고(새 명렬로 다시 채움), 6학년은 졸업 처리됩니다. 기록은 그대로 남습니다.\n계속할까요?')) return;
+    api('t_promote', TOKEN, ids).then(function (r) {
+      applyRoster(r); renderStudents();
+      toast('학년 올림 ' + r.올림 + '명 · 졸업 ' + r.졸업 + '명. 명렬 붙여넣기 → 기존 학생 채우기로 새 반·번호를 넣어 주세요.');
+    }).catch(handleErr);
+  };
+  $('stuStatusSel').onchange = function () {
+    var st = this.value; this.value = '';
+    if (!st) return;
+    var ids = needSelection(); if (!ids.length) return;
+    if (!confirm(ids.length + '명을 "' + st + '" 상태로 바꿉니다. 계속할까요?')) return;
+    api('t_setStatus', TOKEN, ids, st).then(function (r) {
+      if (!r.ok) { toast(r.message, 'err'); return; }
+      applyRoster(r); renderStudents(); toast(r.count + '명을 ' + st + ' 처리했습니다');
+    }).catch(handleErr);
+  };
+
+  /* ================= 설정 ================= */
+  function renderSettings() {
+    setStatus('setStatus', ''); setStatus('pwStatus', '');
+    $('pwCur').value = ''; $('pwNew').value = ''; $('pwNew2').value = '';
+    api('t_getSettings', TOKEN).then(function (st) {
+      var s = st.설정;
+      $('setTitle').value = s.프로그램이름; $('setStuTitle').value = s.학생용이름; $('setYear').value = s.학년도;
+      $('setSchool').value = s.학교명; $('setPrincipal').value = s.학교장; $('setTeacher').value = s.담당자; $('setPhone').value = s.전화; $('setEmail').value = s.이메일;
+      $('setGrades').innerHTML = range(1, 6).map(function (g) {
+        var on = s.학년범위.indexOf(g) >= 0;
+        return '<label class="' + (on ? 'on' : '') + '"><input type="checkbox" value="' + g + '"' + (on ? ' checked' : '') + '>' + g + '학년</label>';
+      }).join('');
+      Array.prototype.forEach.call($('setGrades').querySelectorAll('input'), function (c) { c.onchange = function () { c.parentNode.classList.toggle('on', c.checked); }; });
+      $('setClasses').value = s.반범위; $('setLoginMode').value = s.학생로그인; $('setIdle').value = s.자동나가기분;
+      $('setMods').innerHTML = st.모듈목록.map(function (m) {
+        return '<div class="mod-toggle' + (m.설치 ? '' : ' off') + '"><span class="ic" style="background:' + colorVar(m.색) + '"><i class="ti ti-' + m.아이콘 + '"></i></span>' +
+          '<div><b>' + esc(m.이름) + '</b><small>' + esc(m.설명) + (m.설치 ? '' : ' · 파일이 아직 없습니다 (Mod_… 와 …_T.html 을 넣으면 켜집니다)') + '</small></div>' +
+          '<label class="sw"><input type="checkbox" data-mod="' + m.key + '"' + (m.켜짐 ? ' checked' : '') + (m.설치 ? '' : ' disabled') + '>' + (m.설치 ? '사용' : '미설치') + '</label></div>';
+      }).join('');
+      var url = D.앱URL;
+      $('setLinks').innerHTML = (url
+        ? '<div class="field" style="margin-bottom:10px"><label>학생용 주소 (태블릿에 즐겨찾기)</label><input type="text" readonly value="' + esc(url) + '" onclick="this.select()"></div>' +
+          '<div class="field" style="margin-bottom:10px"><label>선생님용 주소 (선생님 탭이 먼저 열림)</label><input type="text" readonly value="' + esc(url + '?page=teacher') + '" onclick="this.select()"></div>'
+        : '<div class="unit" style="margin-bottom:10px">웹 앱으로 배포하면 접속 주소가 여기에 나타납니다.</div>') +
+        (D.시트URL ? '<a href="' + esc(D.시트URL) + '" target="_blank" rel="noopener"><button class="soft" type="button"><i class="ti ti-table"></i>스프레드시트 열기</button></a>' : '') +
+        '<div class="unit" style="margin-top:10px">버전 ' + esc(D.버전) + '</div>';
+      renderUpdate(D.업데이트);
+    }).catch(handleErr);
+  }
+  /* ---------- 업데이트 ---------- */
+  function renderUpdate(u) {
+    var box = $('setUpdate'); if (!box) return;
+    if (!u) { box.innerHTML = '<div class="unit">이 판에서는 자동 업데이트를 쓰지 않습니다.</div>'; return; }
+    var h = '<div class="unit" style="margin-bottom:8px">지금 버전 <b>v' + esc(u.현재) + '</b>' + (u.최신 ? ' · 저장소 최신 v' + esc(u.최신) : '') + (u.확인시각 ? ' · 확인 ' + esc(String(u.확인시각).slice(5, 16)) : '') + '</div>';
+    if (u.오류) h += '<div class="note warn"><i class="ti ti-alert-triangle"></i><div>업데이트 정보를 읽지 못했습니다: ' + esc(u.오류) + '</div></div>';
+    else if (u.새버전) h += '<div class="note"><i class="ti ti-sparkles"></i><div><b>새 버전 v' + esc(u.최신) + '</b>' + (u.날짜 ? ' (' + esc(u.날짜) + ')' : '') + (u.메모 ? '<br>' + esc(u.메모).replace(/\n/g, '<br>') : '') + '<br><span class="unit">자료는 그대로 두고 프로그램 파일만 바꿉니다. 바꾸기 전 지금 코드를 드라이브에 백업합니다. 1분쯤 걸립니다.</span></div></div>';
+    else h += '<div class="note ok"><i class="ti ti-circle-check"></i><div>최신 버전입니다.</div></div>';
+    h += '<div class="chks" style="margin-top:8px"><button class="ghost mini" id="btnUpdCheck"><i class="ti ti-refresh"></i>새 버전 확인</button>' +
+      (u.새버전 ? '<button class="mini" id="btnUpdRun"><i class="ti ti-download"></i>지금 업데이트</button>' : '') +
+      '<button class="ghost mini" id="btnUpdBack"><i class="ti ti-arrow-back-up"></i>이전 버전으로 되돌리기</button><span class="status" id="updStatus"></span></div>' +
+      '<div class="unit" style="margin-top:8px">처음 한 번은 구글 계정 설정에서 <a href="https://script.google.com/home/usersettings" target="_blank" rel="noopener">Google Apps Script API</a> 를 켜 두어야 합니다. 스프레드시트 메뉴 <b>체육교사 보조 → 업데이트 확인</b>에서도 같은 일을 할 수 있습니다.</div>';
+    box.innerHTML = h;
+    $('btnUpdCheck').onclick = function () {
+      setStatus('updStatus', '확인 중…');
+      api('t_updateCheck', TOKEN, true).then(function (r) { D.업데이트 = r; renderUpdate(r); }).catch(function (e) { setStatus('updStatus', (e && e.message) || String(e), 'err'); });
+    };
+    if ($('btnUpdRun')) $('btnUpdRun').onclick = function () {
+      if (!confirm('v' + u.현재 + ' → v' + u.최신 + ' 으로 업데이트할까요?\n끝나면 화면을 새로 고칩니다.')) return;
+      var b = this; b.disabled = true; setStatus('updStatus', '업데이트 중… (1분쯤 걸립니다. 창을 닫지 마세요)');
+      api('t_updateRun', TOKEN).then(function (r) {
+        setStatus('updStatus', r.메시지, 'ok'); toast('업데이트 완료! 화면을 새로 고칩니다.');
+        setTimeout(function () { location.reload(); }, 2500);
+      }).catch(function (e) { b.disabled = false; setStatus('updStatus', (e && e.message) || String(e), 'err'); });
+    };
+    $('btnUpdBack').onclick = function () {
+      if (!confirm('마지막 업데이트 직전 코드로 되돌릴까요? 자료는 그대로입니다.')) return;
+      var b = this; b.disabled = true; setStatus('updStatus', '되돌리는 중…');
+      api('t_updateRollback', TOKEN).then(function (r) { setStatus('updStatus', r.메시지, 'ok'); setTimeout(function () { location.reload(); }, 2500); })
+        .catch(function (e) { b.disabled = false; setStatus('updStatus', (e && e.message) || String(e), 'err'); });
+    };
+  }
+  $('btnSetSave').onclick = function () {
+    var 모듈 = {};
+    Array.prototype.forEach.call($('setMods').querySelectorAll('[data-mod]'), function (c) { if (!c.disabled) 모듈[c.getAttribute('data-mod')] = c.checked; });
+    var map = { 프로그램이름: $('setTitle').value, 학생용이름: $('setStuTitle').value, 학년도: $('setYear').value, 학교명: $('setSchool').value, 학교장: $('setPrincipal').value, 담당자: $('setTeacher').value,
+      전화: $('setPhone').value, 이메일: $('setEmail').value,
+      학년범위: Array.prototype.map.call($('setGrades').querySelectorAll('input:checked'), function (c) { return Number(c.value); }),
+      반범위: Number($('setClasses').value), 학생로그인: $('setLoginMode').value, 자동나가기분: Number($('setIdle').value), 모듈: 모듈 };
+    var btn = this; btn.disabled = true; setStatus('setStatus', '저장 중…');
+    api('t_saveSettings', TOKEN, map).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { setStatus('setStatus', r.message, 'err'); return; }
+      D.설정 = r.설정; D.모듈 = r.모듈목록; CTX.설정 = r.설정; CTX.모듈 = r.모듈목록;
+      $('appTitle').textContent = r.설정.프로그램이름; document.title = r.설정.프로그램이름;
+      LOGIN.제목 = r.설정.프로그램이름; LOGIN.학생용이름 = r.설정.학생용이름;
+      var before = MODLIST.map(function (m) { return m.key; }).join(',');
+      MODLIST = r.모듈목록.filter(function (m) { return m.사용; });
+      var after = MODLIST.map(function (m) { return m.key; }).join(',');
+      fillSelects();
+      setStatus('setStatus', '저장했습니다' + (before !== after ? '. 모듈이 바뀌어 다시 로그인하면 메뉴에 반영됩니다.' : ''), 'ok');
+      if (before !== after) toast('모듈 설정이 바뀌었습니다. 로그아웃 후 다시 들어오면 메뉴에 반영됩니다.');
+    }).catch(function (e) { btn.disabled = false; setStatus('setStatus', ''); handleErr(e); });
+  };
+  $('btnPwChange').onclick = function () {
+    var cur = $('pwCur').value, nw = $('pwNew').value, nw2 = $('pwNew2').value;
+    if (!cur || !nw) { setStatus('pwStatus', '현재 비밀번호와 새 비밀번호를 입력해 주세요.', 'err'); return; }
+    if (nw !== nw2) { setStatus('pwStatus', '새 비밀번호 두 개가 서로 다릅니다.', 'err'); return; }
+    var btn = this; btn.disabled = true; setStatus('pwStatus', '바꾸는 중…');
+    api('changeTeacherPassword', TOKEN, cur, nw).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { setStatus('pwStatus', r.message, 'err'); return; }
+      setStatus('pwStatus', '바꿨습니다. 다음 로그인부터 새 비밀번호를 쓰세요.', 'ok');
+      $('pwCur').value = ''; $('pwNew').value = ''; $('pwNew2').value = '';
+      D.기본비번여부 = false; $('dashPwNote').classList.add('hide');
+    }).catch(function (e) { btn.disabled = false; setStatus('pwStatus', ''); handleErr(e); });
+  };
+
+  /* ================= 초기화 ================= */
+  var RS = null;
+  function renderReset() {
+    setStatus('rsStatus', ''); $('rsConfirm').value = '';
+    $('rsBody').innerHTML = '<div class="unit">불러오는 중…</div>';
+    api('t_resetInfo', TOKEN).then(function (info) {
+      RS = info;
+      var h = '';
+      Object.keys(info.모듈).forEach(function (key) {
+        var m = modInfo(key), items = info.모듈[key];
+        if (items && items.오류) { h += '<div class="reset-box"><b>' + esc(m.이름) + '</b><span class="unit">' + esc(items.오류) + '</span></div>'; return; }
+        h += '<div class="reset-box"><b><i class="ti ti-' + m.아이콘 + '"></i> ' + esc(m.이름) + '</b>' +
+          (items || []).map(function (it) { return '<label class="opt"><input type="checkbox" data-rs="' + key + '" value="' + esc(it.key) + '"><span>' + esc(it.이름) + ' <span class="unit">' + esc(it.수) + '건</span></span></label>'; }).join('') +
+          '</div>';
+      });
+      h += '<div class="reset-box"><b><i class="ti ti-users"></i> 공통</b><label class="opt"><input type="checkbox" id="rs학생"><span>학생 명단 전체 <span class="unit">' + info.학생 + '명</span> — 모든 모듈의 기록도 함께 지우는 것이 안전합니다</span></label></div>';
+      $('rsBody').innerHTML = h;
+    }).catch(handleErr);
+  }
+  $('rsRefresh').onclick = renderReset;
+  $('btnResetAll').onclick = function () {
+    var 모듈 = {}, any = false;
+    Array.prototype.forEach.call($('rsBody').querySelectorAll('[data-rs]:checked'), function (c) {
+      var k = c.getAttribute('data-rs'); if (!모듈[k]) 모듈[k] = {}; 모듈[k][c.value] = true; any = true;
+    });
+    var 학생 = $('rs학생') && $('rs학생').checked;
+    if (!any && !학생) { setStatus('rsStatus', '지울 자료를 골라 주세요.', 'err'); return; }
+    if (!confirm('선택한 자료를 지웁니다. 되돌릴 수 없습니다. 계속할까요?')) return;
+    var btn = this; btn.disabled = true; setStatus('rsStatus', '지우는 중…');
+    api('t_resetAll', TOKEN, { 모듈: 모듈, 학생: 학생 }, $('rsConfirm').value).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { setStatus('rsStatus', r.message, 'err'); return; }
+      setStatus('rsStatus', '지웠습니다.', 'ok');
+      if (학생) api('t_getStudents', TOKEN).then(applyRoster).catch(function () {});
+      renderReset();
+    }).catch(function (e) { btn.disabled = false; setStatus('rsStatus', ''); handleErr(e); });
+  };
+
+  /* ================= 학생 프로필 · 배지 현황 ================= */
+  var pfInit = false, PF = null;
+  function pfRoster() { return (D.학생 || []).filter(function (s) { return s.상태 === '재학'; }); }
+  function pfFill() {
+    var gs = {}; pfRoster().forEach(function (s) { gs[s.학년] = 1; });
+    var gl = Object.keys(gs).map(Number).sort(function (a, b) { return a - b; });
+    var g0 = Number($('pfGrade').value) || gl[0];
+    $('pfGrade').innerHTML = gl.map(function (g) { return '<option value="' + g + '"' + (g === g0 ? ' selected' : '') + '>' + g + '학년</option>'; }).join('');
+    var cs = {}; pfRoster().forEach(function (s) { if (Number(s.학년) === Number($('pfGrade').value)) cs[s.반] = 1; });
+    var cl = Object.keys(cs).map(Number).sort(function (a, b) { return a - b; }), c0 = Number($('pfClass').value) || cl[0];
+    $('pfClass').innerHTML = cl.map(function (c) { return '<option value="' + c + '"' + (c === c0 ? ' selected' : '') + '>' + c + '반</option>'; }).join('');
+    var cur = $('pfStudent').value;
+    var list = pfRoster().filter(function (s) { return Number(s.학년) === Number($('pfGrade').value) && Number(s.반) === Number($('pfClass').value); }).sort(function (a, b) { return a.번호 - b.번호; });
+    $('pfStudent').innerHTML = '<option value="">반 전체 배지 현황</option>' + list.map(function (s) { return '<option value="' + s.학생ID + '"' + (s.학생ID === cur ? ' selected' : '') + '>' + s.번호 + '. ' + esc(s.이름) + '</option>'; }).join('');
+  }
+  function renderProfilePage() {
+    if (!pfInit) {
+      pfInit = true;
+      $('pfGrade').onchange = function () { $('pfClass').value = ''; $('pfStudent').value = ''; pfFill(); pfLoad(); };
+      $('pfClass').onchange = function () { $('pfStudent').value = ''; pfFill(); pfLoad(); };
+      $('pfStudent').onchange = pfLoad;
+      $('pfCopy').onclick = function () {
+        var rows = Array.prototype.map.call($('pfTable').querySelectorAll('tr'), function (tr) { return Array.prototype.map.call(tr.children, function (td) { return td.innerText.replace(/\n/g, ' ').trim(); }).join('\t'); }).join('\n');
+        copyText(rows); toast('표를 복사했습니다.');
+      };
+    }
+    pfFill(); pfLoad();
+  }
+  function pfLoad() {
+    var id = $('pfStudent').value, g = Number($('pfGrade').value), c = Number($('pfClass').value);
+    $('pfOne').classList.toggle('hide', !id); $('pfClassBox').classList.toggle('hide', !!id); $('pfCopy').classList.toggle('hide', !!id);
+    if (id) {
+      api('t_studentProfile', TOKEN, id).then(function (r) {
+        PF = r;
+        $('pfName').textContent = r.학생.이름; $('pfSub').textContent = r.학생.학년 + '학년 ' + r.학생.반 + '반 ' + r.학생.번호 + '번 · ' + r.학생.학생ID;
+        var st = r.카드.filter(function (x) { return x.요약; }).slice(0, 3);
+        $('pfStats').innerHTML = '<div class="stat"><div class="l">배지</div><div class="v">' + r.배지.총달성 + '<small>/ ' + r.배지.총전체 + '</small></div></div>' + st.map(function (x) { return '<div class="stat"><div class="l">' + esc(x.요약.이름) + '</div><div class="v">' + esc(x.요약.값) + (x.요약.단위 ? '<small>' + esc(x.요약.단위) + '</small>' : '') + '</div></div>'; }).join('');
+        $('pfNoCards').classList.toggle('hide', r.카드.length > 0);
+        $('pfCards').innerHTML = r.카드.map(function (x) {
+          var m = modInfo(x.모듈);
+          return '<div class="dcard" style="--dc:' + colorVar(m.색) + ';cursor:default"><span class="mod"><i class="ti ti-' + m.아이콘 + '"></i>' + esc(m.이름) + '</span><span class="ttl">' + esc(x.제목 || '') + '</span>' +
+            (x.값 !== undefined && x.값 !== '' ? '<span class="val">' + esc(x.값) + (x.단위 ? '<small>' + esc(x.단위) + '</small>' : '') + '</span>' : '') +
+            (x.진행 !== undefined ? '<div class="prog thin"><i style="width:' + pct(x.진행, 100) + '%;background:' + colorVar(m.색) + '"></i></div>' : '') +
+            (x.설명 ? '<span class="dsc">' + esc(x.설명) + '</span>' : '') + (x.알림 ? '<span class="dsc" style="color:#946C00"><i class="ti ti-bell-ringing"></i> ' + esc(x.알림) + '</span>' : '') + '</div>';
+        }).join('');
+        $('pfBadges').innerHTML = badgeWallHTML(r.배지, D.모듈);
+      }).catch(handleErr);
+      return;
+    }
+    api('t_badgeSummary', TOKEN, g, c).then(function (r) {
+      $('pfClassSub').textContent = g + '학년 ' + c + '반 · ' + r.학생.length + '명';
+      $('pfEmpty').classList.toggle('hide', r.학생.length > 0);
+      $('pfHead').innerHTML = '<tr><th>번호</th><th>이름</th>' + r.모듈.map(function (m) { return '<th>' + esc(m.이름) + '</th>'; }).join('') + '<th>통합</th><th>전체</th><th>최근 배지</th></tr>';
+      $('pfRows').innerHTML = r.학생.map(function (s) {
+        return '<tr><td class="num">' + s.번호 + '</td><td class="name"><a href="#" data-pf="' + s.학생ID + '">' + esc(s.이름) + '</a></td>' + r.모듈.map(function (m) { return '<td>' + esc(s.모듈별[m.key] || '–') + '</td>'; }).join('') + '<td>' + s.통합 + '</td><td><b>' + s.총달성 + '</b> / ' + s.총전체 + '</td><td class="unit">' + esc(s.최근.join(', ')) + '</td></tr>';
+      }).join('');
+      Array.prototype.forEach.call($('pfRows').querySelectorAll('[data-pf]'), function (a) { a.onclick = function (e) { e.preventDefault(); $('pfStudent').value = a.getAttribute('data-pf'); pfLoad(); }; });
+    }).catch(handleErr);
+  }
+
+  return { navTop: navTop, navBottom: navBottom, init: init, show: show, reset: reset, applyRoster: applyRoster };
+})();
+</script>

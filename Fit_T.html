@@ -1,0 +1,863 @@
+<!-- 건강체력교실 · 교사 화면 (모듈 FIT) -->
+<div class="mroot hide" data-mod="FIT" data-role="T" id="fit_T">
+
+  <!-- ===== 대시보드 ===== -->
+  <div class="page" id="fit_tp_dash">
+    <div class="page-head"><h2>오늘의 건강체력교실</h2><span class="sub" id="fDashDate"></span></div>
+    <div id="fDashPapsNote" class="note hide"><i class="ti ti-plug-connected"></i><div>PAPS 모듈이 켜져 있고 기록이 있으면 <b>참가 학생 → PAPS에서 대상자 불러오기</b>로 4·5등급·비만 학생을 자동으로 고를 수 있어요.</div></div>
+    <div class="kpis" id="fDashKpis"></div>
+    <div class="grid g2">
+      <div class="panel" style="margin:0">
+        <div class="panel-head"><h3><i class="ti ti-users"></i>참가 학생 이번 주</h3><div class="spacer"></div><span class="unit" id="fDashWeek"></span></div>
+        <div class="scroll-x"><table><thead><tr><th>학생</th><th>이번 주</th><th>목표</th><th>누적</th><th>배지</th></tr></thead><tbody id="fDashStudents"></tbody></table></div>
+      </div>
+      <div>
+        <div class="panel" style="margin:0 0 14px">
+          <div class="panel-head"><h3><i class="ti ti-calendar-event"></i>이번 달 지도 계획</h3></div>
+          <div class="panel-body" id="fDashPlan"></div>
+        </div>
+        <div class="panel" style="margin:0">
+          <div class="panel-head"><h3><i class="ti ti-history"></i>최근 기록</h3></div>
+          <div class="scroll-x"><table><thead><tr><th>날짜</th><th>학생</th><th>운동</th><th>상태</th></tr></thead><tbody id="fDashRecent"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 참가자 ===== -->
+  <div class="page hide" id="fit_tp_members">
+    <div class="page-head"><h2>참가 학생</h2><span class="sub">공통 학생 명단에서 고르거나 PAPS에서 불러옵니다. 참가 학생에게만 건강체력교실 메뉴가 보입니다.</span></div>
+    <div class="bar">
+      <button id="fBtnPapsOpen"><i class="ti ti-download"></i>PAPS에서 대상자 불러오기</button>
+      <button class="ghost" id="fBtnPickOpen"><i class="ti ti-user-plus"></i>명단에서 추가</button>
+      <div class="spacer"></div>
+      <label class="chk" id="fShowExWrap" style="padding:6px 10px"><input type="checkbox" id="fShowEx"><span>제외된 학생도 보기</span></label>
+    </div>
+    <div class="panel">
+      <div class="scroll-x"><table><thead><tr>
+        <th>학년</th><th>반</th><th>번호</th><th>이름</th><th>성별</th><th>선정 사유</th><th>상태</th><th>등록일</th><th></th>
+      </tr></thead><tbody id="fMemberRows"></tbody></table></div>
+      <div class="empty hide" id="fMemberEmpty"><i class="ti ti-users"></i><strong>아직 참가 학생이 없습니다</strong>PAPS에서 불러오거나 명단에서 추가해 주세요.</div>
+    </div>
+  </div>
+
+  <!-- ===== 기록 확인 ===== -->
+  <div class="page hide" id="fit_tp_pending">
+    <div class="page-head"><h2>기록 확인</h2><span class="sub">학생이 남긴 기록을 확인하면 포인트·목표·배지에 반영됩니다.</span></div>
+    <div class="bar">
+      <button id="fBtnApproveAll"><i class="ti ti-checks"></i>선택한 기록 모두 확인</button>
+      <button class="danger" id="fBtnRejectSel"><i class="ti ti-x"></i>선택 반려</button>
+      <div class="field"><label>확인 후 학생 사진은</label>
+        <select id="fPendPhotoMode"><option value="삭제">삭제 (용량 절약)</option><option value="보관">활동 사진으로 보관</option><option value="유지">기록에 그대로 두기</option></select></div>
+      <div class="spacer"></div>
+      <span class="unit" id="fPendingCount"></span>
+    </div>
+    <div class="panel">
+      <div class="scroll-x"><table><thead><tr>
+        <th><input type="checkbox" id="fChkPendAll"></th><th>날짜</th><th>학생</th><th>장소</th><th>운동</th><th>양</th><th>포인트</th><th>사진</th><th>소감</th><th>입력</th><th></th>
+      </tr></thead><tbody id="fPendingRows"></tbody></table></div>
+      <div class="empty hide" id="fPendingEmpty"><i class="ti ti-circle-check"></i><strong>확인할 기록이 없습니다</strong>학생들이 가정 운동을 기록하면 여기에 쌓입니다.</div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-list-search"></i>전체 기록 찾아보기</h3>
+        <div class="spacer"></div>
+        <div class="field"><label>시작</label><input type="date" id="fRecFrom"></div>
+        <div class="field"><label>끝</label><input type="date" id="fRecTo"></div>
+        <div class="field"><label>학생</label><select id="fRecStudent"><option value="">전체</option></select></div>
+        <button class="ghost" id="fBtnRecSearch"><i class="ti ti-search"></i>조회</button>
+      </div>
+      <div class="scroll-x"><table><thead><tr><th>날짜</th><th>학생</th><th>장소</th><th>운동</th><th>양</th><th>포인트</th><th>사진</th><th>소감</th><th>상태</th><th></th></tr></thead><tbody id="fRecRows"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ===== 출석부 ===== -->
+  <div class="page hide" id="fit_tp_att">
+    <div class="page-head"><h2>출석부</h2><span class="sub">운영 요일(설정)의 날짜가 표시됩니다. 칸을 누르면 출석·결석을 고를 수 있습니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>시작</label><input type="date" id="fAttFrom"></div>
+      <div class="field"><label>끝</label><input type="date" id="fAttTo"></div>
+      <button class="ghost" id="fBtnAttLoad"><i class="ti ti-refresh"></i>불러오기</button>
+      <div class="spacer"></div>
+      <span class="unit"><span class="tag brand">출석</span> <span class="tag sun">출석(학생 체크·미확인)</span> <span class="tag warn">결석</span></span>
+    </div>
+    <div class="panel"><div class="scroll-x"><table class="matrix"><thead id="fAttHead"></thead><tbody id="fAttRows"></tbody></table></div></div>
+  </div>
+
+  <!-- ===== 누적 현황 ===== -->
+  <div class="page hide" id="fit_tp_summary">
+    <div class="page-head"><h2>누적 현황</h2><span class="sub">확인된 기록만 집계합니다. 학생 이름을 누르면 상세 기록이 열립니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>시작</label><input type="date" id="fSumFrom"></div>
+      <div class="field"><label>끝</label><input type="date" id="fSumTo"></div>
+      <button class="ghost" id="fBtnSumLoad"><i class="ti ti-refresh"></i>조회</button>
+      <button class="ghost" id="fBtnSumAll"><i class="ti ti-calendar"></i>전체 기간</button>
+      <div class="spacer"></div>
+      <button class="soft" id="fBtnSumExport"><i class="ti ti-table-export"></i>표 복사</button>
+    </div>
+    <div class="panel"><div class="scroll-x"><table class="matrix"><thead><tr>
+      <th>학생</th><th>기록</th><th>포인트</th><th><span class="dot f1"></span> 심폐</th><th><span class="dot f2"></span> 근력</th><th><span class="dot f3"></span> 유연</th><th><span class="dot f4"></span> 순발</th><th>출석</th><th>가정</th><th>목표달성</th><th>배지</th><th>대기</th>
+    </tr></thead><tbody id="fSumRows"></tbody></table></div></div>
+  </div>
+
+  <!-- ===== 지도 계획 ===== -->
+  <div class="page hide" id="fit_tp_plan">
+    <div class="page-head"><h2>지도 계획</h2><span class="sub">학생 화면에 "이번 달 집중 요소"로 보입니다.</span></div>
+    <div class="panel">
+      <div class="scroll-x"><table><thead><tr><th>월</th><th>주</th><th>체력요소</th><th>지도 내용</th><th>비고</th><th></th></tr></thead><tbody id="fPlanRows"></tbody></table></div>
+      <div class="savebar">
+        <button class="ghost" id="fBtnPlanAdd"><i class="ti ti-plus"></i>줄 추가</button>
+        <div class="spacer"></div><span class="status" id="fPlanStatus"></span>
+        <button id="fBtnPlanSave"><i class="ti ti-device-floppy"></i>저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 결과물 ===== -->
+  <div class="page hide" id="fit_tp_report">
+    <div class="page-head"><h2>결과물</h2><span class="sub">활동 사진을 모으고, 출석·서명부와 사진이 들어간 Google 문서를 만듭니다.</span></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-file-text"></i>결과 문서 만들기</h3><div class="spacer"></div><a id="fRpFolderLink" href="#" target="_blank" rel="noopener" class="unit"><i class="ti ti-folder"></i> 드라이브 폴더 열기</a></div>
+      <div class="panel-body">
+        <div class="grid g2" style="margin-bottom:12px">
+          <div class="field" style="grid-column:1/-1"><label>문서 제목</label><input type="text" id="fRpTitle" value="건강체력교실 운영 결과(출석·서명부)"></div>
+          <div class="field"><label>학교명</label><input type="text" id="fRpSchool"></div>
+          <div class="field"><label>지도교사</label><input type="text" id="fRpTeacher"></div>
+          <div class="field"><label>기간 시작</label><input type="date" id="fRpFrom"></div>
+          <div class="field"><label>기간 끝</label><input type="date" id="fRpTo"></div>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+          <label class="chk on" id="fRpSignWrap"><input type="checkbox" id="fRpSign" checked><span>회차별 출석·서명부</span></label>
+          <select id="fRpSignType"><option value="묶음">6회차씩 한 표 (서명 칸)</option><option value="날짜별">날짜별 한 장씩</option></select>
+          <label class="chk" id="fRpOnlyWrap"><input type="checkbox" id="fRpOnly"><span>출석 기록이 있는 날만</span></label>
+          <label class="chk on" id="fRpPhotoWrap"><input type="checkbox" id="fRpPhoto" checked><span>활동 사진 (기간 안의 사진)</span></label>
+          <label class="chk" id="fRpMaskWrap"><input type="checkbox" id="fRpMask"><span>이름 가운데 * 처리 (김*수)</span></label>
+        </div>
+        <div class="note" style="margin:10px 0 0"><i class="ti ti-info-circle"></i><div>문서는 드라이브 폴더에 만들어지며 열어서 문구를 고친 뒤 <b>파일 → 다운로드 → PDF</b> 또는 인쇄하면 됩니다. 사진이 많으면 1분 정도 걸릴 수 있어요.</div></div>
+      </div>
+      <div class="savebar"><span class="status" id="fRpStatus"></span><div class="spacer"></div>
+        <a id="fRpOpen" class="hide" target="_blank" rel="noopener"><button class="soft"><i class="ti ti-external-link"></i>문서 열기</button></a>
+        <button id="fBtnMakeReport"><i class="ti ti-file-plus"></i>문서 만들기</button></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-camera"></i>활동 사진</h3><span class="unit">휴대폰에서도 올릴 수 있어요. 올릴 때 크기를 줄여 저장합니다.</span></div>
+      <div class="panel-body">
+        <div class="bar" style="margin-bottom:14px;box-shadow:none">
+          <div class="field"><label>활동 날짜</label><input type="date" id="fPhDate"></div>
+          <div class="field" style="flex:1;min-width:200px"><label>설명 (선택)</label><input type="text" id="fPhDesc" placeholder="예: 순발력 뉴스포츠 게임"></div>
+          <div class="field"><label>사진 파일</label><input type="file" id="fPhFiles" accept="image/*" multiple style="font-size:13px"></div>
+          <button id="fBtnPhUpload"><i class="ti ti-upload"></i>올리기</button>
+        </div>
+        <div class="status" id="fPhStatus" style="margin-bottom:10px"></div>
+        <div id="fPhGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px"></div>
+        <div class="empty hide" id="fPhEmpty"><i class="ti ti-photo"></i><strong>아직 사진이 없습니다</strong>위에서 날짜를 고르고 사진을 올려 주세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 운영 설정 ===== -->
+  <div class="page hide" id="fit_tp_settings">
+    <div class="page-head"><h2>운영 설정</h2><span class="sub">학교명·담당 교사는 공통 설정에서 바꿉니다.</span></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-adjustments"></i>운영 · 대상자 · 기록 규칙</h3></div>
+      <div class="panel-body"><div id="fSettingRows" class="grid g2"></div></div>
+      <div class="savebar"><div class="spacer"></div><span class="status" id="fSetStatus"></span><button id="fBtnSetSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-barbell"></i>운동 종목 · 포인트</h3><span class="unit">기준량만큼 하면 포인트를 받습니다 (예: 줄넘기 100회 → 10점)</span></div>
+      <div class="scroll-x"><table><thead><tr><th>사용</th><th>체력요소</th><th>종목</th><th>단위</th><th>기준량</th><th>포인트</th><th></th></tr></thead><tbody id="fEventRows"></tbody></table></div>
+      <div class="savebar">
+        <button class="ghost" id="fBtnEventAdd"><i class="ti ti-plus"></i>종목 추가</button>
+        <div class="spacer"></div><span class="status" id="fEventStatus"></span>
+        <button id="fBtnEventSave"><i class="ti ti-device-floppy"></i>저장</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-award"></i>배지</h3><span class="unit">조건: 누적횟수 · 누적포인트 · 출석 · 가정운동 · 목표달성 · 연속달성 · 요소균형(각 요소 최소 횟수)</span></div>
+      <div class="scroll-x"><table><thead><tr><th>사용</th><th>아이콘</th><th>이름</th><th>설명</th><th>조건</th><th>기준값</th><th></th></tr></thead><tbody id="fBadgeRows"></tbody></table></div>
+      <div class="savebar">
+        <button class="ghost" id="fBtnBadgeAdd"><i class="ti ti-plus"></i>배지 추가</button>
+        <span class="unit">아이콘은 <a href="https://tabler.io/icons" target="_blank" rel="noopener">tabler icons</a> 이름</span>
+        <div class="spacer"></div><span class="status" id="fBadgeStatus"></span>
+        <button id="fBtnBadgeSave"><i class="ti ti-device-floppy"></i>저장</button>
+      </div>
+    </div>
+    <div class="note"><i class="ti ti-trash"></i><div>운동 기록·출석·사진 초기화는 <b>설정 → 초기화</b>(공통)에서 합니다.</div></div>
+  </div>
+</div>
+
+<!-- ===== 모달: PAPS 불러오기 ===== -->
+<div id="fMdPaps" class="modal hide">
+  <div style="max-width:820px">
+    <div class="panel-head"><h3><i class="ti ti-download"></i>PAPS 대상자 불러오기</h3>
+      <div class="field"><label>회차</label><select id="fPapsRound"></select></div>
+      <div class="spacer"></div><button class="ghost mini" data-close="fMdPaps"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body">
+      <div id="fPapsMsg" class="note hide"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+        <button class="mini soft" id="fPapsSelTargets"><i class="ti ti-target"></i>대상자만 선택</button>
+        <button class="mini ghost" id="fPapsSelNone">선택 해제</button>
+        <label class="chk" style="padding:5px 10px;margin-left:auto"><input type="checkbox" id="fPapsShowAll"><span>대상 아닌 학생도 보기</span></label>
+      </div>
+      <div class="scroll-x" style="max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:10px">
+        <table><thead><tr><th></th><th>학급</th><th>이름</th><th>선정 사유</th><th>상태</th></tr></thead><tbody id="fPapsRows"></tbody></table>
+      </div>
+    </div>
+    <div class="savebar"><span class="status" id="fPapsStatus"></span><div class="spacer"></div>
+      <button id="fBtnPapsImport"><i class="ti ti-user-plus"></i>선택한 학생 등록</button></div>
+  </div>
+</div>
+
+<!-- ===== 모달: 명단에서 추가 ===== -->
+<div id="fMdPick" class="modal hide">
+  <div style="max-width:720px">
+    <div class="panel-head"><h3><i class="ti ti-user-plus"></i>명단에서 참가 학생 추가</h3>
+      <div class="field"><label>학년</label><select id="fPickGrade"><option value="">전체</option></select></div>
+      <div class="spacer"></div><button class="ghost mini" data-close="fMdPick"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body">
+      <div class="field" style="margin-bottom:10px"><label>선정 사유 (모두에게 적용)</label><input type="text" id="fPickReason" placeholder="예: 담임 추천, 희망 신청"></div>
+      <div class="scroll-x" style="max-height:48vh;overflow:auto;border:1px solid var(--line);border-radius:10px">
+        <table><thead><tr><th><input type="checkbox" id="fPickAll"></th><th>학급</th><th>이름</th><th>성별</th><th>상태</th></tr></thead><tbody id="fPickRows"></tbody></table>
+      </div>
+    </div>
+    <div class="savebar"><span class="status" id="fPickStatus"></span><div class="spacer"></div>
+      <button id="fBtnPickAdd"><i class="ti ti-user-plus"></i>선택한 학생 추가</button></div>
+  </div>
+</div>
+
+<!-- ===== 모달: 참가자 수정 ===== -->
+<div id="fMdMember" class="modal hide">
+  <div style="max-width:440px">
+    <div class="panel-head"><h3 id="fMdMemberTitle"><i class="ti ti-user-edit"></i>참가 정보</h3><div class="spacer"></div><button class="ghost mini" data-close="fMdMember"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body">
+      <input type="hidden" id="fMmId">
+      <div class="field" style="margin-bottom:10px"><label>선정 사유</label><input type="text" id="fMmReason" placeholder="예: 심폐지구력 5등급, 경도비만"></div>
+      <div class="field"><label>상태</label><select id="fMmState"><option>참가</option><option>제외</option></select></div>
+      <div class="unit" style="margin-top:10px">학년·반·이름 등은 <b>학생 명단</b>(공통)에서 고칩니다.</div>
+    </div>
+    <div class="savebar"><span class="status" id="fMmStatus"></span><div class="spacer"></div><button id="fBtnMemberSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+  </div>
+</div>
+
+<!-- ===== 모달: 출석 선택 ===== -->
+<div id="fMdAtt" class="modal hide">
+  <div style="max-width:380px">
+    <div class="panel-head"><h3 id="fAttPickTitle"><i class="ti ti-calendar-check"></i>출석</h3><div class="spacer"></div><button class="ghost mini" data-close="fMdAtt"><i class="ti ti-x"></i></button></div>
+    <div class="panel-body">
+      <div class="unit" id="fAttPickSub" style="margin-bottom:12px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button id="fAttPickOn" style="padding:14px;font-size:15px"><i class="ti ti-check"></i>출석</button>
+        <button id="fAttPickOff" class="danger" style="padding:14px;font-size:15px"><i class="ti ti-x"></i>결석</button>
+      </div>
+      <button id="fAttPickClear" class="ghost" style="width:100%;margin-top:8px"><i class="ti ti-eraser"></i>표시 지우기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 모달: 사진 크게 보기 ===== -->
+<div id="fMdPhoto" class="modal hide">
+  <div style="max-width:900px;background:#111;border-radius:14px">
+    <div class="panel-head" style="border:none;color:#fff"><h3 id="fPhotoTitle" style="color:#fff"><i class="ti ti-photo"></i>사진</h3><div class="spacer"></div><button class="ghost mini" data-close="fMdPhoto"><i class="ti ti-x"></i>닫기</button></div>
+    <div style="text-align:center;padding:0 10px 12px"><img id="fPhotoBig" src="" alt="" style="max-width:100%;max-height:75vh;border-radius:8px"></div>
+  </div>
+</div>
+
+<!-- ===== 모달: 학생 상세 ===== -->
+<div id="fMdDetail" class="modal hide">
+  <div style="max-width:860px">
+    <div class="panel-head"><h3 id="fDtTitle"><i class="ti ti-user"></i>학생 상세</h3><div class="spacer"></div><button class="ghost mini" data-close="fMdDetail"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body" id="fDtBody"></div>
+  </div>
+</div>
+
+<script>
+MODS.FIT = MODS.FIT || {};
+MODS.FIT.teacher = (function () {
+  var BOOT = null, MEMBERS = [], PENDING = [], PAPS = null, PLAN = [], EVENTS = [], BADGES = [], SETTINGS = [], RECS = [];
+  var pages = ['dash', 'members', 'pending', 'att', 'summary', 'plan', 'report', 'settings'];
+  var nav = [
+    { section: '건강체력교실' },
+    { id: 'dash', label: '대시보드', icon: 'layout-dashboard' },
+    { id: 'pending', label: '기록 확인', icon: 'checklist' },
+    { id: 'att', label: '출석부', icon: 'calendar-check' },
+    { id: 'summary', label: '누적 현황', icon: 'chart-bar' },
+    { id: 'report', label: '결과물', icon: 'file-text' },
+    { id: 'members', label: '참가 학생', icon: 'users' },
+    { id: 'plan', label: '지도 계획', icon: 'calendar-event' },
+    { id: 'settings', label: '운영 설정', icon: 'adjustments' }
+  ];
+  var F = ['심폐지구력', '근력·근지구력', '유연성', '순발력'];
+
+  function init(ctx) {
+    BOOT = null;
+    api('fit_t_boot', TOKEN).then(function (b) {
+      BOOT = b; MEMBERS = b.참가자; EVENTS = b.종목;
+      $('fDashPapsNote').classList.toggle('hide', !b.설정.PAPS연결);
+      refreshPendingCount();
+    }).catch(handleErr);
+  }
+  function reset() { BOOT = null; MEMBERS = []; PENDING = []; PAPS = null; RECS = []; }
+  function show(p) {
+    pages.forEach(function (id) { $('fit_tp_' + id).classList.toggle('hide', id !== p); });
+    var fn = { dash: loadDash, members: renderMembers, pending: loadPending, att: loadAtt, summary: loadSummary, report: loadReport, plan: loadPlan, settings: loadSettings }[p];
+    if (!fn) return;
+    if (!BOOT) { api('fit_t_boot', TOKEN).then(function (b) { BOOT = b; MEMBERS = b.참가자; EVENTS = b.종목; fn(); }).catch(handleErr); return; }
+    fn();
+  }
+  function memberLabel(s) { return s.학년 + '-' + s.반 + ' ' + s.번호 + '번 ' + s.이름; }
+  function memberById(id) { return findOne(MEMBERS, function (m) { return m.학생ID === id; }); }
+  function refreshPendingCount() { api('fit_t_getPending', TOKEN).then(function (list) { setNavCount('FIT', 'pending', list.length); }).catch(function () {}); }
+  Array.prototype.forEach.call(document.querySelectorAll('#fMdPaps [data-close], #fMdPick [data-close], #fMdMember [data-close], #fMdAtt [data-close], #fMdPhoto [data-close], #fMdDetail [data-close]'), function (b) {
+    b.onclick = function () { $(b.getAttribute('data-close')).classList.add('hide'); };
+  });
+
+  /* ================= 대시보드 ================= */
+  function loadDash() {
+    $('fDashKpis').innerHTML = '<div class="kpi"><div class="lab">불러오는 중…</div></div>';
+    api('fit_t_dashboard', TOKEN).then(function (d) {
+      $('fDashDate').textContent = '매주 ' + BOOT.설정.운영요일.join(', ') + ' ' + String(BOOT.설정.운영시간 || '').replace('~', ' ~ ') + ' 운영';
+      $('fDashWeek').textContent = md(d.이번주) + ' ~ ' + md(addDays(d.이번주, 6));
+      $('fDashKpis').innerHTML =
+        kpiTile('참가 학생', d.참가자수, '명', 'users', 'brand') +
+        kpiTile('오늘 출석', d.오늘출석수, '명', 'calendar-check', '') +
+        kpiTile('이번 주 참여', d.이번주참여수 + '<small>/ ' + d.참가자수 + '명</small>', '', 'run', 'violet') +
+        kpiTile('이번 주 기록', d.이번주기록수, '건', 'notes', '') +
+        kpiTile('확인 대기', d.대기수, '건', 'clock', d.대기수 ? 'coral' : '');
+      setNavCount('FIT', 'pending', d.대기수);
+      $('fDashStudents').innerHTML = d.학생별.map(function (r) {
+        var w = r.이번주 || { 횟수: 0, 목표횟수: 3, 포인트: 0, 목표포인트: 50, 달성: false };
+        return '<tr><td class="name"><a href="#" data-detail="' + r.학생.학생ID + '" style="text-decoration:none;color:inherit">' + esc(r.학생.학년 + '-' + r.학생.반 + ' ' + r.학생.이름) + '</a>' +
+               (r.대기수 ? ' <span class="tag sun" style="font-size:11px">대기 ' + r.대기수 + '</span>' : '') + '</td>' +
+               '<td><div style="display:flex;align-items:center;gap:8px"><div class="prog thin" style="width:90px"><i style="width:' + pct(w.횟수, w.목표횟수) + '%"></i></div><span class="unit">' + w.횟수 + '/' + w.목표횟수 + '회</span></div></td>' +
+               '<td>' + (w.달성 ? '<span class="tag brand"><i class="ti ti-check"></i>달성</span>' : '<span class="unit">' + w.포인트 + '/' + w.목표포인트 + 'p</span>') + '</td>' +
+               '<td><b>' + fmt(r.누적포인트) + '</b><span class="unit">p · ' + r.누적횟수 + '회</span></td>' +
+               '<td><span class="tag sun"><i class="ti ti-award"></i>' + r.배지수 + '</span></td></tr>';
+      }).join('') || '<tr><td colspan="5" class="empty">참가 학생이 없습니다</td></tr>';
+      bindDetailLinks($('fDashStudents'));
+      $('fDashPlan').innerHTML = d.이번달계획.length ? d.이번달계획.map(function (p) {
+        return '<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)"><span class="unit" style="width:40px">' + esc(p.주) + '주</span>' + ftag(p.요소, true) + '<span>' + esc(p.지도내용) + '</span></div>';
+      }).join('') : '<div class="unit">이번 달 계획이 없습니다. 지도 계획에서 추가하세요.</div>';
+      $('fDashRecent').innerHTML = d.최근.map(function (r) {
+        return '<tr><td class="unit">' + md(r.날짜) + '</td><td>' + esc(r.학생) + '</td><td>' + placeTag(r.장소) + ' ' + esc(r.종목) + ' <span class="unit">' + r.수치 + r.단위 + ' · ' + r.포인트 + 'p</span></td><td>' + stateTag(r.상태) + '</td></tr>';
+      }).join('') || '<tr><td colspan="4" class="unit" style="padding:14px">아직 기록이 없습니다</td></tr>';
+    }).catch(handleErr);
+  }
+
+  /* ================= 참가자 ================= */
+  function renderMembers() {
+    var showEx = $('fShowEx').checked;
+    var list = MEMBERS.filter(function (m) { return showEx || m.상태 !== '제외'; });
+    $('fMemberEmpty').classList.toggle('hide', list.length > 0);
+    $('fMemberRows').innerHTML = list.map(function (m) {
+      var st = m.명단상태 !== '재학' ? '<span class="tag">' + esc(m.명단상태) + '</span>' : m.상태 === '제외' ? '<span class="tag">제외</span>' : '<span class="tag brand">참가</span>';
+      return '<tr' + (m.상태 === '제외' ? ' style="opacity:.55"' : '') + '><td class="num">' + m.학년 + '</td><td class="num">' + m.반 + '</td><td class="num">' + m.번호 + '</td>' +
+        '<td class="name"><a href="#" data-detail="' + m.학생ID + '" style="text-decoration:none;color:inherit">' + esc(m.이름) + '</a></td><td class="unit">' + esc(m.성별) + '</td>' +
+        '<td style="font-size:13px;color:var(--ink-2)">' + esc(m.선정사유) + '</td><td>' + st + '</td><td class="unit">' + esc(m.등록일) + '</td>' +
+        '<td style="white-space:nowrap"><button class="mini ghost" data-edit="' + m.학생ID + '"><i class="ti ti-pencil"></i></button> ' +
+        (m.상태 === '제외' && m.명단상태 === '재학' ? '<button class="mini soft" data-restore="' + m.학생ID + '">다시 참가</button>' : m.상태 === '참가' ? '<button class="mini ghost" data-exclude="' + m.학생ID + '">제외</button>' : '') +
+        ' <button class="mini danger" data-del="' + m.학생ID + '"><i class="ti ti-trash"></i></button></td></tr>';
+    }).join('');
+    bindDetailLinks($('fMemberRows'));
+    Array.prototype.forEach.call($('fMemberRows').querySelectorAll('[data-edit]'), function (b) { b.onclick = function () { openMember(memberById(b.dataset.edit)); }; });
+    Array.prototype.forEach.call($('fMemberRows').querySelectorAll('[data-exclude]'), function (b) { b.onclick = function () { setMemberStatus([b.dataset.exclude], '제외'); }; });
+    Array.prototype.forEach.call($('fMemberRows').querySelectorAll('[data-restore]'), function (b) { b.onclick = function () { setMemberStatus([b.dataset.restore], '참가'); }; });
+    Array.prototype.forEach.call($('fMemberRows').querySelectorAll('[data-del]'), function (b) {
+      b.onclick = function () {
+        var m = memberById(b.dataset.del);
+        var t = prompt(memberLabel(m) + ' 학생을 참가자에서 빼고 건강체력교실 기록·출석·목표를 지웁니다. (공통 명단에는 남습니다)\n되돌릴 수 없습니다. 계속하려면 "삭제"라고 입력하세요.');
+        if (t === null) return;
+        api('fit_t_removeMembers', TOKEN, [m.학생ID], t).then(function (r) {
+          if (!r.ok) { toast(r.message, 'err'); return; }
+          MEMBERS = r.참가자; renderMembers(); toast('삭제했습니다');
+        }).catch(handleErr);
+      };
+    });
+  }
+  $('fShowEx').onchange = function () { $('fShowExWrap').classList.toggle('on', this.checked); renderMembers(); };
+  function setMemberStatus(ids, 상태) {
+    api('fit_t_setMemberStatus', TOKEN, ids, 상태).then(function (r) { MEMBERS = r.참가자; renderMembers(); toast(상태 === '제외' ? '제외했습니다. 기록은 남아 있습니다.' : '다시 참가로 바꿨습니다'); }).catch(handleErr);
+  }
+  function openMember(m) {
+    $('fMdMemberTitle').innerHTML = '<i class="ti ti-user-edit"></i>' + esc(memberLabel(m));
+    $('fMmId').value = m.학생ID; $('fMmReason').value = m.선정사유; $('fMmState').value = m.상태;
+    setStatus('fMmStatus', ''); $('fMdMember').classList.remove('hide');
+  }
+  $('fBtnMemberSave').onclick = function () {
+    setStatus('fMmStatus', '저장 중…');
+    api('fit_t_saveMember', TOKEN, { 학생ID: $('fMmId').value, 선정사유: $('fMmReason').value, 상태: $('fMmState').value }).then(function (r) {
+      if (!r.ok) { setStatus('fMmStatus', r.message, 'err'); return; }
+      MEMBERS = r.참가자; renderMembers(); $('fMdMember').classList.add('hide'); toast('저장했습니다');
+    }).catch(handleErr);
+  };
+
+  /* ---------- 명단에서 추가 ---------- */
+  function roster() { return (CTX && CTX.학생 ? CTX.학생 : []).filter(function (s) { return s.상태 === '재학'; }); }
+  $('fBtnPickOpen').onclick = function () {
+    var gs = [];
+    roster().forEach(function (s) { if (gs.indexOf(s.학년) < 0) gs.push(s.학년); });
+    gs.sort(function (a, b) { return a - b; });
+    $('fPickGrade').innerHTML = '<option value="">전체</option>' + gs.map(function (g) { return '<option value="' + g + '">' + g + '학년</option>'; }).join('');
+    $('fPickReason').value = ''; setStatus('fPickStatus', ''); $('fPickAll').checked = false;
+    renderPick(); $('fMdPick').classList.remove('hide');
+  };
+  $('fPickGrade').onchange = renderPick;
+  function renderPick() {
+    var g = $('fPickGrade').value, 참가 = {};
+    MEMBERS.forEach(function (m) { 참가[m.학생ID] = m.상태; });
+    var list = roster().filter(function (s) { return !g || String(s.학년) === g; });
+    $('fPickRows').innerHTML = list.map(function (s) {
+      var st = 참가[s.학생ID] === '참가' ? '<span class="tag brand">참가 중</span>' : 참가[s.학생ID] === '제외' ? '<span class="tag">제외됨</span>' : '';
+      return '<tr><td><input type="checkbox" data-pick="' + esc(s.학생ID) + '"' + (참가[s.학생ID] === '참가' ? ' disabled' : '') + '></td><td class="unit">' + s.학년 + '-' + s.반 + ' ' + s.번호 + '번</td><td class="name">' + esc(s.이름) + '</td><td class="unit">' + esc(s.성별 || '') + '</td><td>' + st + '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="unit" style="padding:14px">학생이 없습니다. 학생 명단(공통)에서 먼저 등록하세요.</td></tr>';
+  }
+  $('fPickAll').onchange = function () { var on = this.checked; Array.prototype.forEach.call($('fPickRows').querySelectorAll('[data-pick]:not(:disabled)'), function (cb) { cb.checked = on; }); };
+  $('fBtnPickAdd').onclick = function () {
+    var 사유 = $('fPickReason').value.trim() || '직접 등록';
+    var sel = Array.prototype.map.call($('fPickRows').querySelectorAll('[data-pick]:checked'), function (cb) { return { 학생ID: cb.getAttribute('data-pick'), 사유: 사유 }; });
+    if (!sel.length) { setStatus('fPickStatus', '학생을 골라 주세요.', 'err'); return; }
+    var btn = this; btn.disabled = true; setStatus('fPickStatus', '추가 중…');
+    api('fit_t_addMembers', TOKEN, sel).then(function (r) {
+      btn.disabled = false;
+      MEMBERS = r.참가자; renderMembers(); $('fMdPick').classList.add('hide');
+      toast('새로 ' + r.신규 + '명 추가' + (r.갱신 ? ', ' + r.갱신 + '명 다시 참가' : ''));
+    }).catch(function (e) { btn.disabled = false; handleErr(e); });
+  };
+
+  /* ---------- PAPS ---------- */
+  $('fBtnPapsOpen').onclick = function () { $('fMdPaps').classList.remove('hide'); loadPaps(''); };
+  $('fPapsRound').onchange = function () { loadPaps($('fPapsRound').value); };
+  $('fPapsShowAll').onchange = renderPaps;
+  function loadPaps(회차) {
+    $('fPapsRows').innerHTML = '<tr><td colspan="5" class="unit" style="padding:16px">PAPS 기록을 읽는 중…</td></tr>';
+    $('fPapsMsg').classList.add('hide'); setStatus('fPapsStatus', '');
+    api('fit_t_papsPreview', TOKEN, 회차).then(function (r) {
+      if (!r.ok) {
+        PAPS = null; $('fPapsRows').innerHTML = '';
+        $('fPapsMsg').className = 'note warn'; $('fPapsMsg').innerHTML = '<i class="ti ti-plug-connected-x"></i><div>' + esc(r.message) + '</div>';
+        return;
+      }
+      PAPS = r;
+      $('fPapsRound').innerHTML = r.회차목록.map(function (x) { return '<option' + (x === r.회차 ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') || '<option>-</option>';
+      $('fPapsMsg').className = 'note'; $('fPapsMsg').innerHTML = '<i class="ti ti-file-spreadsheet"></i><div>' + esc(r.회차) + ' 기준, 대상 ' + r.대상수 + '명 (설정의 대상 등급·비만 판정)</div>';
+      renderPaps();
+    }).catch(handleErr);
+  }
+  function renderPaps() {
+    if (!PAPS) return;
+    var all = $('fPapsShowAll').checked;
+    $('fPapsRows').innerHTML = PAPS.후보.map(function (c, i) {
+      if (!(all || c.대상)) return '';
+      var st = c.이미참가 ? '<span class="tag brand">참가 중</span>' : c.제외됨 ? '<span class="tag">제외됨</span>' : c.측정함 ? '' : '<span class="tag sun">미측정</span>';
+      return '<tr><td><input type="checkbox" data-paps="' + i + '"' + (c.대상 && !c.이미참가 ? ' checked' : '') + '></td>' +
+        '<td class="unit">' + c.학년 + '-' + c.반 + ' ' + c.번호 + '번</td><td class="name">' + esc(c.이름) + '</td>' +
+        '<td style="font-size:13px">' + (c.사유.length ? c.사유.map(function (s) { return '<span class="tag coral" style="margin:1px 2px 1px 0">' + esc(s) + '</span>'; }).join('') : '<span class="unit">해당 없음</span>') + '</td><td>' + st + '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="unit" style="padding:16px">대상 학생이 없습니다</td></tr>';
+  }
+  $('fPapsSelTargets').onclick = function () {
+    Array.prototype.forEach.call($('fPapsRows').querySelectorAll('[data-paps]'), function (cb) { var c = PAPS.후보[Number(cb.dataset.paps)]; cb.checked = !!(c && c.대상 && !c.이미참가); });
+  };
+  $('fPapsSelNone').onclick = function () { Array.prototype.forEach.call($('fPapsRows').querySelectorAll('[data-paps]'), function (cb) { cb.checked = false; }); };
+  $('fBtnPapsImport').onclick = function () {
+    if (!PAPS) return;
+    var sel = [];
+    Array.prototype.forEach.call($('fPapsRows').querySelectorAll('[data-paps]:checked'), function (cb) { var c = PAPS.후보[Number(cb.dataset.paps)]; if (c) sel.push({ 학생ID: c.학생ID, 사유: c.사유.length ? c.사유 : 'PAPS 대상' }); });
+    if (!sel.length) { setStatus('fPapsStatus', '학생을 골라 주세요.', 'err'); return; }
+    setStatus('fPapsStatus', '등록 중…');
+    api('fit_t_addMembers', TOKEN, sel).then(function (r) {
+      MEMBERS = r.참가자; renderMembers(); $('fMdPaps').classList.add('hide');
+      toast('새로 ' + r.신규 + '명 등록, ' + r.갱신 + '명 갱신');
+    }).catch(handleErr);
+  };
+
+  /* ================= 기록 확인 ================= */
+  function loadPending() {
+    $('fRecStudent').innerHTML = '<option value="">전체</option>' + MEMBERS.map(function (m) { return '<option value="' + m.학생ID + '">' + esc(memberLabel(m)) + '</option>'; }).join('');
+    if (!$('fRecFrom').value) { $('fRecTo').value = BOOT.오늘; $('fRecFrom').value = addDays(BOOT.오늘, -13); }
+    api('fit_t_getPending', TOKEN).then(function (list) {
+      PENDING = list; setNavCount('FIT', 'pending', list.length);
+      $('fPendingCount').textContent = list.length ? list.length + '건 대기' : '';
+      $('fPendingEmpty').classList.toggle('hide', list.length > 0);
+      $('fPendingRows').innerHTML = list.map(function (r) {
+        return '<tr><td><input type="checkbox" data-pend="' + r.기록ID + '" checked></td><td class="unit">' + mdw(r.날짜) + '</td><td class="name">' + esc(r.학생.학년 + '-' + r.학생.반 + ' ' + r.학생.이름) + '</td>' +
+          '<td>' + placeTag(r.장소) + '</td><td>' + ftag(r.요소, true) + ' ' + esc(r.종목) + '</td><td><b>' + r.수치 + '</b><span class="unit">' + esc(r.단위) + '</span></td><td><b>' + r.포인트 + '</b><span class="unit">p</span></td>' +
+          '<td>' + photoCell(r) + '</td>' +
+          '<td style="font-size:13px;color:var(--ink-2);max-width:260px">' + esc(r.소감) + '</td><td class="unit">' + esc(r.입력일시.slice(5)) + '</td>' +
+          '<td style="white-space:nowrap"><button class="mini soft" data-ok="' + r.기록ID + '"><i class="ti ti-check"></i>확인</button> <button class="mini danger" data-no="' + r.기록ID + '"><i class="ti ti-x"></i></button></td></tr>';
+      }).join('');
+      loadThumbs(list); bindPhotoClicks($('fPendingRows'));
+      Array.prototype.forEach.call($('fPendingRows').querySelectorAll('[data-ok]'), function (b) { b.onclick = function () { review([b.dataset.ok], '확인'); }; });
+      Array.prototype.forEach.call($('fPendingRows').querySelectorAll('[data-no]'), function (b) { b.onclick = function () { rejectWithMemo([b.dataset.no]); }; });
+    }).catch(handleErr);
+  }
+  $('fChkPendAll').onchange = function () { var on = this.checked; Array.prototype.forEach.call($('fPendingRows').querySelectorAll('[data-pend]'), function (cb) { cb.checked = on; }); };
+  function selectedPending() { return Array.prototype.map.call($('fPendingRows').querySelectorAll('[data-pend]:checked'), function (cb) { return cb.dataset.pend; }); }
+  $('fBtnApproveAll').onclick = function () { var ids = selectedPending(); if (!ids.length) { toast('선택한 기록이 없습니다', 'err'); return; } review(ids, '확인'); };
+  $('fBtnRejectSel').onclick = function () { var ids = selectedPending(); if (!ids.length) { toast('선택한 기록이 없습니다', 'err'); return; } rejectWithMemo(ids); };
+  function rejectWithMemo(ids) {
+    var memo = prompt('반려 이유를 적어 주세요 (학생에게 보입니다).', '');
+    if (memo === null) return;
+    review(ids, '반려', memo);
+  }
+  function review(ids, 상태, memo) {
+    api('fit_t_review', TOKEN, ids, 상태, memo || '', $('fPendPhotoMode').value).then(function (r) {
+      if (!r.ok) { toast(r.message, 'err'); return; }
+      toast(r.처리수 + '건 ' + 상태 + ' 처리' + (r.사진처리수 ? ' · 사진 ' + r.사진처리수 + '장 ' + (r.사진처리 === '보관' ? '보관' : '삭제') : '')); loadPending();
+    }).catch(handleErr);
+  }
+  $('fBtnRecSearch').onclick = function () {
+    $('fRecRows').innerHTML = '<tr><td colspan="10" class="unit" style="padding:14px">조회 중…</td></tr>';
+    api('fit_t_getRecords', TOKEN, $('fRecFrom').value, $('fRecTo').value, $('fRecStudent').value).then(function (list) {
+      list.reverse(); RECS = list;
+      $('fRecRows').innerHTML = list.map(function (r) {
+        return '<tr><td class="unit">' + mdw(r.날짜) + '</td><td class="name">' + esc(r.학생.학년 + '-' + r.학생.반 + ' ' + r.학생.이름) + '</td><td>' + placeTag(r.장소) + '</td>' +
+          '<td>' + ftag(r.요소, true) + ' ' + esc(r.종목) + '</td><td>' + r.수치 + '<span class="unit">' + esc(r.단위) + '</span></td><td>' + r.포인트 + '<span class="unit">p</span></td>' +
+          '<td>' + photoCell(r) + (r.사진ID ? '<div style="margin-top:3px;white-space:nowrap"><button class="mini ghost" data-pkeep="' + r.기록ID + '" style="padding:1px 6px;font-size:11px">보관</button> <button class="mini ghost" data-pdel="' + r.기록ID + '" style="padding:1px 6px;font-size:11px">삭제</button></div>' : '') + '</td>' +
+          '<td style="font-size:13px;color:var(--ink-2)">' + esc(r.소감) + (r.교사메모 ? '<br><span class="tag warn" style="font-size:11px">' + esc(r.교사메모) + '</span>' : '') + '</td><td>' + stateTag(r.상태) + '</td>' +
+          '<td style="white-space:nowrap">' + (r.상태 !== '확인' ? '<button class="mini soft" data-rok="' + r.기록ID + '">확인</button> ' : '') + (r.상태 !== '반려' ? '<button class="mini ghost" data-rno="' + r.기록ID + '">반려</button>' : '') + '</td></tr>';
+      }).join('') || '<tr><td colspan="10" class="unit" style="padding:14px">기록이 없습니다</td></tr>';
+      loadThumbs(list); bindPhotoClicks($('fRecRows'));
+      Array.prototype.forEach.call($('fRecRows').querySelectorAll('[data-pkeep]'), function (b) { b.onclick = function () { photoAction([b.dataset.pkeep], '보관'); }; });
+      Array.prototype.forEach.call($('fRecRows').querySelectorAll('[data-pdel]'), function (b) { b.onclick = function () { if (confirm('이 사진을 드라이브 휴지통으로 보낼까요?')) photoAction([b.dataset.pdel], '삭제'); }; });
+      Array.prototype.forEach.call($('fRecRows').querySelectorAll('[data-rok]'), function (b) { b.onclick = function () { review([b.dataset.rok], '확인'); setTimeout(function () { $('fBtnRecSearch').click(); }, 800); }; });
+      Array.prototype.forEach.call($('fRecRows').querySelectorAll('[data-rno]'), function (b) { b.onclick = function () { rejectWithMemo([b.dataset.rno]); setTimeout(function () { $('fBtnRecSearch').click(); }, 800); }; });
+    }).catch(handleErr);
+  };
+
+  /* ---------- 기록 사진 ---------- */
+  var RTHUMB = {};
+  function photoCell(r) {
+    if (!r.사진ID) return '<span class="unit">-</span>';
+    var src = RTHUMB[r.사진썸네일ID || r.사진ID] || '';
+    return '<div data-photo="' + r.사진ID + '" data-pt="' + esc(r.학생.이름 + ' · ' + r.날짜 + ' ' + r.종목) + '" style="width:56px;height:42px;border-radius:6px;background:var(--line-2);overflow:hidden;cursor:zoom-in;display:flex;align-items:center;justify-content:center">' +
+      (src ? '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover">' : '<i class="ti ti-photo" style="color:var(--ink-3)"></i>') + '</div>';
+  }
+  function loadThumbs(list) {
+    var need = [];
+    list.forEach(function (r) { var id = r.사진썸네일ID || r.사진ID; if (id && RTHUMB[id] === undefined) { RTHUMB[id] = ''; need.push(id); } });
+    if (!need.length) return;
+    api('fit_t_getThumbs', TOKEN, need).then(function (m) {
+      Object.keys(m).forEach(function (id) { RTHUMB[id] = m[id]; });
+      Array.prototype.forEach.call(document.querySelectorAll('#fit_tp_pending [data-photo]'), function (el) {
+        var r = findOne(PENDING.concat(RECS), function (x) { return x.사진ID === el.dataset.photo; });
+        if (!r) return;
+        var src = RTHUMB[r.사진썸네일ID || r.사진ID];
+        if (src) el.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover">';
+      });
+    }).catch(function () {});
+  }
+  function bindPhotoClicks(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-photo]'), function (el) {
+      el.onclick = function () {
+        $('fPhotoTitle').innerHTML = '<i class="ti ti-photo"></i>' + esc(el.dataset.pt);
+        $('fPhotoBig').src = ''; $('fMdPhoto').classList.remove('hide');
+        api('fit_t_getThumbs', TOKEN, [el.dataset.photo]).then(function (m) { $('fPhotoBig').src = m[el.dataset.photo] || ''; }).catch(handleErr);
+      };
+    });
+  }
+  function photoAction(ids, 처리) {
+    api('fit_t_photoAction', TOKEN, ids, 처리).then(function (r) { toast('사진 ' + r.처리수 + '장 ' + 처리); $('fBtnRecSearch').click(); }).catch(handleErr);
+  }
+
+  /* ================= 출석부 ================= */
+  var ATT = null, ATTPICK = null;
+  function loadAtt() {
+    if (!$('fAttFrom').value) { $('fAttTo').value = BOOT.오늘; $('fAttFrom').value = addDays(BOOT.오늘, -27); }
+    $('fAttRows').innerHTML = '<tr><td class="unit" style="padding:14px">불러오는 중…</td></tr>';
+    api('fit_t_getAttendance', TOKEN, $('fAttFrom').value, $('fAttTo').value).then(function (a) { ATT = a; renderAtt(); }).catch(handleErr);
+  }
+  $('fBtnAttLoad').onclick = loadAtt;
+  function renderAtt() {
+    var a = ATT;
+    $('fAttHead').innerHTML = '<tr><th>학생</th>' + a.날짜들.map(function (d) {
+      return '<th style="text-align:center"><div>' + md(d) + '</div><div class="unit">' + 요일[parseYmd(d).getDay()] + '</div><button class="mini ghost" data-confirm="' + d + '" title="이 날 학생 체크 모두 확인" style="padding:2px 6px;margin-top:3px"><i class="ti ti-checks"></i></button></th>';
+    }).join('') + '<th>출석</th></tr>';
+    $('fAttRows').innerHTML = a.참가자.map(function (s) {
+      var row = a.표[s.학생ID] || {}, cnt = 0;
+      var cells = a.날짜들.map(function (d) {
+        var c = row[d], html = '<span class="unit">·</span>';
+        if (c) {
+          if (c.출석 === '출석') { cnt++; html = c.확인 ? '<span class="tag brand"><i class="ti ti-check"></i></span>' : '<span class="tag sun"><i class="ti ti-clock"></i></span>'; }
+          else if (c.출석 === '결석') html = '<span class="tag warn"><i class="ti ti-x"></i></span>';
+        }
+        return '<td data-att="' + s.학생ID + '|' + d + '" style="cursor:pointer">' + html + '</td>';
+      }).join('');
+      return '<tr><td class="name">' + esc(s.학년 + '-' + s.반 + ' ' + s.이름) + '</td>' + cells + '<td><b>' + cnt + '</b></td></tr>';
+    }).join('') || '<tr><td class="unit" style="padding:14px">참가 학생이 없습니다</td></tr>';
+    Array.prototype.forEach.call($('fAttRows').querySelectorAll('[data-att]'), function (td) { td.onclick = function () { var p = td.dataset.att.split('|'); openAttPick(p[0], p[1]); }; });
+    Array.prototype.forEach.call($('fAttHead').querySelectorAll('[data-confirm]'), function (b) {
+      b.onclick = function () { api('fit_t_confirmAttendance', TOKEN, b.dataset.confirm).then(function (r) { toast(r.처리수 + '명 확인'); loadAtt(); }).catch(handleErr); };
+    });
+  }
+  function openAttPick(id, d) {
+    var s = findOne(ATT.참가자, function (x) { return x.학생ID === id; });
+    var cur = (ATT.표[id] || {})[d];
+    ATTPICK = { id: id, d: d };
+    $('fAttPickTitle').innerHTML = '<i class="ti ti-calendar-check"></i>' + esc(s ? s.학년 + '-' + s.반 + ' ' + s.이름 : '');
+    $('fAttPickSub').innerHTML = mdw(d) + ' · 지금: ' + (!cur ? '표시 없음' : cur.출석 === '출석' ? (cur.확인 ? '출석' : '출석(학생 체크, 미확인)') : '결석');
+    $('fAttPickClear').classList.toggle('hide', !cur);
+    $('fMdAtt').classList.remove('hide');
+  }
+  function setAtt(v) {
+    if (!ATTPICK) return;
+    var id = ATTPICK.id, d = ATTPICK.d;
+    api('fit_t_setAttendance', TOKEN, d, id, v).then(function () {
+      if (!ATT.표[id]) ATT.표[id] = {};
+      if (v === '') delete ATT.표[id][d]; else ATT.표[id][d] = { 출석: v, 확인: true, 입력자: '교사' };
+      $('fMdAtt').classList.add('hide'); renderAtt();
+    }).catch(handleErr);
+  }
+  $('fAttPickOn').onclick = function () { setAtt('출석'); };
+  $('fAttPickOff').onclick = function () { setAtt('결석'); };
+  $('fAttPickClear').onclick = function () { setAtt(''); };
+
+  /* ================= 누적 현황 ================= */
+  var SUM = null;
+  function loadSummary() {
+    if (!$('fSumFrom').value) { $('fSumFrom').value = BOOT.설정.운영시작 || ''; $('fSumTo').value = BOOT.설정.운영종료 || BOOT.오늘; }
+    $('fSumRows').innerHTML = '<tr><td colspan="12" class="unit" style="padding:14px">집계 중…</td></tr>';
+    api('fit_t_getSummary', TOKEN, $('fSumFrom').value, $('fSumTo').value).then(function (s) {
+      SUM = s;
+      $('fSumRows').innerHTML = s.행.map(function (r) {
+        return '<tr><td class="name"><a href="#" data-detail="' + r.학생.학생ID + '" style="text-decoration:none;color:inherit">' + esc(r.학생.학년 + '-' + r.학생.반 + ' ' + r.학생.이름) + '</a></td>' +
+          '<td>' + r.누적횟수 + '</td><td><b>' + fmt(r.누적포인트) + '</b></td>' +
+          s.요소.map(function (x) { return '<td>' + (r.요소포인트[x] || 0) + '<span class="unit">p/' + (r.요소횟수[x] || 0) + '회</span></td>'; }).join('') +
+          '<td>' + r.출석수 + '</td><td>' + r.가정횟수 + '</td><td>' + r.달성주 + '<span class="unit">주</span></td><td><span class="tag sun"><i class="ti ti-award"></i>' + r.배지수 + '</span></td><td>' + (r.대기수 ? '<span class="tag sun">' + r.대기수 + '</span>' : '<span class="unit">-</span>') + '</td></tr>';
+      }).join('') || '<tr><td colspan="12" class="unit" style="padding:14px">참가 학생이 없습니다</td></tr>';
+      bindDetailLinks($('fSumRows'));
+    }).catch(handleErr);
+  }
+  $('fBtnSumLoad').onclick = loadSummary;
+  $('fBtnSumAll').onclick = function () { $('fSumFrom').value = ''; $('fSumTo').value = ''; loadSummary(); };
+  $('fBtnSumExport').onclick = function () {
+    if (!SUM) return;
+    var head = ['학년', '반', '번호', '이름', '기록수', '포인트'].concat(SUM.요소).concat(['출석', '가정운동', '목표달성주', '배지']);
+    var lines = [head.join('\t')].concat(SUM.행.map(function (r) {
+      return [r.학생.학년, r.학생.반, r.학생.번호, r.학생.이름, r.누적횟수, r.누적포인트].concat(SUM.요소.map(function (x) { return r.요소포인트[x] || 0; })).concat([r.출석수, r.가정횟수, r.달성주, r.배지수]).join('\t');
+    }));
+    copyText(lines.join('\n')); toast('표를 복사했습니다. 스프레드시트에 붙여넣으세요.');
+  };
+
+  /* ================= 학생 상세 ================= */
+  function bindDetailLinks(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-detail]'), function (a) { a.onclick = function (e) { e.preventDefault(); openDetail(a.dataset.detail); }; });
+  }
+  function openDetail(id) {
+    $('fDtBody').innerHTML = '<div class="unit">불러오는 중…</div>';
+    $('fMdDetail').classList.remove('hide');
+    api('fit_t_getStudentDetail', TOKEN, id).then(function (y) {
+      var s = y.학생 || { 이름: '?' };
+      $('fDtTitle').innerHTML = '<i class="ti ti-user"></i>' + esc((s.학년 || '') + '-' + (s.반 || '') + ' ' + (s.번호 || '') + '번 ' + s.이름) + (s.선정사유 ? ' <span class="tag coral" style="font-size:11px">' + esc(s.선정사유) + '</span>' : '');
+      var html = '<div class="kpis" style="margin-bottom:14px">' + kpiTile('누적 포인트', fmt(y.누적포인트), 'p', 'coin', 'brand') + kpiTile('운동 기록', y.누적횟수, '회', 'notes', '') + kpiTile('출석', y.출석수, '회', 'calendar-check', '') + kpiTile('목표 달성', y.달성주, '주', 'target-arrow', 'violet') + kpiTile('배지', y.배지수, '개', 'award', 'sun') + '</div>';
+      html += '<div class="grid g2" style="margin-bottom:14px"><div><div class="unit" style="margin-bottom:6px;font-weight:700">체력요소별 포인트</div>' + factorBars(y.요소포인트, y.요소횟수) + '</div>' +
+              '<div><div class="unit" style="margin-bottom:6px;font-weight:700">주별 기록 (최근 10주)</div>' + weekChart(y.주별.slice(-10)) + '</div></div>';
+      html += '<div class="unit" style="margin-bottom:6px;font-weight:700">배지</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">' + y.배지.map(function (b) {
+        return '<span class="tag ' + (b.달성 ? 'sun' : '') + '" title="' + esc(b.설명) + '"' + (b.달성 ? '' : ' style="opacity:.5"') + '><i class="ti ti-' + esc(b.아이콘) + '"></i>' + esc(b.이름) + ' <span class="unit">' + b.진행 + '/' + b.기준값 + '</span></span>';
+      }).join('') + '</div>';
+      html += '<div class="unit" style="margin-bottom:6px;font-weight:700">기록 (최근 순)</div><div class="scroll-x" style="max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:10px"><table><thead><tr><th>날짜</th><th>장소</th><th>운동</th><th>양</th><th>포인트</th><th>소감</th><th>상태</th></tr></thead><tbody>' +
+        y.기록.map(function (r) { return '<tr><td class="unit">' + mdw(r.날짜) + '</td><td>' + placeTag(r.장소) + '</td><td>' + ftag(r.요소, true) + ' ' + esc(r.종목) + '</td><td>' + r.수치 + esc(r.단위) + '</td><td>' + r.포인트 + 'p</td><td style="font-size:13px;color:var(--ink-2)">' + esc(r.소감) + '</td><td>' + stateTag(r.상태) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+      $('fDtBody').innerHTML = html;
+    }).catch(handleErr);
+  }
+  function factorBars(pts, cnt) {
+    var max = Math.max.apply(null, F.map(function (x) { return pts[x] || 0; }).concat([1]));
+    return F.map(function (x) {
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:96px;font-size:12.5px;font-weight:700">' + esc(x) + '</span><div class="prog thin" style="flex:1"><i style="width:' + pct(pts[x] || 0, max) + '%;background:' + FVAR[x] + '"></i></div><span class="unit" style="width:70px;text-align:right">' + (pts[x] || 0) + 'p · ' + (cnt[x] || 0) + '회</span></div>';
+    }).join('');
+  }
+  function weekChart(weeks) {
+    if (!weeks.length) return '<div class="unit">기록 없음</div>';
+    var max = Math.max.apply(null, weeks.map(function (w) { return Math.max(w.포인트, w.목표포인트); }).concat([1]));
+    return '<div style="display:flex;gap:6px;align-items:flex-end;height:110px;padding:6px 0;border-bottom:1px solid var(--line)">' + weeks.map(function (w) {
+      var h = Math.max(4, Math.round(w.포인트 / max * 90));
+      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px" title="' + w.주시작 + ' · ' + w.포인트 + 'p / ' + w.횟수 + '회"><span class="unit" style="font-size:10px">' + w.포인트 + '</span><div style="width:100%;max-width:26px;height:' + h + 'px;border-radius:6px 6px 0 0;background:' + (w.달성 ? 'var(--accent)' : 'var(--line)') + '"></div><span class="unit" style="font-size:10px">' + md(w.주시작) + '</span></div>';
+    }).join('') + '</div>';
+  }
+
+  /* ================= 결과물 ================= */
+  var PHOTOS = [], THUMBS = {};
+  function loadReport() {
+    if (!$('fRpFrom').value) { $('fRpFrom').value = BOOT.설정.운영시작 || ''; $('fRpTo').value = BOOT.설정.운영종료 || BOOT.오늘; }
+    if (!$('fPhDate').value) $('fPhDate').value = BOOT.오늘;
+    if (!$('fRpSchool').value) $('fRpSchool').value = BOOT.설정.학교명 || '';
+    if (!$('fRpTeacher').value) $('fRpTeacher').value = BOOT.설정.지도교사 || '';
+    api('fit_t_reportInfo', TOKEN).then(function (r) { $('fRpFolderLink').href = r.폴더URL; PHOTOS = r.사진; renderPhotos(); }).catch(handleErr);
+  }
+  ['fRpSign', 'fRpOnly', 'fRpPhoto', 'fRpMask'].forEach(function (id) { $(id).onchange = function () { $(id + 'Wrap').classList.toggle('on', this.checked); }; });
+  function renderPhotos() {
+    $('fPhEmpty').classList.toggle('hide', PHOTOS.length > 0);
+    $('fPhGrid').innerHTML = PHOTOS.map(function (p) {
+      var src = THUMBS[p.썸네일ID || p.파일ID] || '';
+      return '<div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff">' +
+        '<div style="aspect-ratio:4/3;background:var(--line-2);display:flex;align-items:center;justify-content:center;overflow:hidden">' +
+        (src ? '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover">' : '<i class="ti ti-photo" style="font-size:28px;color:var(--ink-3)"></i>') + '</div>' +
+        '<div style="padding:8px 10px"><div style="display:flex;align-items:center;gap:6px"><b style="font-size:13px">' + mdw(p.날짜) + '</b><div class="spacer"></div>' +
+        '<button class="mini ghost" data-phedit="' + p.사진ID + '" style="padding:2px 6px"><i class="ti ti-pencil"></i></button><button class="mini danger" data-phdel="' + p.사진ID + '" style="padding:2px 6px"><i class="ti ti-trash"></i></button></div>' +
+        '<div class="unit" style="margin-top:2px;min-height:16px">' + esc(p.설명) + '</div></div></div>';
+    }).join('');
+    Array.prototype.forEach.call($('fPhGrid').querySelectorAll('[data-phdel]'), function (b) {
+      b.onclick = function () {
+        if (!confirm('이 사진을 지울까요? 드라이브에서도 휴지통으로 이동합니다.')) return;
+        api('fit_t_deletePhoto', TOKEN, b.dataset.phdel).then(function (r) { if (!r.ok) { toast(r.message, 'err'); return; } PHOTOS = r.사진; renderPhotos(); toast('지웠습니다'); }).catch(handleErr);
+      };
+    });
+    Array.prototype.forEach.call($('fPhGrid').querySelectorAll('[data-phedit]'), function (b) {
+      b.onclick = function () {
+        var p = findOne(PHOTOS, function (x) { return x.사진ID === b.dataset.phedit; });
+        var d = prompt('활동 날짜 (yyyy-mm-dd)', p.날짜); if (d === null) return;
+        var s = prompt('설명', p.설명); if (s === null) return;
+        api('fit_t_updatePhoto', TOKEN, p.사진ID, d, s).then(function (r) { if (!r.ok) { toast(r.message, 'err'); return; } PHOTOS = r.사진; renderPhotos(); }).catch(handleErr);
+      };
+    });
+    var need = PHOTOS.map(function (p) { return p.썸네일ID || p.파일ID; }).filter(function (id) { return id && THUMBS[id] === undefined; });
+    if (need.length) {
+      need.forEach(function (id) { THUMBS[id] = ''; });
+      api('fit_t_getThumbs', TOKEN, need).then(function (m) { Object.keys(m).forEach(function (id) { THUMBS[id] = m[id]; }); renderPhotos(); }).catch(function () {});
+    }
+  }
+  $('fBtnPhUpload').onclick = function () {
+    var files = Array.prototype.slice.call($('fPhFiles').files || []), st = $('fPhStatus');
+    if (!files.length) { setStatus(st, '사진 파일을 골라 주세요.', 'err'); return; }
+    var btn = this; btn.disabled = true;
+    var 날짜 = $('fPhDate').value || BOOT.오늘, 설명 = $('fPhDesc').value, done = 0, fail = [];
+    var next = function (i) {
+      if (i >= files.length) { btn.disabled = false; $('fPhFiles').value = ''; setStatus(st, done + '장 올렸습니다.' + (fail.length ? ' 실패: ' + fail.join(', ') : ''), fail.length ? 'err' : 'ok'); return; }
+      setStatus(st, (i + 1) + ' / ' + files.length + ' 올리는 중… (' + files[i].name + ')');
+      Promise.all([shrinkImage(files[i], 1600, 0.85), shrinkImage(files[i], 360, 0.7)]).then(function (arr) {
+        return api('fit_t_uploadPhoto', TOKEN, { 날짜: 날짜, 설명: 설명, 파일명: files[i].name.replace(/\.[^.]+$/, '') + '.jpg', 타입: 'image/jpeg', 본문: arr[0], 썸네일: arr[1] });
+      }).then(function (r) { if (r.ok) { done++; PHOTOS = r.사진; renderPhotos(); } else fail.push(files[i].name); next(i + 1); })
+        .catch(function (e) { fail.push(files[i].name + '(' + (e.message || e) + ')'); next(i + 1); });
+    };
+    next(0);
+  };
+  $('fBtnMakeReport').onclick = function () {
+    var st = $('fRpStatus'), btn = this;
+    btn.disabled = true; $('fRpOpen').classList.add('hide');
+    setStatus(st, '문서를 만드는 중… 사진이 많으면 1분 정도 걸립니다.');
+    api('fit_t_makeReport', TOKEN, { 제목: $('fRpTitle').value, 시작: $('fRpFrom').value, 끝: $('fRpTo').value, 학교명: $('fRpSchool').value, 지도교사: $('fRpTeacher').value,
+      서명부: $('fRpSign').checked, 서명부형식: $('fRpSignType').value, 출석있는날만: $('fRpOnly').checked, 사진: $('fRpPhoto').checked, 이름가리기: $('fRpMask').checked }).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { setStatus(st, r.message, 'err'); return; }
+      setStatus(st, '완성: ' + r.이름 + ' · 참가 ' + r.인원 + '명 · ' + r.회차 + '회차 · 사진 ' + r.사진수 + '장', 'ok');
+      $('fRpOpen').href = r.url; $('fRpOpen').classList.remove('hide'); toast('문서를 만들었습니다');
+    }).catch(function (e) { btn.disabled = false; handleErr(e); });
+  };
+
+  /* ================= 지도 계획 ================= */
+  var planDirty = false;
+  function loadPlan() {
+    api('fit_t_getPlan', TOKEN).then(function (p) { PLAN = p; planDirty = false; renderPlan(); UNSAVED.check = function () { return planDirty ? '지도 계획' : ''; }; }).catch(handleErr);
+  }
+  function renderPlan() {
+    $('fPlanRows').innerHTML = PLAN.map(function (p, i) {
+      return '<tr><td><input type="number" min="1" max="12" value="' + p.월 + '" data-pf="월" data-i="' + i + '" style="width:64px"></td>' +
+        '<td><input type="text" class="text" value="' + esc(p.주) + '" data-pf="주" data-i="' + i + '" style="width:70px"></td>' +
+        '<td><select data-pf="요소" data-i="' + i + '">' + F.map(function (x) { return '<option' + (x === p.요소 ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></td>' +
+        '<td><input type="text" class="text" value="' + esc(p.지도내용) + '" data-pf="지도내용" data-i="' + i + '" style="width:100%;min-width:240px"></td>' +
+        '<td><input type="text" class="text" value="' + esc(p.비고) + '" data-pf="비고" data-i="' + i + '" style="width:120px"></td>' +
+        '<td><button class="mini ghost" data-pdel="' + i + '"><i class="ti ti-trash"></i></button></td></tr>';
+    }).join('');
+    Array.prototype.forEach.call($('fPlanRows').querySelectorAll('[data-pf]'), function (el) { el.onchange = function () { PLAN[Number(el.dataset.i)][el.dataset.pf] = el.dataset.pf === '월' ? Number(el.value) : el.value; planDirty = true; }; });
+    Array.prototype.forEach.call($('fPlanRows').querySelectorAll('[data-pdel]'), function (b) { b.onclick = function () { PLAN.splice(Number(b.dataset.pdel), 1); planDirty = true; renderPlan(); }; });
+  }
+  $('fBtnPlanAdd').onclick = function () { var last = PLAN[PLAN.length - 1]; PLAN.push({ 월: last ? last.월 : new Date().getMonth() + 1, 주: '', 요소: '심폐지구력', 지도내용: '', 비고: '' }); planDirty = true; renderPlan(); };
+  $('fBtnPlanSave').onclick = function () {
+    setStatus('fPlanStatus', '저장 중…');
+    api('fit_t_savePlan', TOKEN, PLAN).then(function (r) { PLAN = r.계획; planDirty = false; renderPlan(); setStatus('fPlanStatus', '저장했습니다', 'ok'); toast('지도 계획을 저장했습니다'); }).catch(handleErr);
+  };
+
+  /* ================= 운영 설정 ================= */
+  var setDirty = false, evDirty = false, bdDirty = false;
+  function loadSettings() {
+    UNSAVED.check = function () { return setDirty ? '운영 설정' : evDirty ? '운동 종목' : bdDirty ? '배지' : ''; };
+    api('fit_t_getSettings', TOKEN).then(function (s) {
+      SETTINGS = s; setDirty = false;
+      $('fSettingRows').innerHTML = s.map(function (r, i) {
+        var ctl;
+        if (r.항목 === '운영요일') {
+          var on = String(r.값).split(/[,\s]+/);
+          ctl = '<div style="display:flex;gap:6px;flex-wrap:wrap">' + ['월', '화', '수', '목', '금', '토', '일'].map(function (d) {
+            return '<label class="chk' + (on.indexOf(d) > -1 ? ' on' : '') + '" style="padding:6px 10px"><input type="checkbox" value="' + d + '" data-day="' + i + '"' + (on.indexOf(d) > -1 ? ' checked' : '') + '><span>' + d + '</span></label>';
+          }).join('') + '</div>';
+        } else if (r.항목 === '운영시간') {
+          var tm = String(r.값).split('~').map(function (x) { return x.trim(); });
+          ctl = '<div style="display:flex;gap:8px;align-items:center"><input type="time" value="' + esc(tm[0] || '14:30') + '" data-time="' + i + '"><span class="unit">~</span><input type="time" value="' + esc(tm[1] || '15:30') + '" data-time="' + i + '"></div>';
+        } else if (r.항목 === '가정운동사진') {
+          ctl = '<select data-set="' + i + '">' + ['선택', '필수', '없음'].map(function (x) { return '<option' + (x === r.값 ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>';
+        } else if (r.항목 === '자동확인') {
+          ctl = '<select data-set="' + i + '">' + ['교실', '전부', '없음'].map(function (x) { return '<option' + (x === r.값 ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select>';
+        } else if (r.항목 === '운영시작' || r.항목 === '운영종료') {
+          ctl = '<input type="date" value="' + esc(r.값) + '" data-set="' + i + '">';
+        } else {
+          ctl = '<input type="text" value="' + esc(r.값) + '" data-set="' + i + '">';
+        }
+        return '<div class="field"><label>' + esc(r.항목) + '</label>' + ctl + '<span class="unit">' + esc(r.설명) + '</span></div>';
+      }).join('');
+      Array.prototype.forEach.call($('fSettingRows').querySelectorAll('[data-set]'), function (el) { el.oninput = el.onchange = function () { SETTINGS[Number(el.dataset.set)].값 = el.value; setDirty = true; }; });
+      Array.prototype.forEach.call($('fSettingRows').querySelectorAll('[data-day]'), function (cb) {
+        cb.onchange = function () {
+          var i = Number(cb.dataset.day);
+          cb.parentNode.classList.toggle('on', cb.checked);
+          SETTINGS[i].값 = Array.prototype.filter.call($('fSettingRows').querySelectorAll('[data-day="' + i + '"]'), function (x) { return x.checked; }).map(function (x) { return x.value; }).join(',');
+          setDirty = true;
+        };
+      });
+      Array.prototype.forEach.call($('fSettingRows').querySelectorAll('[data-time]'), function (el) {
+        el.onchange = function () { var i = Number(el.dataset.time), pair = $('fSettingRows').querySelectorAll('[data-time="' + i + '"]'); SETTINGS[i].값 = pair[0].value + '~' + pair[1].value; setDirty = true; };
+      });
+    }).catch(handleErr);
+    EVENTS = BOOT.종목; evDirty = false; renderEvents();
+    api('fit_t_getBadges', TOKEN).then(function (b) { BADGES = b; bdDirty = false; renderBadges(); }).catch(handleErr);
+  }
+  $('fBtnSetSave').onclick = function () {
+    var 맵 = {};
+    SETTINGS.forEach(function (r) { 맵[r.항목] = r.값; });
+    setStatus('fSetStatus', '저장 중…');
+    api('fit_t_saveSettings', TOKEN, 맵).then(function (r) { setDirty = false; BOOT.설정 = r.설정; setStatus('fSetStatus', '저장했습니다', 'ok'); toast('운영 설정을 저장했습니다'); }).catch(handleErr);
+  };
+  function renderEvents() {
+    $('fEventRows').innerHTML = EVENTS.map(function (t, i) {
+      return '<tr><td><input type="checkbox"' + (t.사용 ? ' checked' : '') + ' data-ef="사용" data-i="' + i + '"></td>' +
+        '<td><select data-ef="요소" data-i="' + i + '">' + F.map(function (x) { return '<option' + (x === t.요소 ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></td>' +
+        '<td><input type="text" class="text" value="' + esc(t.종목) + '" data-ef="종목" data-i="' + i + '" style="width:190px"></td>' +
+        '<td><input type="text" class="text" value="' + esc(t.단위) + '" data-ef="단위" data-i="' + i + '" style="width:60px"></td>' +
+        '<td><input type="number" value="' + t.기준량 + '" data-ef="기준량" data-i="' + i + '" style="width:80px"></td>' +
+        '<td><input type="number" value="' + t.포인트 + '" data-ef="포인트" data-i="' + i + '" style="width:80px"></td>' +
+        '<td><button class="mini ghost" data-edel="' + i + '"><i class="ti ti-trash"></i></button></td></tr>';
+    }).join('');
+    Array.prototype.forEach.call($('fEventRows').querySelectorAll('[data-ef]'), function (el) {
+      el.onchange = function () { var t = EVENTS[Number(el.dataset.i)], k = el.dataset.ef; t[k] = k === '사용' ? el.checked : (k === '기준량' || k === '포인트') ? Number(el.value) : el.value; evDirty = true; };
+    });
+    Array.prototype.forEach.call($('fEventRows').querySelectorAll('[data-edel]'), function (b) { b.onclick = function () { EVENTS.splice(Number(b.dataset.edel), 1); evDirty = true; renderEvents(); }; });
+  }
+  $('fBtnEventAdd').onclick = function () { EVENTS.push({ 요소: '심폐지구력', 종목: '', 단위: '회', 기준량: 10, 포인트: 10, 사용: true }); evDirty = true; renderEvents(); };
+  $('fBtnEventSave').onclick = function () {
+    setStatus('fEventStatus', '저장 중…');
+    api('fit_t_saveEvents', TOKEN, EVENTS).then(function (r) {
+      if (!r.ok) { setStatus('fEventStatus', r.message, 'err'); return; }
+      EVENTS = r.종목; BOOT.종목 = r.종목; evDirty = false; renderEvents(); setStatus('fEventStatus', '저장했습니다', 'ok'); toast('운동 종목을 저장했습니다');
+    }).catch(handleErr);
+  };
+  var 조건들 = ['누적횟수', '누적포인트', '출석', '가정운동', '목표달성', '연속달성', '요소균형'];
+  function renderBadges() {
+    $('fBadgeRows').innerHTML = BADGES.map(function (b, i) {
+      return '<tr><td><input type="checkbox"' + (b.사용 ? ' checked' : '') + ' data-bf="사용" data-i="' + i + '"></td>' +
+        '<td style="white-space:nowrap"><i class="ti ti-' + esc(b.아이콘) + '" style="font-size:20px;color:var(--sun);vertical-align:middle"></i> <input type="text" class="text" value="' + esc(b.아이콘) + '" data-bf="아이콘" data-i="' + i + '" style="width:110px"></td>' +
+        '<td><input type="text" class="text" value="' + esc(b.이름) + '" data-bf="이름" data-i="' + i + '" style="width:130px"></td>' +
+        '<td><input type="text" class="text" value="' + esc(b.설명) + '" data-bf="설명" data-i="' + i + '" style="width:100%;min-width:200px"></td>' +
+        '<td><select data-bf="조건" data-i="' + i + '">' + 조건들.map(function (x) { return '<option' + (x === b.조건 ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></td>' +
+        '<td><input type="number" value="' + b.기준값 + '" data-bf="기준값" data-i="' + i + '" style="width:80px"></td>' +
+        '<td><button class="mini ghost" data-bdel="' + i + '"><i class="ti ti-trash"></i></button></td></tr>';
+    }).join('');
+    Array.prototype.forEach.call($('fBadgeRows').querySelectorAll('[data-bf]'), function (el) {
+      el.onchange = function () { var b = BADGES[Number(el.dataset.i)], k = el.dataset.bf; b[k] = k === '사용' ? el.checked : k === '기준값' ? Number(el.value) : el.value; bdDirty = true; if (k === '아이콘') renderBadges(); };
+    });
+    Array.prototype.forEach.call($('fBadgeRows').querySelectorAll('[data-bdel]'), function (b) { b.onclick = function () { BADGES.splice(Number(b.dataset.bdel), 1); bdDirty = true; renderBadges(); }; });
+  }
+  $('fBtnBadgeAdd').onclick = function () { BADGES.push({ 배지ID: '', 이름: '', 설명: '', 조건: '누적횟수', 기준값: 10, 아이콘: 'award', 사용: true }); bdDirty = true; renderBadges(); };
+  $('fBtnBadgeSave').onclick = function () {
+    setStatus('fBadgeStatus', '저장 중…');
+    api('fit_t_saveBadges', TOKEN, BADGES).then(function (r) { BADGES = r.배지; bdDirty = false; renderBadges(); setStatus('fBadgeStatus', '저장했습니다', 'ok'); toast('배지를 저장했습니다'); }).catch(handleErr);
+  };
+
+  return { nav: nav, init: init, show: show, reset: reset, pendingPage: 'pending' };
+})();
+</script>

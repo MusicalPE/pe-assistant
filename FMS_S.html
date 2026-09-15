@@ -1,0 +1,410 @@
+<!-- FMS 도전 · 학생 화면 (모듈 FMS, 역할 S) — 공통 도우미 FMSX 는 FMS_T.html 에 있습니다 -->
+<style>
+#fms_S .s-hero{background:linear-gradient(135deg,#1F46AC 0%,#2A5BD7 55%,#5B8DEF 100%);color:#fff;border-radius:20px;padding:22px 24px 28px;margin-bottom:18px;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden;box-shadow:0 16px 40px -18px rgba(31,70,172,.6);}
+#fms_S .s-hero::before{content:'';position:absolute;right:-70px;top:50%;width:230px;height:230px;margin-top:-115px;border-radius:50%;border:3px solid rgba(255,255,255,.28);background:radial-gradient(circle,transparent 0 36px,rgba(255,255,255,.24) 36px 39px,transparent 39px);}
+#fms_S .s-hero::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:#FFD23F;}
+#fms_S .s-hero h2{margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.04em;position:relative;}
+#fms_S .s-hero p{margin:0;opacity:.9;font-size:14px;position:relative;}
+#fms_S .s-hero .ring{position:relative;width:104px;height:104px;flex-shrink:0;}
+#fms_S .s-hero .ring svg{width:104px;height:104px;transform:rotate(-90deg);}
+#fms_S .s-hero .ring .bg{fill:none;stroke:rgba(255,255,255,.28);stroke-width:10;}
+#fms_S .s-hero .ring .fg{fill:none;stroke:#fff;stroke-width:10;stroke-linecap:round;transition:stroke-dasharray .6s ease;}
+#fms_S .s-hero .ring .txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;line-height:1;}
+#fms_S .s-hero .ring .txt b{font-size:24px;letter-spacing:-.04em;}
+#fms_S .s-hero .ring .txt small{font-size:11px;opacity:.9;font-weight:600;margin-top:3px;}
+#fms_S .s-hero .stats{display:flex;gap:10px;flex-wrap:wrap;position:relative;}
+#fms_S .s-hero .stat{background:rgba(255,255,255,.18);border-radius:14px;padding:10px 14px;min-width:96px;}
+#fms_S .s-hero .stat .l{font-size:11.5px;opacity:.9;font-weight:600;}
+#fms_S .s-hero .stat .v{font-size:22px;font-weight:800;letter-spacing:-.04em;line-height:1.15;}
+#fms_S .s-hero .stat .v small{font-size:12px;opacity:.85;margin-left:2px;}
+#fms_S .cat-head{display:flex;align-items:center;gap:8px;margin:18px 0 10px;}
+#fms_S .cat-head h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.03em;}
+#fms_S .skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;}
+#fms_S .skill-card{background:#fff;color:var(--ink);border:1.5px solid var(--line);border-radius:16px;padding:14px 16px;text-align:left;display:flex;flex-direction:column;align-items:stretch;gap:8px;box-shadow:var(--shadow);font-weight:600;}
+#fms_S .skill-card:hover{background:#FAFCFD;border-color:var(--accent);}
+#fms_S .skill-card .top{display:flex;align-items:center;gap:8px;}
+#fms_S .skill-card .nm{font-size:18px;font-weight:800;letter-spacing:-.03em;flex:1;}
+#fms_S .skill-card .st{font-size:13px;color:var(--ink-3);font-weight:600;}
+#fms_S .skill-card.done{border-color:#F1DDA0;background:#FFFCF2;}
+#fms_S .steps{list-style:none;margin:0;padding:0;}
+#fms_S .steps li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line-2);}
+#fms_S .steps li:last-child{border-bottom:none;}
+#fms_S .steps .no{width:34px;height:34px;border-radius:50%;border:2.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--ink-3);flex-shrink:0;background:#fff;}
+#fms_S .steps li.ok .no{background:linear-gradient(135deg,#FFD66B,#F5B301);border-color:#F5B301;color:#fff;}
+#fms_S .steps li.now .no{border-color:var(--accent);color:var(--accent-dk);}
+#fms_S .steps li.wait .no,#fms_S .steps li.peer .no,#fms_S .steps li.no .no,#fms_S .steps li.peerno .no{border-color:var(--coral);color:var(--coral);}
+#fms_S .steps .b{flex:1;min-width:0;}
+#fms_S .steps .b b{display:block;letter-spacing:-.02em;}
+#fms_S .crit-row{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:16px;font-weight:700;}
+#fms_S .crit-row .t{flex:1;}
+#fms_S .crit-row .n{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;}
+#fms_S .watch{border:2px solid var(--accent-soft);border-radius:16px;padding:14px 14px 6px;margin-bottom:14px;background:#fff;}
+#fms_S .watch-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+#fms_S .watch-head b{font-size:16px;letter-spacing:-.02em;flex:1;min-width:160px;}
+#fms_S .watch .crit-row{background:var(--accent-soft);}
+#fms_S .crit-row.checkable{cursor:pointer;border:2px solid transparent;user-select:none;-webkit-user-select:none;}
+#fms_S .crit-row.checkable.on{background:var(--green-soft);border-color:var(--green);}
+#fms_S .crit-row .cb{width:36px;height:36px;border-radius:10px;border:2.5px solid #B8C4D0;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;line-height:1;color:#fff;font-weight:900;}
+#fms_S .crit-row.checkable.on .cb{background:var(--green);border-color:var(--green);}
+#fms_S .crit-row.checkable.on .n{background:var(--green);}
+#fms_S .check-count{font-size:14px;font-weight:700;color:var(--ink-2);padding:2px 2px 10px;}
+#fms_S .ok-hint{text-align:center;font-size:13px;font-weight:600;color:var(--coral);min-height:18px;margin-top:6px;}
+#fms_S .ox{display:flex;gap:8px;}
+#fms_S .ox button{width:56px;height:52px;font-size:24px;font-weight:800;background:#fff;color:var(--ink-3);border:2px solid var(--line);border-radius:12px;}
+#fms_S .ox button:hover{background:#fff;border-color:var(--line);}
+#fms_S .ox button.o.on{background:var(--green);border-color:var(--green);color:#fff;}
+#fms_S .ox button.x.on{background:var(--ink-3);border-color:var(--ink-3);color:#fff;}
+#fms_S .bigsave{width:100%;padding:15px;font-size:17px;border-radius:14px;margin-top:8px;}
+#fms_S .seen{width:100%;padding:18px;font-size:18px;border-radius:14px;background:#fff;color:var(--ink-3);border:2px dashed var(--line);}
+#fms_S .seen:hover{background:#fff;border-color:var(--line);}
+#fms_S .seen.on{background:var(--green-soft);color:#177A4E;border:2px solid var(--green);}
+#fms_S .amount{display:flex;align-items:center;gap:8px;}
+#fms_S .amount input{font-size:26px;font-weight:800;text-align:center;width:130px;padding:8px;border-radius:12px;}
+#fms_S .amount .u{font-size:16px;color:var(--ink-2);font-weight:700;}
+#fms_S .amount button{border-radius:12px;padding:12px 16px;}
+#fms_S .peer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;}
+#fms_S .peer-grid button{background:#fff;color:var(--ink);border:1.5px solid var(--line);border-radius:12px;padding:14px 8px;flex-direction:column;gap:0;font-size:17px;font-weight:800;}
+#fms_S .peer-grid button small{font-size:11.5px;color:var(--ink-3);font-weight:600;}
+#fms_S .peer-grid button:hover,#fms_S .peer-grid button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);}
+#fms_S .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+#fms_S .chips button{background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:99px;padding:7px 14px;font-size:14px;}
+#fms_S .chips button[aria-selected=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);}
+#fms_S .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+#fms_S .badge-card{border:1px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center;background:#fff;}
+#fms_S .badge-card .ic{width:52px;height:52px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--line-2);color:var(--ink-3);}
+#fms_S .badge-card.on .ic{background:linear-gradient(135deg,#FFD66B,#F5B301);color:#fff;box-shadow:0 8px 18px -8px rgba(245,179,1,.7);}
+#fms_S .badge-card.on{border-color:#F1DDA0;background:#FFFCF2;}
+#fms_S .badge-card b{display:block;font-size:14px;letter-spacing:-.02em;}
+#fms_S .badge-card small{display:block;color:var(--ink-3);font-size:11.5px;margin-top:3px;line-height:1.35;}
+@media (max-width:900px){ #fms_S .s-hero{padding:18px;} #fms_S .s-hero .ring{width:88px;height:88px;} #fms_S .s-hero .ring svg{width:88px;height:88px;} }
+</style>
+
+<div class="mroot hide fms-ui" data-mod="FMS" data-role="S" id="fms_S">
+
+  <!-- ===== 내 도전 ===== -->
+  <div class="page" id="fms_sp_home">
+    <div class="s-hero">
+      <div class="ring">
+        <svg viewBox="0 0 104 104"><circle class="bg" cx="52" cy="52" r="46"></circle><circle class="fg" id="fsmRingFg" cx="52" cy="52" r="46" stroke-dasharray="0 289"></circle></svg>
+        <div class="txt"><b id="fsmRingPct">0%</b><small>통과</small></div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <h2 id="fsmHeroTitle">안녕!</h2>
+        <p>한 단계씩 도전해서 배지를 모아요</p>
+        <div class="stats" style="margin-top:12px">
+          <div class="stat"><div class="l">받은 배지</div><div class="v"><span id="fsmBadges">0</span><small>개</small></div></div>
+          <div class="stat"><div class="l">도전 중인 기술</div><div class="v"><span id="fsmDoing">0</span><small>개</small></div></div>
+          <div class="stat"><div class="l">선생님 확인 중</div><div class="v"><span id="fsmWait">0</span><small>건</small></div></div>
+        </div>
+      </div>
+    </div>
+    <div id="fsmHomeNotes"></div>
+    <div id="fsmSkillCards"></div>
+  </div>
+
+  <!-- ===== 기술 상세 ===== -->
+  <div class="page hide" id="fms_sp_skill">
+    <div class="page-head"><button class="ghost mini" id="fsmSkBack"><i class="ti ti-arrow-left"></i>내 도전</button><h2 id="fsmSkName"></h2><span id="fsmSkSay"></span><span class="sub" id="fsmSkDesc"></span></div>
+    <div class="grid g2" style="align-items:start">
+      <div class="panel" style="margin:0"><div class="panel-head"><h3><i class="ti ti-stairs-up"></i>도전 단계</h3></div><div class="panel-body" style="padding-top:4px"><ul class="steps" id="fsmSkSteps"></ul></div></div>
+      <div class="panel" style="margin:0"><div class="panel-head"><h3><i class="ti ti-flag"></i><span id="fsmSkNowTitle">지금 도전</span></h3></div><div class="panel-body" id="fsmSkNow"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== 혼자 체크하기 ===== -->
+  <div class="page hide" id="fms_sp_self">
+    <div class="page-head"><button class="ghost mini" id="fsmSelfBack"><i class="ti ti-arrow-left"></i>돌아가기</button><h2>혼자 체크하기</h2><span class="sub" id="fsmSelfSub"></span></div>
+    <div class="panel" style="max-width:640px"><div class="panel-body" id="fsmSelfList"></div>
+      <div class="savebar"><div class="spacer"></div><button id="fsmSelfSave" disabled><i class="ti ti-device-floppy"></i>저장하기</button></div></div>
+  </div>
+
+  <!-- ===== 짝에게 확인받기 ===== -->
+  <div class="page hide" id="fms_sp_peer">
+    <div class="page-head"><button class="ghost mini" id="fsmPeerBack"><i class="ti ti-arrow-left"></i>돌아가기</button><h2>짝에게 확인 요청하기</h2><span class="sub" id="fsmPeerSub"></span></div>
+    <div id="fsmPeerBody"></div>
+  </div>
+
+  <!-- ===== 친구 확인 요청 ===== -->
+  <div class="page hide" id="fms_sp_requests">
+    <div class="page-head"><h2 id="fsmRqTitle">친구 확인 요청</h2><span class="sub" id="fsmRqSub">친구가 도전하는 모습을 보고 확인해 줘요.</span><div class="spacer"></div><button class="ghost mini" id="fsmRqRefresh"><i class="ti ti-refresh"></i>새로고침</button></div>
+    <div id="fsmRqBody"></div>
+  </div>
+
+  <!-- ===== 받은 배지 ===== -->
+  <div class="page hide" id="fms_sp_badges">
+    <div class="page-head"><h2>받은 배지</h2><span class="sub" id="fsmBadgeSub"></span></div>
+    <div id="fsmBadgeBody"></div>
+  </div>
+</div>
+
+<script>
+MODS.FMS = MODS.FMS || {};
+MODS.FMS.student = (function () {
+  var V = null, skillId = null, LOADING = false, peerGrade = null, pickedPeer = null;
+  var pages = ['home', 'skill', 'self', 'peer', 'requests', 'badges'];
+  var nav = [
+    { section: 'FMS 도전' },
+    { id: 'home', label: '내 도전', icon: 'run' },
+    { id: 'requests', label: '친구 확인 요청', icon: 'user-check' },
+    { id: 'badges', label: '받은 배지', icon: 'award' }
+  ];
+  function init(ctx) { V = null; skillId = null; pickedPeer = null; load(null); }   // 요청 수 배지를 위해 미리 불러옴
+  function reset() { V = null; skillId = null; pickedPeer = null; }
+  function load(then) {
+    if (LOADING) return;
+    LOADING = true;
+    api('fms_s_boot', TOKEN).then(function (v) { LOADING = false; FMSX.app = v.app; V = v; setNavCount('FMS', 'requests', (V.requests || []).length); if (then) then(); })
+      .catch(function (e) { LOADING = false; handleErr(e); });
+  }
+  function refresh() { return api('fms_s_view', TOKEN).then(function (v) { V = v; setNavCount('FMS', 'requests', (V.requests || []).length); }); }
+  function pagesShow(id) { pages.forEach(function (p) { $('fms_sp_' + p).classList.toggle('hide', p !== id); }); scrollTopMain(); }
+  function show(p) {
+    if (pages.indexOf(p) < 0) p = 'home';
+    var fn = { home: renderHome, requests: renderRequests, badges: renderBadges }[p] || renderHome;
+    if (!V) { pagesShow(p); load(function () { pagesShow(p); fn(); }); return; }
+    pagesShow(p); fn();
+  }
+  function peerName(id) { var s = findOne(V.peers, function (x) { return x.id === id; }); return s ? s.name : '친구'; }
+  function progress(id) {
+    var band = FMSX.bandOf(V.student, V.adjust, id), lv = FMSX.levelsFor(id, band);
+    var states = lv.map(function (l) { return FMSX.levelState(V.applications, l.id); }), cur = -1;
+    for (var i = 0; i < states.length; i++) { if (states[i].s !== 'ok') { cur = i; break; } }
+    return { band: band, levels: lv, states: states, cur: cur };
+  }
+  function dots(p) {
+    return '<div class="sdots">' + p.states.map(function (st, i) {
+      var c = st.s === 'ok' ? 'ok' : (i === p.cur ? ({ wait: 'wait', peer: 'wait', no: 'no', peerno: 'no' }[st.s] || 'now') : '');
+      return '<span class="' + c + '">' + (st.s === 'ok' ? '<i class="ti ti-star-filled" style="font-size:13px"></i>' : (i + 1)) + '</span>';
+    }).join('') + '</div>';
+  }
+  function statusLine(p) {
+    if (p.cur < 0) return '모든 단계 통과!';
+    var st = p.states[p.cur], n = (p.cur + 1) + '단계';
+    if (st.s === 'wait') return n + ' 선생님 확인을 기다려요';
+    if (st.s === 'peer') return n + ' ' + peerName(st.app.peerId) + '의 확인을 기다려요';
+    if (st.s === 'peerno') return n + ' 짝이 한 번 더 해 보재요';
+    if (st.s === 'no') return n + ' 다시 도전해요';
+    return n + ' 도전 중';
+  }
+
+  /* ================= 내 도전 ================= */
+  function renderHome() {
+    var badges = 0, total = 0, doing = 0, wait = 0, notes = '', html = '', hour = new Date().getHours();
+    $('fsmHeroTitle').textContent = (hour < 12 ? '좋은 아침이에요' : hour < 17 ? '오늘도 힘차게' : '오늘도 수고했어요') + ', ' + V.student.name + '!';
+    var known = FMSX.CATS.map(function (c) { return c[0]; });
+    FMSX.CATS.concat([['기타', '', '', 'activity']]).forEach(function (cat) {
+      var cards = FMSX.app.skills.filter(function (k) { return cat[0] === '기타' ? known.indexOf(k.category) < 0 : k.category === cat[0]; }).map(function (k) {
+        var p = progress(k.id);
+        if (!p.levels.length) return '';
+        p.states.forEach(function (st) { total++; if (st.s === 'ok') badges++; if (st.s === 'wait') wait++; });
+        if (p.cur >= 0) doing++;
+        if (p.cur >= 0 && p.states[p.cur].s === 'no' && p.states[p.cur].app) {
+          notes += '<div class="note sun"><i class="ti ti-message-circle"></i><div><b>' + esc(k.name) + ' ' + (p.cur + 1) + '단계</b> ' + esc(FMSX.feedbackText(p.states[p.cur].app.feedbackId) || '다시 도전해 봐요!') + ' <button class="mini soft" data-open="' + esc(k.id) + '">보러 가기</button></div></div>';
+        }
+        return '<button class="skill-card' + (p.cur < 0 ? ' done' : '') + '" data-open="' + esc(k.id) + '"><div class="top"><span class="nm">' + esc(k.name) + '</span>' + dots(p) + '</div><span class="st">' + esc(statusLine(p)) + '</span></button>';
+      }).join('');
+      if (!cards) return;
+      html += '<div class="cat-head"><span class="tag ' + cat[2] + '"><i class="ti ti-' + cat[3] + '"></i>' + esc(cat[0]) + '</span><h3>' + esc(cat[1]) + '</h3></div><div class="skill-grid">' + cards + '</div>';
+    });
+    if ((V.requests || []).length) notes = '<div class="note sun"><i class="ti ti-user-check"></i><div><b>친구 ' + V.requests.length + '명</b>이 확인을 기다려요. <button class="mini soft" id="fsmGoRequests">확인하러 가기</button></div></div>' + notes;
+    $('fsmBadges').textContent = badges; $('fsmDoing').textContent = doing; $('fsmWait').textContent = wait;
+    var p = pct(badges, total);
+    $('fsmRingPct').textContent = p + '%';
+    var circ = 2 * Math.PI * 46;
+    $('fsmRingFg').setAttribute('stroke-dasharray', (circ * p / 100) + ' ' + circ);
+    setNavCount('FMS', 'badges', badges);
+    $('fsmHomeNotes').innerHTML = notes;
+    $('fsmSkillCards').innerHTML = html || '<div class="panel"><div class="empty"><i class="ti ti-mood-empty"></i><strong>아직 도전할 기술이 없어요</strong>선생님께 알려 주세요.</div></div>';
+    Array.prototype.forEach.call(document.querySelectorAll('#fms_sp_home [data-open]'), function (b) { b.onclick = function () { openSkill(b.getAttribute('data-open')); }; });
+    if ($('fsmGoRequests')) $('fsmGoRequests').onclick = function () { go('FMS', 'requests'); };
+  }
+
+  /* ================= 기술 상세 ================= */
+  function openSkill(id) { skillId = id; pagesShow('skill'); renderSkill(); }
+  function backToSkill() { pagesShow('skill'); renderSkill(); }
+  $('fsmSkBack').onclick = function () { go('FMS', 'home'); };
+  $('fsmSelfBack').onclick = backToSkill;
+  $('fsmPeerBack').onclick = backToSkill;
+  function renderSkill() {
+    var k = FMSX.skill(skillId), p = progress(skillId), crit = FMSX.critFor(skillId, p.band, true);
+    $('fsmSkName').textContent = k.name; $('fsmSkSay').innerHTML = sayBtn(k.desc); $('fsmSkDesc').textContent = k.desc;
+    $('fsmSkSteps').innerHTML = p.levels.map(function (l, i) {
+      var st = p.states[i], key = st.s === 'none' ? (i === p.cur ? 'now' : '') : st.s;
+      var tag = { ok: '<span class="tag sun"><i class="ti ti-award"></i>통과</span>', wait: '<span class="tag coral">선생님 확인 중</span>', peer: '<span class="tag coral">짝 확인 중</span>', no: '<span class="tag coral">다시 도전</span>', peerno: '<span class="tag coral">다시 도전</span>', now: '<span class="tag brand">지금 도전</span>' }[key] || '';
+      return '<li class="' + key + '"><span class="no">' + (st.s === 'ok' ? '<i class="ti ti-star-filled"></i>' : (i + 1)) + '</span><div class="b"><b>' + esc(l.task) + '</b><span class="unit">' + esc(FMSX.condText(l, true)) + '</span></div>' + tag + '</li>';
+    }).join('');
+    var box = $('fsmSkNow');
+    if (p.cur < 0) { $('fsmSkNowTitle').textContent = '모두 통과'; box.innerHTML = '<div class="empty"><i class="ti ti-confetti" style="color:var(--sun)"></i><strong>모든 단계를 통과했어요!</strong>다른 기술에도 도전해 봐요.</div>'; return; }
+    var l = p.levels[p.cur], st = p.states[p.cur];
+    $('fsmSkNowTitle').textContent = (p.cur + 1) + '단계 도전';
+    var h = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><b style="font-size:19px;letter-spacing:-.03em;flex:1">' + esc(l.task) + '</b>' + sayBtn(l.task) + '</div><div class="unit" style="margin-bottom:12px">통과하려면 ' + esc(FMSX.condText(l, true)) + '</div>';
+    if (st.s === 'no' && st.app) {
+      var unmet = st.app.unmet.map(FMSX.crit).filter(function (c) { return c; });
+      h += '<div class="note sun"><i class="ti ti-message-circle"></i><div><b>' + esc(FMSX.feedbackText(st.app.feedbackId) || '다시 도전해 봐요!') + '</b>' + (unmet.length ? '<ul style="margin:6px 0 0;padding-left:18px">' + unmet.map(function (c) { return '<li>' + esc(c.student) + '</li>'; }).join('') + '</ul>' : '') + '</div></div>';
+    }
+    if (crit.length) h += '<div class="field" style="margin-bottom:6px"><label>이렇게 해요</label></div>' + crit.map(function (c) { return '<div class="crit-row">' + sayBtn(c.student) + '<span class="t">' + esc(c.student) + '</span></div>'; }).join('');
+    if (st.s === 'peerno' && st.app) {
+      var miss = st.app.unmet.map(FMSX.crit).filter(function (c) { return c; });
+      h += '<div class="note sun"><i class="ti ti-message-circle"></i><div><b>' + esc(peerName(st.app.peerId)) + '가 한 번 더 해 보재요.</b> 연습하고 다시 요청해요.' + (miss.length ? '<ul style="margin:6px 0 0;padding-left:18px">' + miss.map(function (c) { return '<li>' + esc(c.student) + '</li>'; }).join('') + '</ul>' : '') + '</div></div>';
+    }
+    if (st.s === 'wait') h += '<div class="note" style="margin:10px 0 0"><i class="ti ti-clock"></i><div><b>선생님이 확인하고 있어요.</b> 조금만 기다려요.</div></div>';
+    else if (st.s === 'peer') h += '<div class="note" style="margin:10px 0 0"><i class="ti ti-user-check"></i><div><b>' + esc(peerName(st.app.peerId)) + '에게 확인을 요청했어요.</b> ' + esc(peerName(st.app.peerId)) + '가 자기 화면에서 확인해 주면 선생님께 가요.</div></div><button class="bigsave ghost" id="fsmSkCancel"><i class="ti ti-x"></i>요청 취소하기</button>';
+    else h += '<button class="bigsave" id="fsmSkPeer"><i class="ti ti-users"></i>짝에게 확인 요청하기</button>';
+    if (crit.length && st.s !== 'wait') h += '<button class="bigsave ghost" id="fsmSkSelf"><i class="ti ti-checkbox"></i>혼자 체크하기</button>';
+    box.innerHTML = h;
+    bindSay($('fms_sp_skill'));
+    if ($('fsmSkPeer')) $('fsmSkPeer').onclick = openPeer;
+    if ($('fsmSkSelf')) $('fsmSkSelf').onclick = openSelf;
+    if ($('fsmSkCancel')) $('fsmSkCancel').onclick = function () {
+      var b = this; b.disabled = true;
+      api('fms_s_cancel', TOKEN, st.app.id).then(function () { toast('요청을 취소했어요'); return refresh().then(backToSkill); }).catch(function (e) { b.disabled = false; handleErr(e); });
+    };
+  }
+
+  function oxRows(box, crit, marks, onChange) {
+    box.innerHTML = crit.map(function (c, i) { return '<div class="crit-row" data-c="' + esc(c.id) + '">' + sayBtn(c.student) + '<span class="t">' + esc(c.student) + '</span><div class="ox"><button type="button" class="o" aria-label="됐어요">O</button><button type="button" class="x" aria-label="아직이에요">X</button></div></div>'; }).join('');
+    bindSay(box);
+    Array.prototype.forEach.call(box.querySelectorAll('[data-c]'), function (row) {
+      var id = row.getAttribute('data-c'), o = row.querySelector('.o'), x = row.querySelector('.x');
+      var paint = function () { o.classList.toggle('on', marks[id] === 1); x.classList.toggle('on', marks[id] === 0); };
+      o.onclick = function () { marks[id] = 1; paint(); onChange(); };
+      x.onclick = function () { marks[id] = 0; paint(); onChange(); };
+    });
+  }
+
+  /* ================= 혼자 체크하기 ================= */
+  function openSelf() {
+    var k = FMSX.skill(skillId), p = progress(skillId), crit = FMSX.critFor(skillId, p.band, true), marks = {};
+    pagesShow('self');
+    $('fsmSelfSub').textContent = k.name + ' 동작을 해 보고, 잘 됐으면 O, 아직이면 X를 눌러요.';
+    var btn = $('fsmSelfSave'); btn.disabled = true;
+    oxRows($('fsmSelfList'), crit, marks, function () { btn.disabled = !crit.every(function (c) { return marks[c.id] !== undefined; }); });
+    btn.onclick = function () {
+      btn.disabled = true;
+      api('fms_s_saveSelf', TOKEN, { skillId: skillId, band: p.band, results: crit.map(function (c) { return { id: c.id, met: marks[c.id] === 1 }; }) }).then(function () { toast('저장했어요'); backToSkill(); })
+        .catch(function (e) { btn.disabled = false; handleErr(e); });
+    };
+  }
+
+  /* ================= 짝에게 확인 요청 ================= */
+  function openPeer() {
+    pagesShow('peer');
+    var p = progress(skillId), l = p.levels[p.cur], k = FMSX.skill(skillId), grades = [];
+    V.peers.forEach(function (s) { if (grades.indexOf(s.grade) < 0) grades.push(s.grade); });
+    grades.sort(function (a, b) { return a - b; });
+    if (grades.indexOf(peerGrade) < 0) peerGrade = grades.indexOf(V.student.grade) >= 0 ? V.student.grade : grades[0];
+    $('fsmPeerSub').textContent = k.name + ' ' + (p.cur + 1) + '단계: ' + l.task;
+    var list = V.peers.filter(function (s) { return s.grade === peerGrade; });
+    $('fsmPeerBody').innerHTML = '<div class="panel" style="max-width:760px"><div class="panel-body">' +
+      '<div class="note" style="margin-bottom:12px"><i class="ti ti-info-circle"></i><div>내 도전을 지켜봐 줄 친구를 골라요. 친구가 <b>자기 계정으로 로그인해서</b> 확인해 주면 선생님께 가요.</div></div>' +
+      '<div class="chips">' + grades.map(function (g) { return '<button type="button" data-g="' + g + '" aria-selected="' + (g === peerGrade) + '">' + g + '학년</button>'; }).join('') + '</div>' +
+      '<div class="peer-grid">' + list.map(function (s) { return '<button type="button" data-peer="' + esc(s.id) + '"' + (pickedPeer === s.id ? ' class="on"' : '') + '>' + esc(s.name) + '<small>' + esc(s.cls) + '반 ' + s.no + '번</small></button>'; }).join('') + '</div>' +
+      (V.peers.length ? '' : '<div class="unit">확인해 줄 친구가 명단에 없어요. 선생님께 말씀드려요.</div>') +
+      '<button class="bigsave" id="fsmPmRequest"' + (pickedPeer ? '' : ' disabled') + '><i class="ti ti-send"></i>' + (pickedPeer ? esc(peerName(pickedPeer)) + '에게 요청 보내기' : '친구를 골라요') + '</button></div></div>';
+    Array.prototype.forEach.call($('fsmPeerBody').querySelectorAll('[data-g]'), function (b) { b.onclick = function () { peerGrade = Number(b.getAttribute('data-g')); openPeer(); }; });
+    Array.prototype.forEach.call($('fsmPeerBody').querySelectorAll('[data-peer]'), function (b) { b.onclick = function () { pickedPeer = b.getAttribute('data-peer'); openPeer(); }; });
+    $('fsmPmRequest').onclick = function () {
+      if (!pickedPeer) return;
+      var btn = this; btn.disabled = true;
+      api('fms_s_submit', TOKEN, l.id, pickedPeer).then(function () { toast(peerName(pickedPeer) + '에게 요청했어요'); pickedPeer = null; return refresh().then(backToSkill); })
+        .catch(function (e) { btn.disabled = false; handleErr(e); });
+    };
+  }
+
+  /* ================= 친구 확인 요청 ================= */
+  $('fsmRqRefresh').onclick = function () { renderRequests(); };
+  function renderRequests() {
+    $('fsmRqTitle').textContent = '친구 확인 요청'; $('fsmRqSub').textContent = '친구가 도전하는 모습을 보고 확인해 줘요.'; $('fsmRqRefresh').classList.remove('hide');
+    $('fsmRqBody').innerHTML = '<div class="unit">불러오는 중…</div>';
+    refresh().then(function () {
+      var list = V.requests || [];
+      if (!list.length) { $('fsmRqBody').innerHTML = '<div class="panel"><div class="empty"><i class="ti ti-mood-smile"></i><strong>지금은 확인할 요청이 없어요</strong>친구가 요청을 보내면 여기에 나타나요.</div></div>'; return; }
+      $('fsmRqBody').innerHTML = '<div class="skill-grid">' + list.map(function (r) {
+        var l = FMSX.level(r.levelId), k = l ? FMSX.skill(l.skillId) : null;
+        return '<div class="skill-card" style="cursor:default"><div class="top"><span class="nm">' + esc(r.requester.name) + '</span><span class="tag ' + (k ? FMSX.catInfo(k.category)[2] : '') + '">' + esc(k ? k.name : '') + '</span></div><span class="st">' + (l ? l.step + '단계: ' + esc(l.task) : '') + '</span><button class="bigsave" data-rq="' + esc(r.id) + '" style="margin-top:4px"><i class="ti ti-eye-check"></i>확인해 주기</button></div>';
+      }).join('') + '</div>';
+      Array.prototype.forEach.call($('fsmRqBody').querySelectorAll('[data-rq]'), function (b) { b.onclick = function () { respond(findOne(V.requests, function (x) { return x.id === b.getAttribute('data-rq'); })); }; });
+    }).catch(handleErr);
+  }
+  function checkRows(box, crit, marks, onChange) {
+    box.innerHTML = crit.map(function (c, i) { return '<div class="crit-row checkable" role="checkbox" aria-checked="false" tabindex="0" data-c="' + esc(c.id) + '"><span class="cb" aria-hidden="true"></span><span class="n">' + (i + 1) + '</span>' + sayBtn(c.student) + '<span class="t">' + esc(c.student) + '</span></div>'; }).join('');
+    bindSay(box);
+    Array.prototype.forEach.call(box.querySelectorAll('[data-c]'), function (row) {
+      var id = row.getAttribute('data-c');
+      var toggle = function () { marks[id] = !marks[id]; row.classList.toggle('on', marks[id]); row.setAttribute('aria-checked', marks[id] ? 'true' : 'false'); row.querySelector('.cb').textContent = marks[id] ? '✓' : ''; onChange(); };
+      row.onclick = function (e) { if (e.target.closest('.say')) return; toggle(); };
+      row.onkeydown = function (e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } };
+    });
+  }
+  function respond(req) {
+    var l = FMSX.level(req.levelId);
+    if (!l) { toast('도전 단계를 찾을 수 없어요. 선생님께 말씀드려요.', 'err'); return; }
+    var k = FMSX.skill(l.skillId), needsRecord = l.type === '기록' || l.type === '혼합', crit = FMSX.critFor(l.skillId, l.band, true);
+    var critRequired = l.type !== '기록' && crit.length > 0, seenOnly = l.type !== '기록' && crit.length === 0;
+    var threshold = critRequired ? Math.min(l.need || crit.length, crit.length) : 0, marks = {}, seen = false, who = esc(req.requester.name);
+    $('fsmRqTitle').textContent = req.requester.name + '의 도전 확인하기'; $('fsmRqSub').textContent = k.name + ' ' + l.step + '단계'; $('fsmRqRefresh').classList.add('hide');
+    var allText = [l.task].concat(crit.map(function (c, i) { return (i + 1) + '번, ' + c.student; })).join('. ');
+    var readAll = HAS_TTS && crit.length ? '<button type="button" class="soft mini" data-say="' + esc(allText) + '"><i class="ti ti-volume"></i>모두 읽어 주기</button>' : '';
+    var h = '<div class="panel" style="max-width:680px"><div class="panel-head"><h3><i class="ti ti-flag"></i>' + esc(l.task) + '</h3>' + sayBtn(l.task) + '<div class="spacer"></div><span class="unit">통과하려면 ' + esc(FMSX.condText(l, true)) + '</span></div><div class="panel-body">' +
+      '<div class="note" style="margin-bottom:12px"><i class="ti ti-eye"></i><div><b>1.</b> 체크할 동작을 먼저 같이 읽어요. <b>2.</b> ' + who + '가 도전하는 동안 하나씩 살펴봐요. <b>3.</b> ' + (critRequired ? '<b>잘 된 동작에만 체크</b>해요.' : '다 보고 나서 적어요.') + '</div></div>';
+    if (crit.length) h += '<div class="watch"><div class="watch-head"><b><i class="ti ti-checkbox" style="color:var(--accent)"></i> ' + (critRequired ? '잘 된 동작에 체크해요' : '이 동작도 같이 봐요') + '</b>' + readAll + '</div>' +
+      (critRequired ? '<div id="fsmRpCrit"></div><div class="check-count" id="fsmRpCount"></div>' : crit.map(function (c, i) { return '<div class="crit-row"><span class="n">' + (i + 1) + '</span>' + sayBtn(c.student) + '<span class="t">' + esc(c.student) + '</span></div>'; }).join('')) + '</div>';
+    if (needsRecord) h += '<div class="field" style="margin-bottom:4px"><label>기록을 적어요</label><span class="unit">' + who + '가 한 ' + (l.unit === '초' ? '시간(초)을 재어서' : l.unit === '회' || l.unit === '걸음' ? '횟수를 세어서' : '거리를 재어서') + ' 적어요. 통과 기준: ' + esc(l.target) + esc(l.unit) + ' ' + esc(l.dir) + '</span></div>' +
+      '<div class="field" style="margin-bottom:12px"><div class="amount"><button type="button" class="ghost" id="fsmRpMinus"><i class="ti ti-minus"></i></button><input type="number" id="fsmRpRec" min="0" step="any" inputmode="decimal" placeholder="0"><span class="u">' + esc(l.unit) + '</span><button type="button" class="ghost" id="fsmRpPlus"><i class="ti ti-plus"></i></button></div></div>';
+    if (seenOnly) h += '<button type="button" class="seen" id="fsmRpSeen"><i class="ti ti-eye"></i>끝까지 봤어요</button>';
+    if (l.band === '고') h += '<div class="field" style="margin-top:12px"><label>친구에게 한마디 (쓰지 않아도 돼요)</label><input type="text" id="fsmRpComment" maxlength="60"></div>';
+    h += '<button class="bigsave" id="fsmRpOk" disabled><i class="ti ti-send"></i>통과! 선생님께 보내기</button><div class="ok-hint" id="fsmRpHint"></div><button class="bigsave ghost" id="fsmRpNo"><i class="ti ti-refresh"></i>한 번 더 해 보자고 하기</button><button class="ghost mini" id="fsmRpBack" style="margin-top:10px"><i class="ti ti-arrow-left"></i>목록으로</button></div></div>';
+    $('fsmRqBody').innerHTML = h;
+    bindSay($('fsmRqBody'));
+    var okBtn = $('fsmRpOk');
+    var ready = function () {
+      var hint = '', ok = true;
+      if (critRequired) {
+        var n = crit.filter(function (c) { return marks[c.id]; }).length;
+        $('fsmRpCount').textContent = '체크 ' + n + ' / ' + crit.length + (threshold === crit.length ? ' · 모두 체크하면 통과를 보낼 수 있어요' : ' · ' + threshold + '개 이상 체크하면 통과를 보낼 수 있어요');
+        if (n < threshold) { ok = false; hint = '잘 된 동작에 체크해야 통과를 보낼 수 있어요.'; }
+      }
+      if (seenOnly && !seen) { ok = false; hint = '끝까지 봤으면 눌러요.'; }
+      if (needsRecord) {
+        var v = $('fsmRpRec').value;
+        if (v === '' || isNaN(Number(v))) { ok = false; hint = hint || '기록을 적어요.'; }
+        else if (FMSX.recordMet(l, v) === false) { ok = false; hint = '기록이 통과 기준(' + l.target + l.unit + ' ' + l.dir + ')에 아직 못 미쳐요.'; }
+      }
+      okBtn.disabled = !ok; $('fsmRpHint').textContent = ok ? '' : hint;
+    };
+    if (needsRecord) {
+      var bump = function (d) { var n = Number($('fsmRpRec').value) || 0; $('fsmRpRec').value = Math.max(0, Math.round((n + d) * 10) / 10); ready(); };
+      $('fsmRpMinus').onclick = function () { bump(-1); }; $('fsmRpPlus').onclick = function () { bump(1); }; $('fsmRpRec').oninput = ready;
+    }
+    if (critRequired) checkRows($('fsmRpCrit'), crit, marks, ready);
+    if (seenOnly) $('fsmRpSeen').onclick = function () { seen = !seen; this.classList.toggle('on', seen); ready(); };
+    $('fsmRpBack').onclick = renderRequests;
+    ready();
+    var send = function (confirmIt) {
+      okBtn.disabled = true; $('fsmRpNo').disabled = true;
+      var results = critRequired ? crit.map(function (c) { return { id: c.id, met: !!marks[c.id] }; }) : [];
+      api('fms_s_peerRespond', TOKEN, { appId: req.id, confirm: confirmIt, record: needsRecord ? $('fsmRpRec').value : '', results: results, comment: $('fsmRpComment') ? $('fsmRpComment').value : '' })
+        .then(function () { toast(confirmIt ? '선생님께 보냈어요. 고마워요!' : req.requester.name + '에게 다시 해 보자고 전했어요'); renderRequests(); })
+        .catch(function (e) { $('fsmRpNo').disabled = false; ready(); handleErr(e); });
+    };
+    okBtn.onclick = function () { send(true); };
+    $('fsmRpNo').onclick = function () { send(false); };
+  }
+
+  /* ================= 받은 배지 ================= */
+  function renderBadges() {
+    var got = 0, total = 0, html = '';
+    FMSX.app.skills.forEach(function (k) {
+      var p = progress(k.id);
+      if (!p.levels.length) return;
+      html += '<div class="cat-head"><span class="tag ' + FMSX.catInfo(k.category)[2] + '">' + esc(k.category) + '</span><h3>' + esc(k.name) + '</h3></div><div class="badges" style="margin-bottom:6px">' +
+        p.levels.map(function (l, i) { var on = p.states[i].s === 'ok'; total++; if (on) got++; return '<div class="badge-card' + (on ? ' on' : '') + '"><div class="ic"><i class="ti ti-' + (on ? 'award' : 'lock') + '"></i></div><b>' + (i + 1) + '단계</b><small>' + esc(l.task) + '</small></div>'; }).join('') + '</div>';
+    });
+    $('fsmBadgeSub').textContent = total + '개 중 ' + got + '개를 받았어요';
+    $('fsmBadgeBody').innerHTML = html || '<div class="panel"><div class="empty"><i class="ti ti-award"></i><strong>아직 배지가 없어요</strong></div></div>';
+  }
+
+  return { nav: nav, init: init, show: show, reset: reset };
+})();
+</script>

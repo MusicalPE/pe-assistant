@@ -1,0 +1,417 @@
+<!-- PAPS · 학생 화면 (모듈 PAPS, 역할 S) — 공통 도우미 PAPSX 는 PAPS_T.html 에 있습니다 -->
+<style>
+#paps_S .ev-card{padding:16px 18px;border-bottom:1px solid var(--line-2);}
+#paps_S .ev-card:last-child{border-bottom:none;}
+#paps_S .ev-top{display:grid;grid-template-columns:1fr 130px 84px;gap:12px;align-items:center;margin-bottom:11px;}
+#paps_S .ev-top .fac{display:block;font-size:10.5px;letter-spacing:.06em;color:var(--ink-3);font-weight:700;}
+#paps_S .ev-top .ev{font-weight:800;letter-spacing:-.025em;font-size:15px;}
+#paps_S .ev-in{display:flex;align-items:center;gap:6px;}
+#paps_S .ev-in input{width:100%;text-align:right;}
+#paps_S .ev-in .u{font-size:11px;color:var(--ink-3);white-space:nowrap;}
+#paps_S .ev-top .chip{width:100%;}
+#paps_S .steps{display:flex;gap:4px;}
+#paps_S .steps i{flex:1;height:26px;border-radius:6px;background:var(--g0);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;color:var(--ink-3);}
+#paps_S .steps i.on{color:#fff;font-weight:700;} #paps_S .steps i.on.pale{color:var(--ink);}
+#paps_S .steps.words i{font-size:10.5px;}
+#paps_S .hint{margin-top:8px;font-size:12.5px;color:var(--ink-2);display:flex;gap:14px;flex-wrap:wrap;}
+#paps_S .hint b{font-weight:700;background:var(--pmark);padding:0 4px;border-radius:4px;}
+#paps_S .delta{font-size:12px;padding:1px 7px;border-radius:6px;background:var(--soft);}
+#paps_S .delta.up{background:var(--green-soft);color:#177A4E;font-weight:700;}
+#paps_S .delta.down{background:var(--warn-soft);color:var(--warn);}
+#paps_S .chart{width:100%;height:auto;display:block;}
+#paps_S .chart .grid{stroke:var(--line-2);stroke-width:1;}
+#paps_S .chart .axis{fill:var(--ink-3);font-size:10px;}
+#paps_S .chart .line{fill:none;stroke:var(--accent-dk);stroke-width:2;}
+#paps_S .chart .dot{stroke:#fff;stroke-width:2;}
+#paps_S .chart .best{stroke:#E0A400;stroke-width:2;stroke-dasharray:5 4;}
+#paps_S .chart .bandlab{fill:var(--ink-3);font-size:9px;}
+#paps_S .legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10.5px;color:var(--ink-3);}
+#paps_S .legend i{display:inline-flex;align-items:center;gap:4px;font-style:normal;}
+#paps_S .legend i b{width:10px;height:10px;border-radius:2px;display:inline-block;}
+#paps_S .chal-bar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line-2);}
+@media (max-width:900px){ #paps_S .ev-top{grid-template-columns:1fr 100px 72px;} }
+</style>
+
+<div class="mroot hide paps-ui" data-mod="PAPS" data-role="S" id="paps_S">
+
+  <!-- ===== 내 기록 ===== -->
+  <div class="page" id="paps_sp_record">
+    <div class="page-head"><h2>내 PAPS 기록</h2><span class="sub">기록은 선생님이 넣어 주세요. 목표는 내가 정해요.</span></div>
+    <div class="bar" style="margin-bottom:14px">
+      <div class="field"><label>회차</label><select id="psRound"></select></div>
+      <div class="stats" id="psStats" style="margin-left:6px"></div>
+      <div class="spacer"></div>
+      <button id="psBtnGoal"><i class="ti ti-flag"></i>목표 저장</button>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-clipboard-text"></i>종목별 기록과 목표</h3><div class="spacer"></div><span class="status" id="psStatus">목표를 정하면 얼마나 남았는지 알려줄게요.</span></div>
+      <div id="psCards"></div>
+    </div>
+  </div>
+
+  <!-- ===== 내 성장 ===== -->
+  <div class="page hide" id="paps_sp_growth">
+    <div class="page-head"><h2>내 성장</h2><span class="sub">회차별로 얼마나 달라졌는지 봅니다</span></div>
+    <div class="panel"><div class="panel-head"><h3><i class="ti ti-award"></i>내 도전 배지</h3><div class="spacer"></div><span class="unit" id="psBadgeSum"></span></div><div class="panel-body"><div class="bwall" id="psBadges" style="--dc:var(--sky)"></div></div></div>
+    <div class="panel"><div class="panel-head"><h3><i class="ti ti-trending-up"></i>올해 회차 비교</h3></div><div class="scroll-x" id="psGrowth"></div></div>
+    <div class="panel hide" id="psHistPanel"><div class="panel-head"><h3><i class="ti ti-history"></i>지난 학년 기록</h3></div><div class="scroll-x" id="psHist"></div></div>
+  </div>
+
+  <!-- ===== 내 도전 ===== -->
+  <div class="page hide" id="paps_sp_challenge">
+    <div class="page-head"><h2>내 도전</h2><span class="sub">스스로 해 보고 기록을 쌓아 보세요. 선생님이 넣는 측정 기록과는 별개예요.</span></div>
+    <div class="ptabs" id="psChalTabs"></div>
+    <div class="panel">
+      <div class="panel-head" id="psChalHead"><h3>종목</h3></div>
+      <div class="chal-bar">
+        <div class="field"><label>날짜</label><input type="date" id="psChalDate" style="min-width:150px"></div>
+        <div class="field"><label>기록</label><input type="number" id="psChalValue" placeholder="0" style="width:110px;text-align:right"></div>
+        <div class="field"><label>&nbsp;</label><button id="psBtnAddChal"><i class="ti ti-plus"></i>기록 추가</button></div>
+        <div class="spacer"></div>
+        <span class="status" id="psChalStatus">–</span>
+      </div>
+      <div class="panel-body" id="psChalSummary"></div>
+      <div class="panel-body" style="padding-top:0" id="psChalChart"></div>
+      <div id="psChalList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 참고 영상 창 -->
+<div id="psVideoModal" class="modal hide">
+  <div style="max-width:860px">
+    <div class="panel-head"><h3 id="psVmTitle">참고 영상</h3><div class="spacer"></div><button class="ghost mini" id="psVmClose"><i class="ti ti-x"></i>닫기</button></div>
+    <div id="psVmBody"></div>
+  </div>
+</div>
+
+<script>
+MODS.PAPS = MODS.PAPS || {};
+MODS.PAPS.student = (function () {
+  var D = null, CHAL종목 = null, 목표바뀜 = false, 이전회차 = null, LOADING = false;
+  var pages = ['record', 'growth', 'challenge'];
+  var nav = [
+    { section: 'PAPS' },
+    { id: 'record', label: '내 PAPS 기록', icon: 'clipboard-text' },
+    { id: 'growth', label: '내 성장', icon: 'trending-up' },
+    { id: 'challenge', label: '내 도전', icon: 'flame' }
+  ];
+  function init(ctx) { D = null; CHAL종목 = null; 목표바뀜 = false; }
+  function reset() { D = null; CHAL종목 = null; 목표바뀜 = false; $('psCards').innerHTML = ''; }
+  function load(then) {
+    if (LOADING) return;
+    LOADING = true;
+    api('paps_s_boot', TOKEN).then(function (d) {
+      LOADING = false; D = d;
+      $('psRound').innerHTML = D.회차.map(function (x) { return '<option value="' + esc(x) + '">' + esc(x) + '</option>'; }).join('');
+      // 기록이 있는 마지막 회차를 기본으로
+      var 마지막 = D.회차[0];
+      D.회차.forEach(function (r) { if (D.기록[r] && Object.keys(D.기록[r]).length) 마지막 = r; });
+      $('psRound').value = 마지막; 이전회차 = 마지막;
+      $('psBtnGoal').classList.toggle('hide', !D.설정.목표입력);
+      if (then) then();
+    }).catch(function (e) { LOADING = false; handleErr(e); });
+  }
+  function show(p) {
+    pages.forEach(function (id) { $('paps_sp_' + id).classList.toggle('hide', id !== p); });
+    UNSAVED.check = function () { return 목표바뀜 ? 'PAPS 목표' : ''; };
+    var fn = { record: drawAll, growth: drawGrowth, challenge: drawChallenge }[p];
+    if (!fn) return;
+    if (!D) { load(fn); return; }
+    fn();
+  }
+  function 회차() { return $('psRound').value; }
+  function drawAll() { drawStats(); drawCards(); }
+
+  $('psRound').onchange = function () {
+    if (!confirmLeave()) { $('psRound').value = 이전회차; return; }
+    목표바뀜 = false; 이전회차 = $('psRound').value; drawAll();
+  };
+
+  /* ---------- 요약 ---------- */
+  function drawStats() {
+    var cur = D.기록[회차()] || {}, goal = D.목표[회차()] || {};
+    var 등급들 = [], 측정수 = 0, 목표달성 = 0, 목표수 = 0;
+    D.종목.forEach(function (t) {
+      var r = cur[t.종목];
+      if (r && PAPSX.isNum(r.값)) 측정수++;
+      if (r && PAPSX.isNum(r.등급)) 등급들.push(Number(r.등급));
+      if (t.방식 === 'BMI') return;
+      var g = goal[t.종목]; if (g === undefined) return;
+      목표수++;
+      if (r && PAPSX.isNum(r.값) && 달성했나(t.종목, Number(r.값), g)) 목표달성++;
+    });
+    var 평균 = 등급들.length ? Math.round(등급들.reduce(function (a, b) { return a + b; }, 0) / 등급들.length * 10) / 10 : null;
+    $('psStats').innerHTML =
+      '<div class="stat"><span class="lab">측정 완료</span><div class="box">' + 측정수 + '<span class="of"> / ' + D.종목.length + '</span></div></div>' +
+      '<div class="stat"><span class="lab">평균 등급</span><div class="box">' + (평균 === null ? '–' : 평균) + '</div></div>' +
+      '<div class="stat' + (목표수 && 목표달성 === 목표수 ? ' hl' : '') + '"><span class="lab">목표 달성</span><div class="box">' + 목표달성 + '<span class="of"> / ' + 목표수 + '</span></div></div>';
+  }
+
+  /* ---------- 종목 카드 ---------- */
+  function drawCards() {
+    var cur = D.기록[회차()] || {}, goal = D.목표[회차()] || {}, html = '';
+    D.종목.forEach(function (t) {
+      var rec = cur[t.종목] || {}, bands = PAPSX.bands(D.기준[t.종목]);
+      var v = PAPSX.isNum(rec.값) ? Number(rec.값) : null, hit = v === null ? -1 : PAPSX.findBand(bands, v);
+      var isBMI = t.방식 === 'BMI', 영상있음 = (D.영상[t.종목] || []).length > 0;
+      html += '<div class="ev-card" data-ev="' + esc(t.종목) + '"><div class="ev-top"><div><span class="fac">' + esc(t.요인) + '</span><span class="ev">' + esc(t.종목) +
+        (영상있음 ? ' <button class="ghost mini psvbtn" data-ev="' + esc(t.종목) + '" title="참고 영상 보기" style="padding:2px 7px;margin-left:4px"><i class="ti ti-player-play"></i>영상</button>' : '') + '</span></div>' +
+        '<div class="ev-in" style="justify-content:flex-end"><span style="font-size:16px;font-weight:800">' + (v === null ? '–' : esc(rec.값)) + '</span><span class="u">' + esc(t.단위) + '</span></div>' +
+        (bands.length === 0 ? PAPSX.noScale() : hit < 0 ? '<span class="chip">–</span>' : PAPSX.chip(bands[hit].라벨, bands[hit].색)) + '</div>';
+      var s = '';
+      bands.forEach(function (b, i) { var on = i === hit; s += '<i class="' + (on ? 'on' : '') + (on && b.색 >= 4 ? ' pale' : '') + '"' + (on ? ' style="background:var(--g' + b.색 + ')"' : '') + '>' + esc(b.라벨) + '</i>'; });
+      html += '<div class="steps' + (isBMI ? ' words' : '') + '">' + s + '</div>';
+      if (!isBMI && D.설정.목표입력) {
+        var gv = goal[t.종목];
+        html += '<div class="ev-top" style="margin-top:11px;margin-bottom:0"><div class="unit" style="align-self:center">이번 회차 내 목표</div><div class="ev-in">' +
+          '<input type="number" step="' + PAPSX.step(t.소수) + '" class="psgoal" data-ev="' + esc(t.종목) + '" value="' + (gv === undefined ? '' : esc(gv)) + '" placeholder="목표"><span class="u">' + esc(t.단위) + '</span></div><div></div></div>';
+      }
+      html += '<div class="hint">' + hintHTML(t, bands, v, hit, isBMI ? undefined : goal[t.종목]) + '</div></div>';
+    });
+    $('psCards').innerHTML = html || '<div class="empty">측정 종목이 없어요.</div>';
+    Array.prototype.forEach.call($('psCards').querySelectorAll('.psgoal'), function (inp) {
+      inp.addEventListener('input', function () {
+        var card = inp.closest('.ev-card'), 종목 = inp.dataset.ev;
+        var t = findOne(D.종목, function (x) { return x.종목 === 종목; });
+        var rec = (D.기록[회차()] || {})[종목] || {}, bands = PAPSX.bands(D.기준[종목]);
+        var v = PAPSX.isNum(rec.값) ? Number(rec.값) : null, hit = v === null ? -1 : PAPSX.findBand(bands, v);
+        card.querySelector('.hint').innerHTML = hintHTML(t, bands, v, hit, inp.value === '' ? undefined : Number(inp.value));
+        목표바뀜 = true; setStatus($('psStatus'), '저장하지 않은 목표가 있어요. 목표 저장을 눌러 주세요.', 'err');
+      });
+    });
+    Array.prototype.forEach.call($('psCards').querySelectorAll('.psvbtn'), function (b) { b.onclick = function () { openVideos(b.dataset.ev, D.영상[b.dataset.ev]); }; });
+  }
+
+  function 달성했나(종목, 값, 목표) { return PAPSX.higher(D.기준[종목]) ? (값 >= 목표) : (값 <= 목표); }
+  function hintHTML(t, bands, v, hit, goal) {
+    var out = [], isBMI = t.방식 === 'BMI', 클수록 = PAPSX.higher(D.기준[t.종목]);
+    if (!isBMI && v !== null && hit >= 0 && bands.length) out.push(다음등급HTML(bands, hit, v, t, 클수록));
+    if (isBMI && hit >= 0) out.push('<span>키와 몸무게로 계산한 값이에요.</span>');
+    if (!isBMI && goal !== undefined && !isNaN(goal)) out.push(목표HTML(t, bands, v, goal, 클수록));
+    else if (!isBMI && v !== null && D.설정.목표입력) out.push('<span class="delta">목표를 정하면 얼마나 남았는지 알려줄게요</span>');
+    if (!isBMI) { var d = 지난회차HTML(t.종목, v, 클수록); if (d) out.push(d); }
+    return out.filter(Boolean).join('');
+  }
+  function 다음등급HTML(bands, hit, v, t, 클수록) {
+    var cur = bands[hit];
+    if (PAPSX.isNum(cur.라벨) && Number(cur.라벨) === 1) {
+      var 다음 = 클수록 ? Math.floor(v) + 1 : PAPSX.round2(v - (t.소수 >= 1 ? 0.1 : 1)), 차 = PAPSX.round2(Math.abs(다음 - v));
+      if (차 <= 0) return '<span>가장 높은 <b>1등급</b>이에요.</span>';
+      return '<span>1등급이에요. <b>' + 다음 + esc(t.단위) + '</b>까지 ' + 차 + esc(t.단위) + ' 남았어요.</span>';
+    }
+    var nxt = bands[hit + 1]; if (!nxt) return '';
+    var target = 클수록 ? nxt.하한 : nxt.상한; if (target === null || target === undefined) return '';
+    var need = PAPSX.round2(클수록 ? target - v : v - target); if (need <= 0) return '';
+    return '<span>' + esc(nxt.라벨) + '등급까지 <b>' + need + esc(t.단위) + '</b> 남았어요.</span>';
+  }
+  function 목표HTML(t, bands, v, goal, 클수록) {
+    if (v === null) return '<span class="delta">목표 ' + goal + esc(t.단위) + ' · 측정하는 날을 기다려요</span>';
+    var diff = PAPSX.round2(클수록 ? goal - v : v - goal);
+    if (diff <= 0) { var 넘김 = PAPSX.round2(Math.abs(diff)); return '<span class="delta up">목표 달성' + (넘김 > 0 ? ' · ' + 넘김 + esc(t.단위) + ' 넘었어요' : '') + '</span><span>잘했어요. 다음 목표를 조금 높여 볼까요?</span>'; }
+    var i = PAPSX.findBand(bands, goal), 폭 = 0;
+    if (i >= 0 && bands[i].하한 !== null && bands[i].상한 !== null) 폭 = Math.abs(bands[i].상한 - bands[i].하한);
+    var 비율 = diff / (폭 || Math.abs(goal) || 1);
+    var 말 = 비율 <= 0.25 ? '거의 다 왔어요. 조금만 더!' : 비율 <= 0.6 ? '좋아요. 꾸준히 하면 닿을 수 있어요.' : '한 걸음씩 가 봐요.';
+    return '<span class="delta down">목표까지 ' + diff + esc(t.단위) + '</span><span>' + 말 + '</span>';
+  }
+  function 지난회차HTML(종목, v, 클수록) {
+    var idx = D.회차.indexOf(회차());
+    if (idx <= 0 || v === null) return '';
+    var 이전 = (D.기록[D.회차[idx - 1]] || {})[종목];
+    if (!이전 || !PAPSX.isNum(이전.값)) return '';
+    var diff = PAPSX.round2(v - Number(이전.값));
+    if (diff === 0) return '<span class="delta">' + esc(D.회차[idx - 1]) + '과 같아요</span>';
+    var 좋아짐 = 클수록 ? diff > 0 : diff < 0;
+    return '<span class="delta ' + (좋아짐 ? 'up' : 'down') + '">' + esc(D.회차[idx - 1]) + ' 대비 ' + (diff > 0 ? '+' : '') + diff + '</span>';
+  }
+
+  $('psBtnGoal').onclick = function () {
+    var 목표들 = [];
+    Array.prototype.forEach.call($('psCards').querySelectorAll('.psgoal'), function (inp) { 목표들.push({ 종목: inp.dataset.ev, 목표값: inp.value }); });
+    if (!목표들.length) return;
+    $('psBtnGoal').disabled = true; setStatus($('psStatus'), '저장하는 중…');
+    api('paps_s_saveGoals', TOKEN, 회차(), 목표들).then(function (res) {
+      $('psBtnGoal').disabled = false;
+      if (!res.ok) { setStatus($('psStatus'), res.message, 'err'); return; }
+      D.목표 = res.목표 || D.목표; 목표바뀜 = false; drawAll();
+      setStatus($('psStatus'), res.저장수 ? '목표 ' + res.저장수 + '개를 저장했어요.' : '목표를 지웠어요.', 'ok'); toast('목표 저장');
+    }).catch(function (e) { $('psBtnGoal').disabled = false; handleErr(e); });
+  };
+
+  /* ---------- 영상 창 ---------- */
+  function openVideos(종목, list) {
+    if (!list || !list.length) return;
+    $('psVmTitle').textContent = 종목 + ' 참고 영상';
+    var html = '';
+    list.forEach(function (v) {
+      var embed = PAPSX.youtube(v.URL);
+      html += '<div style="padding:16px 18px;border-top:1px solid var(--line-2)">' + (v.제목 ? '<div style="font-weight:700;margin-bottom:8px">' + esc(v.제목) + '</div>' : '');
+      if (embed) html += '<div style="position:relative;padding-top:56.25%;background:#000;border-radius:10px;overflow:hidden"><iframe src="' + esc(embed) + '" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe></div>';
+      else html += '<a href="' + esc(v.URL) + '" target="_blank" rel="noopener"><button class="ghost"><i class="ti ti-external-link"></i>새 창에서 열기</button></a>';
+      if (v.출처) html += '<div class="unit" style="margin-top:8px">출처 · ' + esc(v.출처) + '</div>';
+      html += '</div>';
+    });
+    $('psVmBody').innerHTML = html; $('psVideoModal').classList.remove('hide');
+  }
+  function closeVideos() { $('psVmBody').innerHTML = ''; $('psVideoModal').classList.add('hide'); }
+  $('psVmClose').onclick = closeVideos;
+  $('psVideoModal').onclick = function (e) { if (e.target === this) closeVideos(); };
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('psVideoModal').classList.contains('hide')) closeVideos(); });
+
+  /* ---------- 내 성장 ---------- */
+  function drawBadges() {
+    var list = D.배지 || [], got = list.filter(function (b) { return b.달성; }).length;
+    $('psBadgeSum').textContent = got + ' / ' + list.length + '개';
+    $('psBadges').innerHTML = list.map(function (b) {
+      return '<div class="bcard' + (b.달성 ? ' on' : '') + '" title="' + esc(b.설명) + '"><i class="ti ti-' + (b.아이콘 || 'award') + '"></i><b>' + esc(b.이름) + '</b><small>' + esc(b.설명) + '</small>' +
+        (b.달성 ? '' : '<div class="prog"><i style="width:' + (b.진행 || 0) + '%"></i></div>' + (b.기준 !== undefined && b.값 !== undefined ? '<small>' + esc(b.값) + ' / ' + esc(b.기준) + '</small>' : '')) + '</div>';
+    }).join('');
+  }
+  function drawGrowth() {
+    drawBadges();
+    var html = '<table><thead><tr><th>종목</th>';
+    D.회차.forEach(function (r) { html += '<th>' + esc(r) + '</th>'; });
+    html += '<th>변화</th></tr></thead><tbody>';
+    D.종목.forEach(function (t) {
+      var 클수록 = PAPSX.higher(D.기준[t.종목]), vals = [];
+      html += '<tr><td class="name">' + esc(t.종목) + '</td>';
+      D.회차.forEach(function (r) {
+        var rec = (D.기록[r] || {})[t.종목], v = rec && PAPSX.isNum(rec.값) ? Number(rec.값) : null;
+        vals.push(v);
+        html += '<td>' + (rec ? PAPSX.chip(rec.등급, 0, true) + '<span class="cellval">' + esc(rec.값) + esc(t.단위) + '</span>' : '<span class="chip sm">–</span>') + '</td>';
+      });
+      var a = vals[0], b = vals[vals.length - 1], cell = '–';
+      if (a !== null && b !== null && vals.length > 1) {
+        var diff = PAPSX.round2(b - a);
+        if (diff === 0) cell = '<span class="delta">그대로</span>';
+        else { var 좋아짐 = 클수록 ? diff > 0 : diff < 0; cell = '<span class="delta ' + (좋아짐 ? 'up' : 'down') + '">' + (diff > 0 ? '+' : '') + diff + esc(t.단위) + '</span>'; }
+      }
+      html += '<td>' + cell + '</td></tr>';
+    });
+    $('psGrowth').innerHTML = html + '</tbody></table>';
+    // 지난 학년 기록
+    var hist = D.이력 || [];
+    $('psHistPanel').classList.toggle('hide', !hist.length);
+    if (hist.length) {
+      var keys = [], by = {};
+      hist.forEach(function (r) { var k = r.학년도 + ' ' + r.학년 + '학년 ' + r.회차; if (!by[k]) { by[k] = {}; keys.push(k); } by[k][r.종목] = r; });
+      keys.sort();
+      var 종목들 = [];
+      hist.forEach(function (r) { if (종목들.indexOf(r.종목) < 0) 종목들.push(r.종목); });
+      var h = '<table class="matrix"><thead><tr><th>시기</th>';
+      종목들.forEach(function (n) { h += '<th>' + esc(n) + '</th>'; });
+      h += '</tr></thead><tbody>';
+      keys.forEach(function (k) {
+        h += '<tr><td class="name" style="white-space:nowrap">' + esc(k) + '</td>';
+        종목들.forEach(function (n) { var r = by[k][n]; h += '<td>' + (r ? PAPSX.chip(r.등급, 0, true) + '<span class="cellval">' + esc(r.값) + '</span>' : '') + '</td>'; });
+        h += '</tr>';
+      });
+      $('psHist').innerHTML = h + '</tbody></table>';
+    }
+  }
+
+  /* ---------- 내 도전 ---------- */
+  function 도전종목() { return D.종목.filter(function (t) { return t.방식 !== 'BMI'; }); }
+  function drawChallenge() {
+    var list = 도전종목();
+    if (!D.설정.도전기록) { $('psChalTabs').innerHTML = ''; $('psChalSummary').innerHTML = '<div class="empty">지금은 도전 기록을 받지 않아요.</div>'; $('psChalChart').innerHTML = ''; $('psChalList').innerHTML = ''; return; }
+    if (!list.length) { $('psChalTabs').innerHTML = ''; $('psChalSummary').innerHTML = '<div class="empty">도전할 종목이 없어요.</div>'; return; }
+    if (!CHAL종목 || !list.some(function (t) { return t.종목 === CHAL종목.종목; })) CHAL종목 = list[0];
+    var box = $('psChalTabs'); box.innerHTML = '';
+    list.forEach(function (t) {
+      var b = document.createElement('button');
+      b.className = 'ptab'; b.setAttribute('aria-selected', t.종목 === CHAL종목.종목 ? 'true' : 'false');
+      b.innerHTML = '<span class="fac">' + esc(t.요인) + '</span>' + esc(t.종목);
+      b.onclick = function () { CHAL종목 = t; drawChallenge(); };
+      box.appendChild(b);
+    });
+    if (!$('psChalDate').value) $('psChalDate').value = D.오늘;
+    $('psChalDate').max = D.오늘;
+    $('psChalValue').step = PAPSX.step(CHAL종목.소수);
+    $('psChalHead').innerHTML = '<h3>' + esc(CHAL종목.종목) + '</h3>' + (CHAL종목.단위 ? '<span class="unit">단위 ' + esc(CHAL종목.단위) + '</span>' : '');
+    drawChalSummary(); drawChalChart(); drawChalList();
+  }
+  function 내종목도전() { return D.도전.filter(function (c) { return c.종목 === CHAL종목.종목; }); }
+  function 최고(rows, 클수록) { if (!rows.length) return null; return rows.reduce(function (a, b) { return (클수록 ? b.값 > a.값 : b.값 < a.값) ? b : a; }); }
+  function drawChalSummary() {
+    var rows = 내종목도전(), 클수록 = PAPSX.higher(D.기준[CHAL종목.종목]), best = 최고(rows, 클수록), last = rows.length ? rows[rows.length - 1] : null;
+    var 변화 = (rows.length > 1 && last) ? PAPSX.round2(last.값 - rows[0].값) : null, 좋아짐 = 변화 === null ? null : (클수록 ? 변화 > 0 : 변화 < 0);
+    $('psChalSummary').innerHTML = '<div class="stats">' +
+      '<div class="stat"><span class="lab">도전 횟수</span><div class="box">' + rows.length + '</div></div>' +
+      '<div class="stat"><span class="lab">최고 기록</span><div class="box">' + (best ? best.값 : '–') + '</div></div>' +
+      '<div class="stat' + (best && String(best.등급) === '1' ? ' hl' : '') + '"><span class="lab">최고 등급</span><div class="box">' + (best && best.등급 ? best.등급 : '–') + '</div></div>' +
+      (변화 === null ? '' : '<div class="stat"><span class="lab">처음보다</span><div class="box"><span style="color:' + (좋아짐 ? '#177A4E' : 'var(--warn)') + '">' + (변화 > 0 ? '+' : '') + 변화 + '</span></div></div>') + '</div>';
+  }
+  function 월일(d) { var p = String(d).split('-'); return p.length === 3 ? Number(p[1]) + '/' + Number(p[2]) : String(d); }
+  function drawChalChart() {
+    var rows = 내종목도전();
+    if (!rows.length) { $('psChalChart').innerHTML = '<div class="empty" style="padding:26px"><strong>아직 기록이 없어요</strong>위에서 날짜와 기록을 넣으면 변화가 그래프로 보여요.</div>'; return; }
+    var bands = PAPSX.bands(D.기준[CHAL종목.종목]), 클수록 = PAPSX.higher(D.기준[CHAL종목.종목]);
+    var W = 700, H = 260, L = 46, R = 14, T = 14, B = 30;
+    var 날짜들 = [], 묶음 = {};
+    rows.forEach(function (r) { if (!묶음[r.날짜]) { 묶음[r.날짜] = []; 날짜들.push(r.날짜); } 묶음[r.날짜].push(r); });
+    var 하루최고 = 날짜들.map(function (d) { return 최고(묶음[d], 클수록); });
+    var vals = rows.map(function (r) { return r.값; }), lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    bands.forEach(function (b) { [b.하한, b.상한].forEach(function (x) { if (x === null) return; if (x >= lo - (hi - lo || 1) && x <= hi + (hi - lo || 1)) { lo = Math.min(lo, x); hi = Math.max(hi, x); } }); });
+    var pad = (hi - lo) * 0.12 || Math.abs(hi * 0.1) || 1; lo -= pad; hi += pad;
+    var y = function (v) { var t = (v - lo) / (hi - lo); return 클수록 ? T + (1 - t) * (H - T - B) : T + t * (H - T - B); };
+    var x = function (i) { return 날짜들.length === 1 ? L + (W - L - R) / 2 : L + (i / (날짜들.length - 1)) * (W - L - R); };
+    var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="' + esc(CHAL종목.종목) + ' 도전 기록 그래프">';
+    bands.forEach(function (b) {
+      var b1 = b.하한 === null ? lo : Math.max(lo, b.하한), b2 = b.상한 === null ? hi : Math.min(hi, b.상한);
+      if (b2 <= lo || b1 >= hi) return;
+      var ya = y(b1), yb = y(b2), top = Math.min(ya, yb), h = Math.abs(ya - yb);
+      if (h < 0.5) return;
+      svg += '<rect x="' + L + '" y="' + top + '" width="' + (W - L - R) + '" height="' + h + '" fill="var(--g' + b.색 + ')" opacity="0.18"></rect>';
+      if (h > 13) svg += '<text class="bandlab" x="' + (L + 5) + '" y="' + (top + h / 2 + 3) + '">' + esc(b.라벨) + (PAPSX.isNum(b.라벨) ? '등급' : '') + '</text>';
+    });
+    [0, 0.5, 1].forEach(function (f) { var v = lo + (hi - lo) * f, yy = y(v); svg += '<line class="grid" x1="' + L + '" y1="' + yy + '" x2="' + (W - R) + '" y2="' + yy + '"></line><text class="axis" x="6" y="' + (yy + 3) + '">' + Math.round(v * 10) / 10 + '</text>'; });
+    var best = 최고(rows, 클수록);
+    if (rows.length > 1 && best) svg += '<line class="best" x1="' + L + '" y1="' + y(best.값) + '" x2="' + (W - R) + '" y2="' + y(best.값) + '"></line>';
+    if (날짜들.length > 1) svg += '<polyline class="line" points="' + 하루최고.map(function (r, i) { return x(i) + ',' + y(r.값); }).join(' ') + '"></polyline>';
+    날짜들.forEach(function (d, i) {
+      묶음[d].forEach(function (r) {
+        var 최고인가 = r.도전ID === 하루최고[i].도전ID, 색 = 3;
+        bands.forEach(function (b) { if (String(b.라벨) === String(r.등급)) 색 = b.색; });
+        svg += '<circle class="dot" cx="' + x(i) + '" cy="' + y(r.값) + '" r="' + (최고인가 ? 5.5 : 3.5) + '" fill="var(--g' + 색 + ')" opacity="' + (최고인가 ? 1 : 0.5) + '"><title>' + esc(월일(r.날짜)) + ' · ' + r.값 + esc(CHAL종목.단위) + (r.등급 ? ' · ' + esc(r.등급) + (PAPSX.isNum(r.등급) ? '등급' : '') : '') + '</title></circle>';
+      });
+      if (묶음[d].length > 1) svg += '<text class="axis" text-anchor="middle" x="' + x(i) + '" y="' + (T + 10) + '">' + 묶음[d].length + '회</text>';
+    });
+    var 간격 = Math.ceil(날짜들.length / 7);
+    날짜들.forEach(function (d, i) { if (i % 간격 !== 0 && i !== 날짜들.length - 1) return; svg += '<text class="axis" text-anchor="middle" x="' + x(i) + '" y="' + (H - 10) + '">' + esc(월일(d)) + '</text>'; });
+    svg += '</svg>';
+    var 범례 = '<div class="legend" style="margin-top:8px">';
+    bands.forEach(function (b) { 범례 += '<i><b style="background:var(--g' + b.색 + ');opacity:.5"></b>' + esc(b.라벨) + (PAPSX.isNum(b.라벨) ? '등급' : '') + '</i>'; });
+    범례 += '<i><b style="background:#E0A400"></b>내 최고 기록</i><i>선은 그날의 가장 좋은 기록을 이은 거예요</i></div>';
+    $('psChalChart').innerHTML = svg + 범례;
+  }
+  function drawChalList() {
+    var rows = 내종목도전().slice().reverse();
+    if (!rows.length) { $('psChalList').innerHTML = ''; return; }
+    var html = '<table><thead><tr><th>날짜</th><th>기록</th><th>등급</th><th></th></tr></thead><tbody>';
+    rows.forEach(function (r) { html += '<tr><td class="pw">' + esc(월일(r.날짜)) + '</td><td class="pw">' + r.값 + esc(CHAL종목.단위) + '</td><td>' + PAPSX.chip(r.등급, 0, true) + '</td><td style="text-align:right"><button class="ghost mini pscdel" type="button" data-id="' + esc(r.도전ID) + '">지우기</button></td></tr>'; });
+    $('psChalList').innerHTML = html + '</tbody></table>';
+    Array.prototype.forEach.call($('psChalList').querySelectorAll('.pscdel'), function (b) { b.onclick = function () { delChallenge(b.dataset.id); }; });
+  }
+  function addChallenge() {
+    var v = $('psChalValue').value;
+    if (v === '') { setStatus($('psChalStatus'), '기록을 입력해 주세요.', 'err'); return; }
+    $('psBtnAddChal').disabled = true; setStatus($('psChalStatus'), '저장하는 중…');
+    api('paps_s_addChallenge', TOKEN, CHAL종목.종목, v, $('psChalDate').value || D.오늘).then(function (res) {
+      $('psBtnAddChal').disabled = false;
+      if (!res.ok) { setStatus($('psChalStatus'), res.message, 'err'); return; }
+      D.도전 = res.도전 || D.도전; $('psChalValue').value = ''; drawChallenge();
+      setStatus($('psChalStatus'), res.등급 ? '기록했어요. ' + res.등급 + (PAPSX.isNum(res.등급) ? '등급' : '') + '이에요.' : '기록했어요.', 'ok');
+    }).catch(function (e) { $('psBtnAddChal').disabled = false; handleErr(e); });
+  }
+  function delChallenge(id) {
+    if (!confirm('이 기록을 지울까요?')) return;
+    api('paps_s_deleteChallenge', TOKEN, id).then(function (res) { D.도전 = res.도전 || D.도전; drawChallenge(); setStatus($('psChalStatus'), '지웠어요.', 'ok'); }).catch(handleErr);
+  }
+  $('psBtnAddChal').onclick = addChallenge;
+  $('psChalValue').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addChallenge(); } });
+
+  return { nav: nav, init: init, show: show, reset: reset };
+})();
+</script>

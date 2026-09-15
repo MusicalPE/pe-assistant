@@ -1,0 +1,1100 @@
+<!-- 스포츠클럽 · 교사 화면 (모듈 CLUB, 교사 전용) -->
+<style>
+#club_T .cb-clubbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+#club_T .cb-clubbar select{min-width:200px;font-weight:700;}
+#club_T .kpi.green .val{color:#178A55;}
+#club_T .prog.green > i{background:var(--green);}
+#club_T .stu-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:13.5px;}
+#club_T .stu-row:last-child{border-bottom:none;}
+#club_T .stu-row .n{width:130px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#club_T .stu-row .prog{flex:1;}
+#club_T .stu-row .v{width:130px;text-align:right;color:var(--ink-2);font-size:12.5px;white-space:nowrap;}
+#club_T .stu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;}
+#club_T .chk.sm{padding:6px 10px;font-size:13.5px;border-radius:9px;}
+#club_T .matrix td.cell{cursor:pointer;user-select:none;font-weight:800;text-align:center;}
+#club_T .matrix td.cell.on{background:var(--accent-soft);color:var(--accent-ink);}
+#club_T .matrix td.cell:hover{outline:2px solid var(--accent);outline-offset:-2px;}
+#club_T .matrix td.busy{opacity:.4;}
+#club_T table input[type=text],#club_T table input[type=number],#club_T table input[type=date]{padding:5px 8px;font-size:13px;min-width:0;}
+#club_T table input.wide{width:100%;min-width:180px;}
+#club_T .ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+#club_T .ph-card{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
+#club_T .ph-card .im{width:100%;height:130px;background:var(--soft) center/cover no-repeat;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-3);}
+#club_T .ph-card .m{padding:8px 10px;font-size:12.5px;}
+#club_T .ph-card .m input{width:100%;margin-top:4px;padding:5px 8px;font-size:12.5px;}
+#club_T .paper-wrap{background:#D9DFE7;padding:24px;border-radius:var(--r);overflow:auto;}
+#club_T .right{text-align:right;}
+/* 보고서 용지 — 미리보기와 인쇄(.print-area)에서 함께 씀 */
+.cb-papers .paper{background:#fff;width:210mm;min-height:297mm;margin:0 auto;padding:18mm 16mm;box-shadow:0 10px 40px -12px rgba(0,0,0,.4);color:#000;font-size:10.5pt;line-height:1.5;font-family:'Malgun Gothic','맑은 고딕',var(--sans);}
+.cb-papers .paper h1{font-size:17pt;margin:0 0 12pt;text-align:center;letter-spacing:-.02em;}
+.cb-papers .paper h2{font-size:12.5pt;margin:14pt 0 6pt;padding-left:0;}
+.cb-papers .paper h2::before{content:'▣ ';color:#1F5FCC;}
+.cb-papers .paper p{margin:2pt 0;}
+.cb-papers .paper ul{margin:2pt 0 4pt 14pt;padding:0;list-style:none;}
+.cb-papers .paper li{margin:1pt 0;}
+.cb-papers .paper table{width:100%;border-collapse:collapse;margin:4pt 0 8pt;font-size:9.5pt;page-break-inside:auto;}
+.cb-papers .paper th,.cb-papers .paper td{border:1px solid #444;padding:3pt 5pt;vertical-align:middle;background:none;color:#000;font-size:9.5pt;white-space:normal;}
+.cb-papers .paper th{background:#E8EEF5;font-weight:700;text-align:center;white-space:nowrap;}
+.cb-papers .paper td.c{text-align:center;} .cb-papers .paper td.r{text-align:right;}
+.cb-papers .paper tr{page-break-inside:avoid;border:0;} .cb-papers .paper tr:hover{background:none;}
+.cb-papers .paper .photos{display:grid;grid-template-columns:1fr 1fr;gap:8pt;}
+.cb-papers .paper .photos figure{margin:0;page-break-inside:avoid;text-align:center;}
+.cb-papers .paper .photos img{width:100%;height:58mm;object-fit:cover;border:1px solid #999;}
+.cb-papers .paper .photos figcaption{font-size:9pt;margin-top:2pt;}
+.cb-papers .paper .sign{margin-top:24pt;text-align:right;}
+.cb-papers .paper .pb{page-break-before:always;}
+.cb-papers .paper .empty{padding:60px 20px;}
+.print-area{display:none;}
+@media print{
+  .print-area .paper{width:auto;min-height:0;margin:0;padding:0;box-shadow:none;}
+  .print-area .paper th{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+@media (max-width:900px){
+  #club_T .paper-wrap{padding:8px;}
+  #club_T .paper-wrap .paper{width:100%;padding:10mm 8mm;}
+}
+</style>
+
+<div class="mroot hide" data-mod="CLUB" data-role="T" id="club_T">
+
+  <!-- ===== 현황 ===== -->
+  <div class="page" id="club_tp_dash">
+    <div class="page-head"><h2 id="cbDashTitle">스포츠클럽 현황</h2><span class="sub" id="cbDashSub"></span></div>
+    <div class="cb-clubbar" data-cbbar></div>
+    <div id="cbDashNotes"></div>
+    <div class="kpis" id="cbDashKpis"></div>
+    <div class="grid g2" style="align-items:start">
+      <div class="panel" style="margin:0">
+        <div class="panel-head"><h3><i class="ti ti-users"></i>학생별 누적 활동시간</h3><div class="spacer"></div><span class="unit" id="cbDashGoalLbl"></span></div>
+        <div class="panel-body" id="cbDashStudents" style="padding-top:6px"></div>
+      </div>
+      <div>
+        <div class="panel" style="margin:0 0 14px">
+          <div class="panel-head"><h3><i class="ti ti-history"></i>최근 활동</h3><div class="spacer"></div><button class="mini ghost" data-go="act">활동 일지</button></div>
+          <div class="scroll-x"><table><thead><tr><th>날짜</th><th>시간</th><th>활동 내용</th><th>참여</th></tr></thead><tbody id="cbDashRecent"></tbody></table></div>
+        </div>
+        <div class="panel" style="margin:0">
+          <div class="panel-head"><h3><i class="ti ti-chart-bar"></i>월별 활동</h3></div>
+          <div class="panel-body" id="cbDashMonths"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 활동 일지 ===== -->
+  <div class="page hide" id="club_tp_act">
+    <div class="page-head"><h2>활동 일지</h2><span class="sub">활동할 때마다 날짜·시간·내용을 적고 참여한 학생을 체크합니다. 학생별 누적 활동시간이 자동으로 쌓입니다.</span></div>
+    <div class="cb-clubbar" data-cbbar></div>
+    <div class="panel">
+      <div class="panel-head"><h3 id="cbActFormTitle"><i class="ti ti-pencil-plus"></i>활동 기록하기</h3><div class="spacer"></div><button class="mini ghost hide" id="cbBtnActCancel"><i class="ti ti-x"></i>수정 취소</button></div>
+      <div class="panel-body">
+        <input type="hidden" id="cbAcId">
+        <div class="bar" style="box-shadow:none;margin-bottom:12px">
+          <div class="field"><label>날짜</label><input type="date" id="cbAcDate"></div>
+          <div class="field"><label>시작</label><input type="time" id="cbAcStart"></div>
+          <div class="field"><label>종료</label><input type="time" id="cbAcEnd"></div>
+          <div class="field"><label>활동시간(분)</label><input type="number" id="cbAcMin" min="0" step="5" style="width:96px"></div>
+          <div class="field"><label>구분</label><select id="cbAcType"><option>정규 연습</option><option>추가 연습</option><option>교내 경기</option><option>대회 참가</option><option>친선 경기</option><option>기타</option></select></div>
+          <div class="field" style="flex:1;min-width:140px"><label>장소</label><input type="text" id="cbAcPlace" placeholder="예: 강당"></div>
+        </div>
+        <div class="field" style="margin-bottom:12px"><label>활동 내용</label><input type="text" id="cbAcContent" placeholder="예: 패스·슛 기본기 연습, 4:4 미니게임"></div>
+        <div class="field" style="margin-bottom:12px"><label>참여 학생 <span id="cbAcCnt" class="tag brand" style="margin-left:4px"></span></label>
+          <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+            <button class="mini soft" id="cbAcSelAll"><i class="ti ti-checks"></i>전체 선택</button>
+            <button class="mini ghost" id="cbAcSelNone">선택 해제</button>
+            <button class="mini ghost" id="cbAcSelLast"><i class="ti ti-arrow-back-up"></i>지난 활동과 같게</button>
+          </div>
+          <div class="stu-grid" id="cbAcStudents"></div>
+        </div>
+        <div class="field"><label>비고 (선택)</label><input type="text" id="cbAcNote" placeholder="예: 우천으로 실내 활동"></div>
+      </div>
+      <div class="savebar"><span class="status" id="cbAcStatus"></span><div class="spacer"></div><button id="cbBtnActSave"><i class="ti ti-device-floppy"></i>활동 저장</button></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-list"></i>활동 목록</h3><div class="spacer"></div><span class="unit" id="cbActSum"></span></div>
+      <div class="scroll-x"><table><thead><tr><th>순</th><th>날짜</th><th>시간</th><th>분</th><th>구분</th><th>장소</th><th>활동 내용</th><th>참여</th><th></th></tr></thead><tbody id="cbActRows"></tbody></table></div>
+      <div class="empty hide" id="cbActEmpty"><i class="ti ti-calendar-plus"></i><strong>아직 활동 기록이 없습니다</strong>위에서 첫 활동을 기록해 주세요.</div>
+    </div>
+  </div>
+
+  <!-- ===== 참가 학생 ===== -->
+  <div class="page hide" id="club_tp_members">
+    <div class="page-head"><h2>참가 학생</h2><span class="sub">공통 학생 명단에서 고릅니다. 활동 일지에서 이 명단의 학생을 체크합니다.</span></div>
+    <div class="cb-clubbar" data-cbbar></div>
+    <div class="bar">
+      <button id="cbBtnPickOpen"><i class="ti ti-user-plus"></i>명단에서 추가</button>
+      <div class="spacer"></div>
+      <span class="unit" id="cbMemSum"></span>
+    </div>
+    <div class="panel">
+      <div class="scroll-x"><table><thead><tr>
+        <th>순</th><th>학년</th><th>반</th><th>번호</th><th>이름</th><th>성별</th><th>참여 횟수</th><th>누적 시간</th><th>비고</th><th></th>
+      </tr></thead><tbody id="cbMemberRows"></tbody></table></div>
+      <div class="empty hide" id="cbMemberEmpty"><i class="ti ti-users"></i><strong>아직 참가 학생이 없습니다</strong>"명단에서 추가"를 눌러 학생을 골라 주세요.</div>
+    </div>
+  </div>
+
+  <!-- ===== 출석부 ===== -->
+  <div class="page hide" id="club_tp_att">
+    <div class="page-head"><h2>출석부</h2><span class="sub">활동 일지의 참여 체크를 표로 봅니다. 칸을 누르면 바로 바꿀 수 있습니다.</span></div>
+    <div class="cb-clubbar" data-cbbar></div>
+    <div class="bar">
+      <div class="field"><label>시작</label><input type="date" id="cbAttFrom"></div>
+      <div class="field"><label>끝</label><input type="date" id="cbAttTo"></div>
+      <button class="ghost" id="cbBtnAttLoad"><i class="ti ti-refresh"></i>불러오기</button>
+      <button class="ghost" id="cbBtnAttAll"><i class="ti ti-calendar"></i>전체 기간</button>
+      <div class="spacer"></div>
+      <button class="soft" id="cbBtnAttCopy"><i class="ti ti-table-export"></i>표 복사</button>
+    </div>
+    <div class="panel"><div class="scroll-x"><table class="matrix"><thead id="cbAttHead"></thead><tbody id="cbAttRows"></tbody></table></div></div>
+  </div>
+
+  <!-- ===== 대회 실적 ===== -->
+  <div class="page hide" id="club_tp_comp">
+    <div class="page-head"><h2>대회 참가·입상</h2><span class="sub">참가한 대회와 결과를 적어 두면 보고서의 "운영 결과"에 정리됩니다.</span></div>
+    <div class="cb-clubbar" data-cbbar></div>
+    <div class="panel">
+      <div class="scroll-x"><table><thead><tr><th>순</th><th>일자</th><th>대회명</th><th>주최</th><th>장소</th><th>결과</th><th>참가 인원</th><th>비고</th><th></th></tr></thead><tbody id="cbCompRows"></tbody></table></div>
+      <div class="savebar">
+        <button class="ghost" id="cbBtnCompAdd"><i class="ti ti-plus"></i>대회 추가</button>
+        <div class="spacer"></div><span class="status" id="cbCompStatus"></span>
+        <button id="cbBtnCompSave"><i class="ti ti-device-floppy"></i>저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 예산 ===== -->
+  <div class="page hide" id="club_tp_budget">
+    <div class="page-head"><h2>예산 집행</h2><span class="sub">항목별 지출을 적으면 총액이 계산되어 보고서에 들어갑니다.</span></div>
+    <div class="cb-clubbar" data-cbbar></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-coin"></i>지출 내역</h3><div class="spacer"></div>
+        <div class="field"><label>배정 예산(원)</label><input type="number" id="cbBgTotal" min="0" step="1000" style="width:140px"></div></div>
+      <div class="scroll-x"><table><thead><tr><th>순</th><th>항목</th><th>세부 지출 내용</th><th>단가</th><th>수량</th><th>금액</th><th>집행일</th><th>비고</th><th></th></tr></thead><tbody id="cbBgRows"></tbody>
+        <tfoot><tr><td colspan="5" class="right" style="padding:10px 12px;font-weight:800">총 지출액</td><td style="padding:10px 12px;font-weight:800" id="cbBgSum"></td><td colspan="3" class="unit" id="cbBgRemain"></td></tr></tfoot></table></div>
+      <div class="savebar">
+        <button class="ghost" id="cbBtnBgAdd"><i class="ti ti-plus"></i>줄 추가</button>
+        <div class="spacer"></div><span class="status" id="cbBgStatus"></span>
+        <button id="cbBtnBgSave"><i class="ti ti-device-floppy"></i>저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 사진 ===== -->
+  <div class="page hide" id="club_tp_photo">
+    <div class="page-head"><h2>활동 사진</h2><span class="sub">올릴 때 크기를 줄여 드라이브 폴더에 보관합니다. 보고서에 자동으로 들어갑니다.</span></div>
+    <div class="cb-clubbar" data-cbbar></div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="bar" style="margin-bottom:14px;box-shadow:none">
+          <div class="field"><label>활동 날짜</label><input type="date" id="cbPhDate"></div>
+          <div class="field" style="flex:1;min-width:200px"><label>설명 (선택)</label><input type="text" id="cbPhDesc" placeholder="예: 교육감배 대회 경기 모습"></div>
+          <div class="field"><label>사진 파일</label><input type="file" id="cbPhFiles" accept="image/*" multiple style="font-size:13px"></div>
+          <button id="cbBtnPhUpload"><i class="ti ti-upload"></i>올리기</button>
+          <a class="mini ghost" id="cbPhFolder" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;color:var(--ink-2);text-decoration:none"><i class="ti ti-folder"></i>드라이브 폴더</a>
+        </div>
+        <div class="status" id="cbPhStatus" style="margin-bottom:10px"></div>
+        <div class="ph-grid" id="cbPhGrid"></div>
+        <div class="empty hide" id="cbPhEmpty"><i class="ti ti-photo"></i><strong>아직 사진이 없습니다</strong>날짜를 고르고 사진을 올려 주세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 보고서 ===== -->
+  <div class="page hide" id="club_tp_report">
+    <div class="page-head"><h2>정산보고서</h2><span class="sub">입력한 내용으로 결과(정산) 보고서를 만듭니다. 미리보기 후 인쇄(PDF)하거나 Word 파일로 내려받아 한글에서 열어 다듬으세요.</span></div>
+    <div class="cb-clubbar" data-cbbar></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-file-text"></i>보고서 옵션</h3></div>
+      <div class="panel-body">
+        <div class="grid g2" style="margin-bottom:12px">
+          <div class="field" style="grid-column:1/-1"><label>보고서 제목</label><input type="text" id="cbRpTitle"></div>
+          <div class="field"><label>기간 시작 (비우면 전체)</label><input type="date" id="cbRpFrom"></div>
+          <div class="field"><label>기간 끝</label><input type="date" id="cbRpTo"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <label class="chk sm on"><input type="checkbox" id="cbRpSecInfo" checked><span>학교 정보·운영 개요</span></label>
+          <label class="chk sm on"><input type="checkbox" id="cbRpSecLog" checked><span>활동 일지</span></label>
+          <label class="chk sm on"><input type="checkbox" id="cbRpSecMem" checked><span>학생 명단·누적 시간</span></label>
+          <label class="chk sm on"><input type="checkbox" id="cbRpSecAtt" checked><span>출석부</span></label>
+          <label class="chk sm on"><input type="checkbox" id="cbRpSecComp" checked><span>대회 실적</span></label>
+          <label class="chk sm on"><input type="checkbox" id="cbRpSecBudget" checked><span>예산 집행</span></label>
+          <label class="chk sm on"><input type="checkbox" id="cbRpSecPhoto" checked><span>활동 사진</span></label>
+          <label class="chk sm"><input type="checkbox" id="cbRpMask"><span>이름 가운데 * 처리</span></label>
+        </div>
+      </div>
+      <div class="savebar"><span class="status" id="cbRpStatus"></span><div class="spacer"></div>
+        <button class="ghost" id="cbBtnRpPreview"><i class="ti ti-eye"></i>미리보기</button>
+        <button class="soft" id="cbBtnRpPrint"><i class="ti ti-printer"></i>인쇄 / PDF</button>
+        <button id="cbBtnRpDocx"><i class="ti ti-file-type-docx"></i>Word 파일 내려받기</button></div>
+    </div>
+    <div class="paper-wrap cb-papers"><div class="paper" id="cbRpPaper"><div class="empty"><i class="ti ti-file-text"></i><strong>미리보기 버튼을 눌러 주세요</strong>클럽 정보와 활동 기록으로 보고서를 만듭니다.</div></div></div>
+  </div>
+
+  <!-- ===== 클럽 설정 ===== -->
+  <div class="page hide" id="club_tp_settings">
+    <div class="page-head"><h2>클럽 설정</h2><span class="sub">보고서 머리말과 운영 개요에 그대로 들어갑니다.</span></div>
+    <div class="cb-clubbar" data-cbbar></div>
+    <div class="note hide" id="cbNoClub"><i class="ti ti-trophy"></i><div>아직 클럽이 없습니다. <b>클럽 추가</b>를 눌러 첫 클럽을 만들어 주세요.</div></div>
+    <div id="cbSettingsBody">
+      <div class="panel">
+        <div class="panel-head"><h3><i class="ti ti-trophy"></i>클럽 기본 정보</h3></div>
+        <div class="panel-body">
+          <div class="grid g3" style="margin-bottom:12px">
+            <div class="field"><label>학년도</label><input type="number" id="cbStYear" min="2000" max="2100"></div>
+            <div class="field"><label>클럽 이름</label><input type="text" id="cbStName" placeholder="예: 전주초 넷볼 클럽"></div>
+            <div class="field"><label>종목</label>
+              <div style="display:flex;gap:6px"><select id="cbStSport" style="flex:1"></select><input type="text" id="cbStSportEtc" class="hide" placeholder="종목 직접 입력" style="flex:1"></div></div>
+            <div class="field"><label>대상</label><input type="text" id="cbStTarget" placeholder="예: 5~6학년 여학생 희망자"></div>
+            <div class="field"><label>운영 시작</label><input type="date" id="cbStFrom"></div>
+            <div class="field"><label>운영 끝</label><input type="date" id="cbStTo"></div>
+            <div class="field"><label>활동 시간대</label><input type="text" id="cbStTime" placeholder="예: 아침 08:00~08:40, 점심 13:00~13:40"></div>
+            <div class="field"><label>활동 장소</label><input type="text" id="cbStPlace" placeholder="예: 강당, 운동장"></div>
+            <div class="field"><label>학생 1인 목표 활동시간 (시간)</label><input type="number" id="cbStGoal" min="1" step="1"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3><i class="ti ti-school"></i>학교·담당자</h3><div class="spacer"></div><button class="mini ghost" data-go="coreSettings"><i class="ti ti-settings"></i>학교명·학교장·담당자·전화·이메일은 공통 설정에서</button></div>
+        <div class="panel-body">
+          <div class="grid g3">
+            <div class="field"><label>학교명</label><input type="text" id="cbStSchool" disabled></div>
+            <div class="field"><label>학교장</label><input type="text" id="cbStPrincipal" disabled></div>
+            <div class="field"><label>담당자 성명</label><input type="text" id="cbStTeacher" disabled></div>
+            <div class="field"><label>전화번호</label><input type="text" id="cbStPhone" disabled></div>
+            <div class="field"><label>이메일</label><input type="text" id="cbStEmail" disabled></div>
+            <div class="field"><label>담당자 직위</label><input type="text" id="cbStPos" placeholder="교사"></div>
+            <div class="field" style="grid-column:1/-1"><label>학교 주소</label><input type="text" id="cbStAddr"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3><i class="ti ti-align-left"></i>운영 개요 · 내용 · 결과</h3><span class="unit">한 줄이 보고서의 ◦ 항목 하나가 됩니다.</span></div>
+        <div class="panel-body">
+          <div class="field" style="margin-bottom:12px"><label>운영 개요 (목적·방침)</label><textarea id="cbStOverview" placeholder="예: 5,6학년 여학생 중 희망자를 대상으로 운영&#10;오전·점심시간을 활용하여 연습"></textarea></div>
+          <div class="field" style="margin-bottom:12px"><label>운영 내용 (활동 일지 외에 덧붙일 내용)</label><textarea id="cbStContent" placeholder="예: 각종 대회 출전(전주시장배 넷볼대회, 교육감배 학교스포츠클럽대회)"></textarea></div>
+          <div class="field"><label>운영 결과 · 성과 (대회 실적은 자동으로 붙습니다)</label><textarea id="cbStResult" placeholder="예: 스포츠클럽을 통한 다양한 신체활동 경험, 협동심 향상"></textarea></div>
+        </div>
+        <div class="savebar"><button class="danger" id="cbBtnClubDelete"><i class="ti ti-trash"></i>이 클럽 삭제</button><div class="spacer"></div><span class="status" id="cbStStatus"></span><button id="cbBtnStSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 모달: 명단에서 추가 ===== -->
+  <div id="cbMdPick" class="modal hide">
+    <div style="max-width:620px">
+      <div class="panel-head"><h3><i class="ti ti-user-plus"></i>명단에서 추가</h3><div class="spacer"></div><button class="ghost mini" data-close="cbMdPick"><i class="ti ti-x"></i>닫기</button></div>
+      <div class="panel-body">
+        <div class="bar" style="margin-bottom:10px;box-shadow:none">
+          <div class="field"><label>학년</label><select id="cbPkGrade"><option value="">전체</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+          <div class="field"><label>반</label><select id="cbPkClass"><option value="">전체</option></select></div>
+          <button class="mini soft" id="cbPkAll"><i class="ti ti-checks"></i>보이는 학생 모두</button>
+          <button class="mini ghost" id="cbPkNone">선택 해제</button>
+          <div class="spacer"></div><span class="unit" id="cbPkCnt"></span>
+        </div>
+        <div class="stu-grid" id="cbPkList" style="max-height:50vh;overflow:auto"></div>
+      </div>
+      <div class="savebar"><span class="status" id="cbPkStatus"></span><div class="spacer"></div><button id="cbBtnPickAdd"><i class="ti ti-user-plus"></i>추가</button></div>
+    </div>
+  </div>
+
+  <!-- ===== 모달: 클럽 추가 ===== -->
+  <div id="cbMdClub" class="modal hide">
+    <div style="max-width:420px">
+      <div class="panel-head"><h3><i class="ti ti-trophy"></i>새 클럽 추가</h3><div class="spacer"></div><button class="ghost mini" data-close="cbMdClub"><i class="ti ti-x"></i>닫기</button></div>
+      <div class="panel-body">
+        <div class="field" style="margin-bottom:10px"><label>클럽 이름</label><input type="text" id="cbNcName" placeholder="예: 전주초 넷볼 클럽"></div>
+        <div class="field" style="margin-bottom:10px"><label>종목</label><select id="cbNcSport"></select></div>
+        <label class="chk sm"><input type="checkbox" id="cbNcCopy" checked><span>현재 클럽의 주소·직위·운영 기간 복사</span></label>
+      </div>
+      <div class="savebar"><span class="status" id="cbNcStatus"></span><div class="spacer"></div><button id="cbBtnClubCreate"><i class="ti ti-plus"></i>만들기</button></div>
+    </div>
+  </div>
+
+  <!-- ===== 모달: 사진 크게 보기 ===== -->
+  <div id="cbMdPhoto" class="modal hide">
+    <div style="max-width:900px;background:#111;border-radius:14px">
+      <div class="panel-head" style="border:none;color:#fff"><h3 id="cbPhotoTitle" style="color:#fff"><i class="ti ti-photo"></i>사진</h3><div class="spacer"></div><button class="ghost mini" data-close="cbMdPhoto"><i class="ti ti-x"></i>닫기</button></div>
+      <div style="text-align:center;padding:0 10px 12px"><img id="cbPhotoBig" src="" alt="" style="max-width:100%;max-height:75vh;border-radius:8px"></div>
+    </div>
+  </div>
+  <datalist id="cbResultList"><option value="우승"><option value="준우승"><option value="3위"><option value="4위"><option value="예선 탈락"><option value="참가"></datalist>
+  <datalist id="cbItemList"><option value="용품구입비"><option value="간식비"><option value="대회참가비"><option value="교통비"><option value="강사비"><option value="시설사용료"><option value="기타"></datalist>
+</div>
+
+<script>
+/* =====================================================================
+   스포츠클럽 (교사 전용) — MODS.CLUB.teacher
+   단독판 화면을 그대로 옮기고 저장만 브라우저 → 서버(시트·드라이브)로 바꿨습니다.
+   - 참가 학생: 공통 명단(CTX.학생)에서 고른 학생ID 목록
+   - 사진: 드라이브에 저장, 화면에는 썸네일(base64)을 필요할 때 받아 옵니다
+   ===================================================================== */
+MODS.CLUB = MODS.CLUB || {};
+MODS.CLUB.teacher = (function () {
+  var D = null;              // { 설정, 클럽:[...] }
+  var CUR = null;            // 현재 클럽 id
+  var IMG = {};              // 파일ID → dataURL 캐시
+  var pages = ['dash', 'act', 'members', 'att', 'comp', 'budget', 'photo', 'report', 'settings'];
+  var nav = [
+    { section: '스포츠클럽' },
+    { id: 'dash', label: '현황', icon: 'layout-dashboard' },
+    { id: 'act', label: '활동 일지', icon: 'pencil-plus' },
+    { id: 'members', label: '참가 학생', icon: 'users' },
+    { id: 'att', label: '출석부', icon: 'calendar-check' },
+    { id: 'comp', label: '대회 실적', icon: 'award' },
+    { id: 'budget', label: '예산 집행', icon: 'coin' },
+    { id: 'photo', label: '활동 사진', icon: 'camera' },
+    { id: 'report', label: '정산보고서', icon: 'file-text' },
+    { id: 'settings', label: '클럽 설정', icon: 'settings' }
+  ];
+  var SPORTS = ['넷볼', '축구', '풋살', '농구', '배구', '배드민턴', '티볼', '야구·소프트볼', '피구', '줄넘기', '육상', '탁구', '플로어볼', '핸드볼', '플라잉디스크', '태권도', '씨름', '수영', '댄스스포츠', '뉴스포츠', '직접 입력'];
+  var ROOT = $('club_T');
+  var CUR_KEY = 'pe_club_cur';
+
+  /* ---------- 작은 도구 ---------- */
+  function qa(sel, root) { return Array.prototype.slice.call((root || ROOT).querySelectorAll(sel)); }
+  function today() { return ymd(new Date()); }
+  function wd(s) { return s ? 요일[parseYmd(s).getDay()] : ''; }
+  function kdate(s) { if (!s) return ''; var d = parseYmd(s); return d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '.'; }
+  function hm(min) { min = Number(min || 0); var h = Math.floor(min / 60), m = min % 60; if (!h) return m + '분'; return h + '시간' + (m ? ' ' + m + '분' : ''); }
+  function hours1(min) { return Math.round(Number(min || 0) / 60 * 10) / 10; }
+  function timeDiff(a, b) { if (!a || !b) return null; var p = a.split(':').map(Number), q = b.split(':').map(Number); var m = (q[0] * 60 + q[1]) - (p[0] * 60 + p[1]); return m > 0 ? m : null; }
+  function maskName(n) { n = String(n || ''); if (n.length < 2) return n; if (n.length === 2) return n[0] + '*'; return n[0] + new Array(n.length - 1).join('*') + n[n.length - 1]; }
+  function chunk(arr, n) { var o = []; for (var i = 0; i < arr.length; i += n) o.push(arr.slice(i, i + n)); return o; }
+  function lines(t) { return String(t || '').split(/\r?\n/).map(function (l) { return l.replace(/^\s*[◦○\-•·]\s*/, '').trim(); }).filter(Boolean); }
+  function setSt(id, msg, kind) { setStatus(id, msg, kind); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  /* ---------- 자료 ---------- */
+  function clubs() { return D ? D.클럽 : []; }
+  function C() { return clubs().filter(function (c) { return c.id === CUR; })[0] || null; }
+  function setClubs(list) {
+    D.클럽 = list;
+    if (!C()) { CUR = list.length ? list[0].id : null; try { localStorage.setItem(CUR_KEY, CUR || ''); } catch (e) {} }
+  }
+  function stuMap() { var m = {}; (CTX && CTX.학생 ? CTX.학생 : []).forEach(function (s) { m[s.학생ID] = s; }); return m; }
+  /** 참가 학생 (공통 명단 정보 합침, 명단에서 없어진 학생은 뺌) */
+  function members(c) {
+    c = c || C(); if (!c) return [];
+    var map = stuMap();
+    return c.참가자.map(function (m) { var s = map[m.학생ID]; if (!s) return null; return { id: m.학생ID, 학년: Number(s.학년), 반: Number(s.반), 번호: Number(s.번호), 이름: s.이름, 성별: s.성별 || '', 상태: s.상태, 비고: m.비고 || '' }; })
+      .filter(Boolean).sort(function (a, b) { return (a.학년 - b.학년) || (a.반 - b.반) || (a.번호 - b.번호) || String(a.이름).localeCompare(String(b.이름), 'ko'); });
+  }
+  function acts(c, from, to) {
+    c = c || C(); if (!c) return [];
+    return c.활동.filter(function (a) { return (!from || a.날짜 >= from) && (!to || a.날짜 <= to); })
+      .sort(function (a, b) { return (a.날짜 + (a.시작 || '')).localeCompare(b.날짜 + (b.시작 || '')); });
+  }
+  function stats(c, from, to) {
+    var list = acts(c, from, to), map = {};
+    members(c).forEach(function (s) { map[s.id] = { 횟수: 0, 분: 0 }; });
+    list.forEach(function (a) { (a.참여 || []).forEach(function (id) { if (map[id]) { map[id].횟수++; map[id].분 += Number(a.분 || 0); } }); });
+    return map;
+  }
+  function stuLabel(s, mask) { return s.학년 + '-' + s.반 + '-' + s.번호 + ' ' + (mask ? maskName(s.이름) : s.이름); }
+  function typeColor(t) { return { '정규 연습': 'brand', '추가 연습': 'sky', '교내 경기': 'violet', '대회 참가': 'sun', '친선 경기': 'green' }[t] || ''; }
+
+  /* ---------- 모듈 뼈대 ---------- */
+  var BOOTP = null;
+  function init(ctx) { D = null; try { CUR = localStorage.getItem(CUR_KEY) || null; } catch (e) {} boot(null); }
+  function reset() { D = null; BOOTP = null; IMG = {}; }
+  function boot(then) {
+    if (!BOOTP) BOOTP = api('club_t_boot', TOKEN).then(function (b) { D = b; BOOTP = null; setClubs(b.클럽); }, function (e) { BOOTP = null; throw e; });
+    BOOTP.then(function () { if (then) then(); }).catch(handleErr);
+  }
+  function show(p) {
+    pages.forEach(function (id) { $('club_tp_' + id).classList.toggle('hide', id !== p); });
+    var fn = { dash: renderDash, act: renderAct, members: renderMembers, att: renderAtt, comp: renderComp, budget: renderBudget, photo: renderPhotos, report: renderReportPage, settings: renderSettings }[p];
+    if (!fn) return;
+    var run = function () { renderClubBar(); if (!C() && p !== 'settings') { go('CLUB', 'settings'); return; } fn(); };
+    if (!D) { boot(run); return; }
+    run();
+  }
+  ROOT.addEventListener('click', function (e) {
+    var g = e.target.closest && e.target.closest('[data-go]');
+    if (g) { e.preventDefault(); var p = g.getAttribute('data-go'); if (p === 'coreSettings') go('core', 'settings'); else go('CLUB', p); }
+  });
+  ROOT.addEventListener('change', function (e) { var l = e.target.closest && e.target.closest('label.chk'); if (l && e.target.type === 'checkbox') l.classList.toggle('on', e.target.checked); });
+  qa('[data-close]').forEach(function (b) { b.onclick = function () { $(b.getAttribute('data-close')).classList.add('hide'); }; });
+  qa('.modal').forEach(function (m) { m.addEventListener('mousedown', function (e) { if (e.target === m) m.classList.add('hide'); }); });
+
+  /* ---------- 클럽 전환 바 ---------- */
+  function renderClubBar() {
+    var html = clubs().length
+      ? '<i class="ti ti-trophy" style="color:var(--accent)"></i><select data-cbsel>' + clubs().map(function (c) { return '<option value="' + c.id + '"' + (c.id === CUR ? ' selected' : '') + '>' + esc(c.이름 || '(이름 없음)') + ' · ' + esc(c.종목) + '</option>'; }).join('') + '</select>'
+      : '<span class="unit">아직 클럽이 없습니다.</span>';
+    html += '<button class="mini ghost" data-cbadd><i class="ti ti-plus"></i>클럽 추가</button>';
+    qa('[data-cbbar]').forEach(function (b) { b.innerHTML = html; });
+    qa('[data-cbsel]').forEach(function (s) { s.onchange = function () { CUR = this.value; try { localStorage.setItem(CUR_KEY, CUR); } catch (e) {} show(CURRENT.page); }; });
+    qa('[data-cbadd]').forEach(function (b) { b.onclick = openClubModal; });
+  }
+  function openClubModal() {
+    $('cbNcSport').innerHTML = SPORTS.filter(function (s) { return s !== '직접 입력'; }).map(function (s) { return '<option>' + s + '</option>'; }).join('');
+    $('cbNcName').value = ''; setSt('cbNcStatus', ''); $('cbMdClub').classList.remove('hide'); $('cbNcName').focus();
+  }
+  $('cbBtnClubCreate').onclick = function () {
+    var name = $('cbNcName').value.trim(); if (!name) { setSt('cbNcStatus', '클럽 이름을 적어 주세요.', 'err'); return; }
+    var y = Number(D.설정.학년도) || new Date().getFullYear(), cur = C();
+    var m = { 이름: name, 종목: $('cbNcSport').value, 학년도: y, 운영시작: y + '-04-01', 운영종료: y + '-11-30', 목표시간: 17, 직위: '교사' };
+    if ($('cbNcCopy').checked && cur) { m.주소 = cur.주소; m.직위 = cur.직위; m.운영시작 = cur.운영시작; m.운영종료 = cur.운영종료; m.활동시간대 = cur.활동시간대; m.활동장소 = cur.활동장소; }
+    setSt('cbNcStatus', '만드는 중…');
+    api('club_t_saveClub', TOKEN, m).then(function (r) {
+      setClubs(r.클럽); CUR = r.id; try { localStorage.setItem(CUR_KEY, CUR); } catch (e) {}
+      $('cbMdClub').classList.add('hide'); go('CLUB', 'settings'); toast('클럽을 만들었습니다. 기본 정보를 채워 주세요.');
+    }).catch(function (e) { setSt('cbNcStatus', (e && e.message) || String(e), 'err'); });
+  };
+
+  /* ================= 현황 ================= */
+  function renderDash() {
+    var c = C(), st = stats(c), list = acts(c), stus = members(c);
+    $('cbDashTitle').textContent = (c.이름 || '스포츠클럽') + ' 현황';
+    $('cbDashSub').textContent = c.학년도 + '학년도 · ' + c.종목 + (c.운영시작 ? ' · ' + kdate(c.운영시작) + ' ~ ' + kdate(c.운영종료) : '');
+    var notes = '';
+    if (!D.설정.학교명 || !D.설정.담당자) notes += '<div class="note sun"><i class="ti ti-settings"></i><div>공통 <b>설정</b>에서 학교명·담당자를 채우면 보고서에 자동으로 들어갑니다.</div></div>';
+    if (!stus.length) notes += '<div class="note"><i class="ti ti-users"></i><div>아직 참가 학생이 없습니다. <b>참가 학생</b>에서 명단에서 추가해 주세요.</div></div>';
+    $('cbDashNotes').innerHTML = notes;
+    var totalMin = list.reduce(function (s, a) { return s + Number(a.분 || 0); }, 0);
+    var goalMin = Number(c.목표시간 || 17) * 60;
+    var reached = stus.filter(function (s) { return st[s.id].분 >= goalMin; }).length;
+    var spent = c.예산.reduce(function (s, b) { return s + Number(b.금액 || 0); }, 0);
+    $('cbDashKpis').innerHTML =
+      kpiTile('참가 학생', stus.length, '명', 'users', 'brand') +
+      kpiTile('활동 횟수', list.length, '회', 'calendar-event', '') +
+      kpiTile('총 활동시간', hours1(totalMin), '시간', 'clock', 'violet') +
+      kpiTile((c.목표시간 || 17) + '시간 달성', reached, '/' + stus.length + '명', 'target-arrow', 'green') +
+      kpiTile('대회 참가', c.대회.length, '회', 'award', 'sun') +
+      kpiTile('예산 집행', fmt(spent), '원', 'coin', 'coral');
+    $('cbDashGoalLbl').textContent = '목표 ' + (c.목표시간 || 17) + '시간';
+    $('cbDashStudents').innerHTML = stus.map(function (s) {
+      var m = st[s.id].분, p = pct(m, goalMin);
+      return '<div class="stu-row"><span class="n">' + esc(stuLabel(s)) + '</span><div class="prog ' + (p >= 100 ? 'green' : '') + '"><i style="width:' + p + '%"></i></div><span class="v">' + st[s.id].횟수 + '회 · ' + hm(m) + '</span></div>';
+    }).join('') || '<div class="unit" style="padding:10px 0">참가 학생을 등록하면 여기에 누적 시간이 보입니다.</div>';
+    $('cbDashRecent').innerHTML = list.slice(-6).reverse().map(function (a) {
+      return '<tr><td class="unit">' + mdw(a.날짜) + '</td><td class="unit">' + esc((a.시작 || '') + (a.종료 ? '~' + a.종료 : '')) + '</td><td>' + esc(a.내용) + '</td><td class="unit">' + (a.참여 || []).length + '명</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="unit" style="padding:14px">아직 활동이 없습니다.</td></tr>';
+    var months = {}; list.forEach(function (a) { var k = a.날짜.slice(0, 7); months[k] = months[k] || { n: 0, m: 0 }; months[k].n++; months[k].m += Number(a.분 || 0); });
+    var keys = Object.keys(months).sort(), max = Math.max.apply(null, keys.map(function (k) { return months[k].m; }).concat([1]));
+    $('cbDashMonths').innerHTML = keys.map(function (k) {
+      return '<div class="stu-row"><span class="n">' + Number(k.slice(5)) + '월</span><div class="prog"><i style="width:' + pct(months[k].m, max) + '%"></i></div><span class="v">' + months[k].n + '회 · ' + hm(months[k].m) + '</span></div>';
+    }).join('') || '<span class="unit">활동을 기록하면 월별로 정리됩니다.</span>';
+  }
+
+  /* ================= 활동 일지 ================= */
+  var acSel = {}, acMinManual = false;
+  function renderAct() {
+    var c = C();
+    if (!$('cbAcDate').value) $('cbAcDate').value = today();
+    renderAcStudents();
+    var list = acts(c), last = list[list.length - 1];
+    if (last && !$('cbAcStart').value && !$('cbAcId').value) { $('cbAcStart').value = last.시작 || ''; $('cbAcEnd').value = last.종료 || ''; $('cbAcPlace').value = $('cbAcPlace').value || last.장소 || ''; recalcMin(); }
+    var total = list.reduce(function (s, a) { return s + Number(a.분 || 0); }, 0);
+    $('cbActSum').textContent = list.length + '회 · 총 ' + hm(total);
+    $('cbActEmpty').classList.toggle('hide', !!list.length);
+    $('cbActRows').innerHTML = list.slice().reverse().map(function (a, i) {
+      return '<tr><td class="num">' + (list.length - i) + '</td><td style="white-space:nowrap">' + mdw(a.날짜) + '</td><td class="unit" style="white-space:nowrap">' + esc((a.시작 || '') + (a.종료 ? '~' + a.종료 : '')) + '</td><td>' + (a.분 || 0) + '</td><td><span class="tag ' + typeColor(a.유형) + '">' + esc(a.유형) + '</span></td><td class="unit">' + esc(a.장소) + '</td><td>' + esc(a.내용) + (a.비고 ? ' <span class="unit">' + esc(a.비고) + '</span>' : '') + '</td><td class="unit">' + (a.참여 || []).length + '명</td>' +
+        '<td style="white-space:nowrap"><button class="mini ghost" data-edit="' + a.id + '"><i class="ti ti-pencil"></i></button> <button class="mini ghost" data-copy="' + a.id + '" title="같은 내용으로 새 활동"><i class="ti ti-copy"></i></button> <button class="mini danger" data-del="' + a.id + '"><i class="ti ti-trash"></i></button></td></tr>';
+    }).join('');
+    qa('#cbActRows [data-edit]').forEach(function (b) { b.onclick = function () { editAct(b.dataset.edit, false); }; });
+    qa('#cbActRows [data-copy]').forEach(function (b) { b.onclick = function () { editAct(b.dataset.copy, true); }; });
+    qa('#cbActRows [data-del]').forEach(function (b) {
+      b.onclick = function () {
+        if (!confirm('이 활동 기록을 지울까요?')) return;
+        api('club_t_deleteActivity', TOKEN, b.dataset.del).then(function (r) { setClubs(r.클럽); renderAct(); toast('지웠습니다.'); }).catch(handleErr);
+      };
+    });
+  }
+  function renderAcStudents() {
+    var stus = members();
+    $('cbAcStudents').innerHTML = stus.map(function (s) {
+      return '<label class="chk sm' + (acSel[s.id] ? ' on' : '') + '"><input type="checkbox" data-stu="' + s.id + '"' + (acSel[s.id] ? ' checked' : '') + '><span>' + esc(stuLabel(s)) + '</span></label>';
+    }).join('') || '<span class="unit">참가 학생을 먼저 등록해 주세요.</span>';
+    qa('#cbAcStudents [data-stu]').forEach(function (cb) { cb.onchange = function () { acSel[cb.dataset.stu] = cb.checked; updateAcCnt(); }; });
+    updateAcCnt();
+  }
+  function updateAcCnt() { var n = Object.keys(acSel).filter(function (k) { return acSel[k]; }).length; $('cbAcCnt').textContent = n + '명'; }
+  function setAcSel(ids) { acSel = {}; ids.forEach(function (id) { acSel[id] = true; }); renderAcStudents(); }
+  $('cbAcSelAll').onclick = function () { setAcSel(members().map(function (s) { return s.id; })); };
+  $('cbAcSelNone').onclick = function () { setAcSel([]); };
+  $('cbAcSelLast').onclick = function () { var list = acts(); var last = list[list.length - 1]; if (!last) { toast('지난 활동이 없습니다.', 'err'); return; } setAcSel(last.참여 || []); };
+  function recalcMin() { if (acMinManual) return; var m = timeDiff($('cbAcStart').value, $('cbAcEnd').value); if (m) $('cbAcMin').value = m; }
+  $('cbAcStart').onchange = function () { acMinManual = false; recalcMin(); };
+  $('cbAcEnd').onchange = function () { acMinManual = false; recalcMin(); };
+  $('cbAcMin').oninput = function () { acMinManual = true; };
+  function clearActForm() {
+    $('cbAcId').value = ''; $('cbAcContent').value = ''; $('cbAcNote').value = ''; acMinManual = false;
+    $('cbActFormTitle').innerHTML = '<i class="ti ti-pencil-plus"></i>활동 기록하기'; $('cbBtnActCancel').classList.add('hide');
+    $('cbBtnActSave').innerHTML = '<i class="ti ti-device-floppy"></i>활동 저장';
+  }
+  function editAct(id, asCopy) {
+    var a = C().활동.filter(function (x) { return x.id === id; })[0]; if (!a) return;
+    $('cbAcId').value = asCopy ? '' : a.id; $('cbAcDate').value = asCopy ? today() : a.날짜; $('cbAcStart').value = a.시작 || ''; $('cbAcEnd').value = a.종료 || '';
+    $('cbAcMin').value = a.분 || ''; acMinManual = true; $('cbAcType').value = a.유형 || '정규 연습'; $('cbAcPlace').value = a.장소 || ''; $('cbAcContent').value = a.내용 || ''; $('cbAcNote').value = a.비고 || '';
+    setAcSel(a.참여 || []);
+    if (!asCopy) { $('cbActFormTitle').innerHTML = '<i class="ti ti-pencil"></i>활동 수정 (' + mdw(a.날짜) + ')'; $('cbBtnActCancel').classList.remove('hide'); $('cbBtnActSave').innerHTML = '<i class="ti ti-device-floppy"></i>수정 저장'; }
+    else { clearActForm(); $('cbAcContent').value = a.내용 || ''; }
+    scrollTopMain();
+  }
+  $('cbBtnActCancel').onclick = function () { clearActForm(); setAcSel([]); };
+  $('cbBtnActSave').onclick = function () {
+    var c = C(), d = $('cbAcDate').value, min = Number($('cbAcMin').value);
+    if (!d) { setSt('cbAcStatus', '날짜를 골라 주세요.', 'err'); return; }
+    if (!(min > 0)) { setSt('cbAcStatus', '활동시간(분)을 적어 주세요. 시작·종료를 넣으면 자동 계산됩니다.', 'err'); $('cbAcMin').focus(); return; }
+    var ids = Object.keys(acSel).filter(function (k) { return acSel[k]; });
+    if (!ids.length && !confirm('참여 학생이 한 명도 체크되지 않았습니다. 그대로 저장할까요?')) return;
+    var wasEdit = !!$('cbAcId').value;
+    var rec = { 클럽ID: c.id, id: $('cbAcId').value, 날짜: d, 시작: $('cbAcStart').value, 종료: $('cbAcEnd').value, 분: min, 유형: $('cbAcType').value, 장소: $('cbAcPlace').value.trim(), 내용: $('cbAcContent').value.trim(), 참여: ids, 비고: $('cbAcNote').value.trim() };
+    setSt('cbAcStatus', '저장 중…');
+    api('club_t_saveActivity', TOKEN, rec).then(function (r) {
+      setClubs(r.클럽);
+      setSt('cbAcStatus', mdw(d) + ' 활동을 저장했습니다 (' + ids.length + '명, ' + hm(min) + ').', 'ok');
+      clearActForm(); if (!wasEdit) $('cbAcContent').value = '';
+      renderAct(); toast('저장했습니다.');
+    }).catch(function (e) { setSt('cbAcStatus', (e && e.message) || String(e), 'err'); });
+  };
+
+  /* ================= 참가 학생 ================= */
+  function renderMembers() {
+    var c = C(), stus = members(c), st = stats(c);
+    $('cbMemSum').textContent = stus.length + '명 (남 ' + stus.filter(function (s) { return s.성별 === '남'; }).length + ' · 여 ' + stus.filter(function (s) { return s.성별 === '여'; }).length + ')';
+    $('cbMemberEmpty').classList.toggle('hide', !!stus.length);
+    $('cbMemberRows').innerHTML = stus.map(function (s, i) {
+      return '<tr><td class="num">' + (i + 1) + '</td><td>' + s.학년 + '</td><td>' + s.반 + '</td><td>' + s.번호 + '</td><td class="name">' + esc(s.이름) + (s.상태 !== '재학' ? ' <span class="tag warn">' + esc(s.상태) + '</span>' : '') + '</td><td>' + esc(s.성별) + '</td><td>' + st[s.id].횟수 + '회</td><td>' + hm(st[s.id].분) + '</td>' +
+        '<td><input type="text" data-note="' + s.id + '" value="' + esc(s.비고) + '" placeholder="예: 주장, 2학기 가입" style="width:150px"></td>' +
+        '<td style="white-space:nowrap"><button class="mini danger" data-del="' + s.id + '"><i class="ti ti-trash"></i></button></td></tr>';
+    }).join('');
+    qa('#cbMemberRows [data-note]').forEach(function (i) {
+      i.onchange = function () { api('club_t_updateMember', TOKEN, c.id, i.dataset.note, i.value).then(function (r) { setClubs(r.클럽); toast('비고를 저장했습니다.'); }).catch(handleErr); };
+    });
+    qa('#cbMemberRows [data-del]').forEach(function (b) {
+      b.onclick = function () {
+        var s = stus.filter(function (x) { return x.id === b.dataset.del; })[0];
+        if (!confirm(s.이름 + ' 학생을 참가 명단에서 뺄까요? 활동 일지의 참여 기록에서도 빠집니다.')) return;
+        api('club_t_removeMember', TOKEN, c.id, s.id).then(function (r) { setClubs(r.클럽); delete acSel[s.id]; renderMembers(); toast('뺐습니다.'); }).catch(handleErr);
+      };
+    });
+  }
+  var pkSel = {};
+  function pickList() {
+    var c = C(), have = {}; c.참가자.forEach(function (m) { have[m.학생ID] = true; });
+    var g = $('cbPkGrade').value, cl = $('cbPkClass').value;
+    return (CTX.학생 || []).filter(function (s) { return s.상태 === '재학' && !have[s.학생ID] && (!g || String(s.학년) === g) && (!cl || String(s.반) === cl); })
+      .sort(function (a, b) { return (a.학년 - b.학년) || (a.반 - b.반) || (a.번호 - b.번호); });
+  }
+  function renderPick() {
+    var list = pickList();
+    $('cbPkList').innerHTML = list.map(function (s) {
+      return '<label class="chk sm' + (pkSel[s.학생ID] ? ' on' : '') + '"><input type="checkbox" data-pk="' + s.학생ID + '"' + (pkSel[s.학생ID] ? ' checked' : '') + '><span>' + s.학년 + '-' + s.반 + '-' + s.번호 + ' ' + esc(s.이름) + '</span></label>';
+    }).join('') || '<span class="unit">추가할 학생이 없습니다. (이미 참가 중이거나 명단에 없음)</span>';
+    qa('#cbPkList [data-pk]').forEach(function (cb) { cb.onchange = function () { pkSel[cb.dataset.pk] = cb.checked; pickCnt(); }; });
+    pickCnt();
+  }
+  function pickCnt() { var n = Object.keys(pkSel).filter(function (k) { return pkSel[k]; }).length; $('cbPkCnt').textContent = n ? n + '명 선택' : ''; }
+  $('cbBtnPickOpen').onclick = function () {
+    pkSel = {};
+    var cls = {}; (CTX.학생 || []).forEach(function (s) { if (s.상태 === '재학') cls[s.반] = true; });
+    $('cbPkClass').innerHTML = '<option value="">전체</option>' + Object.keys(cls).map(Number).sort(function (a, b) { return a - b; }).map(function (n) { return '<option>' + n + '</option>'; }).join('');
+    setSt('cbPkStatus', ''); renderPick(); $('cbMdPick').classList.remove('hide');
+  };
+  $('cbPkGrade').onchange = renderPick; $('cbPkClass').onchange = renderPick;
+  $('cbPkAll').onclick = function () { pickList().forEach(function (s) { pkSel[s.학생ID] = true; }); renderPick(); };
+  $('cbPkNone').onclick = function () { pkSel = {}; renderPick(); };
+  $('cbBtnPickAdd').onclick = function () {
+    var ids = Object.keys(pkSel).filter(function (k) { return pkSel[k]; });
+    if (!ids.length) { setSt('cbPkStatus', '학생을 골라 주세요.', 'err'); return; }
+    setSt('cbPkStatus', '추가 중…');
+    api('club_t_addMembers', TOKEN, C().id, ids).then(function (r) { setClubs(r.클럽); $('cbMdPick').classList.add('hide'); renderMembers(); toast(r.추가 + '명을 추가했습니다.'); }).catch(function (e) { setSt('cbPkStatus', (e && e.message) || String(e), 'err'); });
+  };
+
+  /* ================= 출석부 ================= */
+  function renderAtt() {
+    var c = C();
+    if (!$('cbAttFrom').value && c.운영시작) $('cbAttFrom').value = c.운영시작;
+    if (!$('cbAttTo').value && c.운영종료) $('cbAttTo').value = c.운영종료;
+    var list = acts(c, $('cbAttFrom').value, $('cbAttTo').value), stus = members(c);
+    $('cbAttHead').innerHTML = '<tr><th>학생</th>' + list.map(function (a) { return '<th title="' + esc(a.내용) + '">' + md(a.날짜) + '<br><span class="unit">' + (a.분 || 0) + '분</span></th>'; }).join('') + '<th>횟수</th><th>누적</th></tr>';
+    $('cbAttRows').innerHTML = stus.map(function (s) {
+      var n = 0, m = 0;
+      var cells = list.map(function (a) { var on = (a.참여 || []).indexOf(s.id) > -1; if (on) { n++; m += Number(a.분 || 0); } return '<td class="cell' + (on ? ' on' : '') + '" data-a="' + a.id + '" data-s="' + s.id + '">' + (on ? '○' : '') + '</td>'; }).join('');
+      return '<tr><td class="name" style="white-space:nowrap">' + esc(stuLabel(s)) + '</td>' + cells + '<td>' + n + '</td><td style="white-space:nowrap">' + hm(m) + '</td></tr>';
+    }).join('') || '<tr><td class="unit" style="padding:14px">참가 학생이 없습니다.</td></tr>';
+    if (list.length) $('cbAttRows').innerHTML += '<tr><td class="name">참여 인원</td>' + list.map(function (a) { return '<td class="unit" style="text-align:center">' + (a.참여 || []).length + '</td>'; }).join('') + '<td></td><td></td></tr>';
+    qa('#cbAttRows td.cell').forEach(function (td) {
+      td.onclick = function () {
+        if (td.classList.contains('busy')) return;
+        td.classList.add('busy');
+        api('club_t_toggleAttend', TOKEN, td.dataset.a, td.dataset.s).then(function (r) {
+          var a = c.활동.filter(function (x) { return x.id === td.dataset.a; })[0]; if (a) a.참여 = r.참여;
+          renderAtt();
+        }).catch(function (e) { td.classList.remove('busy'); handleErr(e); });
+      };
+    });
+  }
+  $('cbBtnAttLoad').onclick = function () { renderAtt(); };
+  $('cbBtnAttAll').onclick = function () { $('cbAttFrom').value = ''; $('cbAttTo').value = ''; renderAtt(); };
+  $('cbBtnAttCopy').onclick = function () {
+    var rows = qa('#club_tp_att table tr').map(function (tr) { return Array.prototype.map.call(tr.children, function (td) { return td.innerText.replace(/\n/g, ' ').trim(); }).join('\t'); }).join('\n');
+    copyText(rows); toast('표를 복사했습니다. 엑셀·한글에 붙여넣으세요.');
+  };
+
+  /* ================= 대회 실적 ================= */
+  function renderComp() {
+    var rows = C().대회.slice().sort(function (a, b) { return String(a.일자).localeCompare(String(b.일자)); });
+    $('cbCompRows').innerHTML = rows.map(compRow).join('') || '<tr><td colspan="9" class="unit" style="padding:14px">아직 대회 기록이 없습니다. "대회 추가"를 눌러 주세요.</td></tr>';
+    bindRowDel('cbCompRows');
+  }
+  function compRow(r, i) {
+    return '<tr data-id="' + esc(r.id || '') + '"><td class="num">' + (i + 1) + '</td><td><input type="date" data-k="일자" value="' + esc(r.일자 || '') + '"></td><td><input type="text" class="wide" data-k="대회명" value="' + esc(r.대회명 || '') + '" placeholder="예: 전북교육감배 학교스포츠클럽대회"></td><td><input type="text" data-k="주최" value="' + esc(r.주최 || '') + '" style="width:120px"></td><td><input type="text" data-k="장소" value="' + esc(r.장소 || '') + '" style="width:110px"></td>' +
+      '<td><input type="text" data-k="결과" value="' + esc(r.결과 || '') + '" placeholder="우승/3위/참가" style="width:90px" list="cbResultList"></td><td><input type="number" data-k="인원" value="' + esc(r.인원 === undefined ? '' : r.인원) + '" style="width:70px"></td><td><input type="text" data-k="비고" value="' + esc(r.비고 || '') + '" style="width:110px"></td><td><button class="mini danger" data-del><i class="ti ti-trash"></i></button></td></tr>';
+  }
+  function bindRowDel(tbodyId) { qa('#' + tbodyId + ' [data-del]').forEach(function (b) { b.onclick = function () { b.closest('tr').remove(); if (tbodyId === 'cbBgRows') bgSum(); }; }); }
+  function readRows(tbodyId) {
+    return qa('#' + tbodyId + ' tr[data-id]').map(function (tr) {
+      var o = { id: tr.dataset.id || '' };
+      qa('[data-k]', tr).forEach(function (inp) { o[inp.dataset.k] = inp.type === 'number' ? (inp.value === '' ? '' : Number(inp.value)) : inp.value.trim(); });
+      return o;
+    });
+  }
+  $('cbBtnCompAdd').onclick = function () {
+    if (!$('cbCompRows').querySelector('tr[data-id]')) $('cbCompRows').innerHTML = '';
+    $('cbCompRows').insertAdjacentHTML('beforeend', compRow({ id: '' }, qa('#cbCompRows tr[data-id]').length)); bindRowDel('cbCompRows');
+  };
+  $('cbBtnCompSave').onclick = function () {
+    var rows = readRows('cbCompRows').filter(function (r) { return r.대회명 || r.일자; });
+    setSt('cbCompStatus', '저장 중…');
+    api('club_t_saveComps', TOKEN, C().id, rows).then(function (r) { setClubs(r.클럽); setSt('cbCompStatus', r.저장 + '건 저장', 'ok'); renderComp(); toast('저장했습니다.'); }).catch(function (e) { setSt('cbCompStatus', (e && e.message) || String(e), 'err'); });
+  };
+
+  /* ================= 예산 ================= */
+  function renderBudget() {
+    var c = C();
+    $('cbBgTotal').value = c.배정예산 || '';
+    $('cbBgRows').innerHTML = c.예산.map(bgRow).join('') || '<tr><td colspan="9" class="unit" style="padding:14px">아직 지출 내역이 없습니다. "줄 추가"를 눌러 주세요.</td></tr>';
+    bindBg();
+  }
+  function bgRow(r, i) {
+    return '<tr data-id="' + esc(r.id || '') + '"><td class="num">' + (i + 1) + '</td><td><input type="text" data-k="항목" value="' + esc(r.항목 || '') + '" placeholder="용품구입비" style="width:110px" list="cbItemList"></td><td><input type="text" class="wide" data-k="세부" value="' + esc(r.세부 || '') + '" placeholder="넷볼 공 구입"></td>' +
+      '<td><input type="number" data-k="단가" value="' + esc(r.단가 === undefined ? '' : r.단가) + '" style="width:96px"></td><td><input type="number" data-k="수량" value="' + esc(r.수량 === undefined ? '' : r.수량) + '" style="width:64px"></td><td><input type="number" data-k="금액" value="' + esc(r.금액 === undefined ? '' : r.금액) + '" style="width:110px"></td><td><input type="date" data-k="집행일" value="' + esc(r.집행일 || '') + '"></td><td><input type="text" data-k="비고" value="' + esc(r.비고 || '') + '" style="width:100px"></td><td><button class="mini danger" data-del><i class="ti ti-trash"></i></button></td></tr>';
+  }
+  function bindBg() {
+    bindRowDel('cbBgRows');
+    qa('#cbBgRows tr[data-id]').forEach(function (tr) {
+      var u = tr.querySelector('[data-k=단가]'), q = tr.querySelector('[data-k=수량]'), a = tr.querySelector('[data-k=금액]');
+      var f = function () { if (u.value !== '' && q.value !== '') a.value = Number(u.value) * Number(q.value); bgSum(); };
+      u.oninput = f; q.oninput = f; a.oninput = bgSum;
+    });
+    bgSum();
+  }
+  function bgSum() {
+    var s = 0; qa('#cbBgRows [data-k=금액]').forEach(function (i) { s += Number(i.value || 0); });
+    $('cbBgSum').textContent = fmt(s) + '원';
+    var t = Number($('cbBgTotal').value || 0);
+    $('cbBgRemain').textContent = t ? '배정 ' + fmt(t) + '원 · 잔액 ' + fmt(t - s) + '원' : '';
+  }
+  $('cbBgTotal').oninput = bgSum;
+  $('cbBtnBgAdd').onclick = function () {
+    if (!$('cbBgRows').querySelector('tr[data-id]')) $('cbBgRows').innerHTML = '';
+    $('cbBgRows').insertAdjacentHTML('beforeend', bgRow({ id: '' }, qa('#cbBgRows tr[data-id]').length)); bindBg();
+  };
+  $('cbBtnBgSave').onclick = function () {
+    var rows = readRows('cbBgRows').filter(function (r) { return r.항목 || r.세부 || r.금액; });
+    setSt('cbBgStatus', '저장 중…');
+    api('club_t_saveBudget', TOKEN, C().id, Number($('cbBgTotal').value || 0), rows).then(function (r) { setClubs(r.클럽); setSt('cbBgStatus', r.저장 + '건 저장', 'ok'); renderBudget(); toast('저장했습니다.'); }).catch(function (e) { setSt('cbBgStatus', (e && e.message) || String(e), 'err'); });
+  };
+
+  /* ================= 사진 ================= */
+  function loadImages(ids) {
+    var need = ids.filter(function (id) { return id && IMG[id] === undefined; });
+    if (!need.length) return Promise.resolve(IMG);
+    return api('club_t_getPhotoData', TOKEN, need.slice(0, 40)).then(function (map) {
+      Object.keys(map).forEach(function (k) { IMG[k] = map[k] || ''; });
+      return need.length > 40 ? loadImages(ids) : IMG;
+    });
+  }
+  function renderPhotos() {
+    var c = C();
+    if (!$('cbPhDate').value) $('cbPhDate').value = today();
+    var list = c.사진.slice().sort(function (a, b) { return String(b.날짜).localeCompare(String(a.날짜)); });
+    $('cbPhEmpty').classList.toggle('hide', !!list.length);
+    $('cbPhGrid').innerHTML = list.map(function (p) {
+      var th = IMG[p.썸네일ID || p.파일ID];
+      return '<div class="ph-card"><div class="im" data-big="' + p.id + '"' + (th ? ' style="background-image:url(' + th + ')"' : '') + '>' + (th ? '' : '<i class="ti ti-photo"></i>') + '</div><div class="m"><b>' + kdate(p.날짜) + '</b><input type="text" data-desc="' + p.id + '" value="' + esc(p.설명) + '" placeholder="설명"><div style="display:flex;gap:4px;margin-top:6px;align-items:center"><input type="date" data-date="' + p.id + '" value="' + esc(p.날짜) + '" style="flex:1;margin:0"><button class="mini danger" data-del="' + p.id + '"><i class="ti ti-trash"></i></button></div></div></div>';
+    }).join('');
+    var thumbs = list.map(function (p) { return p.썸네일ID || p.파일ID; }).filter(function (id) { return id && IMG[id] === undefined; });
+    if (thumbs.length) loadImages(thumbs).then(function () { if (CURRENT.mod === 'CLUB' && CURRENT.page === 'photo') renderPhotos(); }).catch(function () {});
+    qa('#cbPhGrid [data-big]').forEach(function (el) {
+      el.onclick = function () {
+        var p = c.사진.filter(function (x) { return x.id === el.dataset.big; })[0];
+        $('cbPhotoTitle').innerHTML = '<i class="ti ti-photo"></i>' + kdate(p.날짜) + ' ' + esc(p.설명);
+        $('cbPhotoBig').src = IMG[p.썸네일ID || p.파일ID] || ''; $('cbMdPhoto').classList.remove('hide');
+        loadImages([p.파일ID]).then(function () { if (IMG[p.파일ID]) $('cbPhotoBig').src = IMG[p.파일ID]; }).catch(function () {});
+      };
+    });
+    var upd = function (p, 날짜, 설명) { api('club_t_updatePhoto', TOKEN, p.id, 날짜, 설명).then(function (r) { setClubs(r.클럽); renderPhotos(); }).catch(handleErr); };
+    qa('#cbPhGrid [data-desc]').forEach(function (i) { i.onchange = function () { var p = c.사진.filter(function (x) { return x.id === i.dataset.desc; })[0]; upd(p, p.날짜, i.value.trim()); }; });
+    qa('#cbPhGrid [data-date]').forEach(function (i) { i.onchange = function () { var p = c.사진.filter(function (x) { return x.id === i.dataset.date; })[0]; if (i.value) upd(p, i.value, p.설명); }; });
+    qa('#cbPhGrid [data-del]').forEach(function (b) {
+      b.onclick = function () {
+        if (!confirm('이 사진을 지울까요? 드라이브 파일은 휴지통으로 갑니다.')) return;
+        api('club_t_deletePhoto', TOKEN, b.dataset.del).then(function (r) { setClubs(r.클럽); renderPhotos(); toast('지웠습니다.'); }).catch(handleErr);
+      };
+    });
+    if ($('cbPhFolder').getAttribute('href') === '#') api('club_t_folderUrl', TOKEN).then(function (u) { $('cbPhFolder').href = u; }).catch(function () {});
+  }
+  $('cbBtnPhUpload').onclick = function () {
+    var files = Array.prototype.slice.call($('cbPhFiles').files || []), c = C();
+    if (!files.length) { setSt('cbPhStatus', '사진 파일을 골라 주세요.', 'err'); return; }
+    var 날짜 = $('cbPhDate').value || today(), 설명 = $('cbPhDesc').value.trim(), done = 0;
+    var next = function (i) {
+      if (i >= files.length) { setSt('cbPhStatus', done + '장을 올렸습니다.', 'ok'); $('cbPhFiles').value = ''; $('cbPhDesc').value = ''; toast(done + '장을 올렸습니다.'); return; }
+      setSt('cbPhStatus', '올리는 중… (' + (i + 1) + '/' + files.length + ')');
+      Promise.all([shrinkImage(files[i], 1400, 0.82), shrinkImage(files[i], 360, 0.7)]).then(function (arr) {
+        return api('club_t_uploadPhoto', TOKEN, { 클럽ID: c.id, 날짜: 날짜, 설명: 설명, 파일명: files[i].name.replace(/\.[^.]+$/, '') + '.jpg', 본문: arr[0], 썸네일: arr[1] });
+      }).then(function (r) { setClubs(r.클럽); done++; renderPhotos(); next(i + 1); })
+        .catch(function (e) { setSt('cbPhStatus', (e && e.message) || String(e), 'err'); });
+    };
+    next(0);
+  };
+
+  /* ================= 클럽 설정 ================= */
+  var ST_FIELDS = { cbStYear: '학년도', cbStName: '이름', cbStTarget: '대상', cbStFrom: '운영시작', cbStTo: '운영종료', cbStTime: '활동시간대', cbStPlace: '활동장소', cbStGoal: '목표시간', cbStAddr: '주소', cbStPos: '직위', cbStOverview: '개요', cbStContent: '내용', cbStResult: '결과' };
+  function renderSettings() {
+    var c = C();
+    $('cbNoClub').classList.toggle('hide', !!c);
+    $('cbSettingsBody').classList.toggle('hide', !c);
+    if (!c) return;
+    Object.keys(ST_FIELDS).forEach(function (id) { $(id).value = c[ST_FIELDS[id]] === undefined || c[ST_FIELDS[id]] === null ? '' : c[ST_FIELDS[id]]; });
+    $('cbStSchool').value = D.설정.학교명; $('cbStPrincipal').value = D.설정.학교장; $('cbStTeacher').value = D.설정.담당자; $('cbStPhone').value = D.설정.전화; $('cbStEmail').value = D.설정.이메일;
+    $('cbStSport').innerHTML = SPORTS.map(function (s) { return '<option>' + s + '</option>'; }).join('');
+    if (SPORTS.indexOf(c.종목) > -1) { $('cbStSport').value = c.종목; $('cbStSportEtc').classList.add('hide'); }
+    else { $('cbStSport').value = '직접 입력'; $('cbStSportEtc').value = c.종목; $('cbStSportEtc').classList.remove('hide'); }
+    setSt('cbStStatus', '');
+  }
+  $('cbStSport').onchange = function () { $('cbStSportEtc').classList.toggle('hide', this.value !== '직접 입력'); if (this.value === '직접 입력') $('cbStSportEtc').focus(); };
+  $('cbBtnStSave').onclick = function () {
+    var c = C(), m = { id: c.id, 배정예산: c.배정예산 };
+    Object.keys(ST_FIELDS).forEach(function (id) { var v = $(id).value; m[ST_FIELDS[id]] = $(id).type === 'number' ? Number(v || 0) : v.trim(); });
+    m.종목 = $('cbStSport').value === '직접 입력' ? ($('cbStSportEtc').value.trim() || '기타') : $('cbStSport').value;
+    if (!m.목표시간) m.목표시간 = 17;
+    setSt('cbStStatus', '저장 중…');
+    api('club_t_saveClub', TOKEN, m).then(function (r) { setClubs(r.클럽); renderClubBar(); renderSettings(); setSt('cbStStatus', '저장했습니다.', 'ok'); toast('저장했습니다.'); }).catch(function (e) { setSt('cbStStatus', (e && e.message) || String(e), 'err'); });
+  };
+  $('cbBtnClubDelete').onclick = function () {
+    var c = C();
+    if (!confirm('"' + c.이름 + '" 클럽과 그 안의 참가 학생·활동·대회·예산·사진을 모두 지울까요?\n되돌릴 수 없습니다.')) return;
+    api('club_t_deleteClub', TOKEN, c.id).then(function (r) { setClubs(r.클럽); toast('삭제했습니다.'); go('CLUB', C() ? 'dash' : 'settings'); }).catch(handleErr);
+  };
+
+  /* ================= 정산보고서 ================= */
+  function reportData(opts) {
+    var c = C(), from = opts.from || '', to = opts.to || '';
+    var list = acts(c, from, to), stus = members(c), st = stats(c, from, to);
+    var totalMin = list.reduce(function (s, a) { return s + Number(a.분 || 0); }, 0);
+    var goalMin = Number(c.목표시간 || 17) * 60;
+    var comps = c.대회.slice().sort(function (a, b) { return String(a.일자).localeCompare(String(b.일자)); });
+    var photos = c.사진.filter(function (p) { return (!from || p.날짜 >= from) && (!to || p.날짜 <= to); }).sort(function (a, b) { return String(a.날짜).localeCompare(String(b.날짜)); });
+    var spent = c.예산.reduce(function (s, b) { return s + Number(b.금액 || 0); }, 0);
+    var period = (from || c.운영시작) ? kdate(from || c.운영시작) + ' ~ ' + kdate(to || c.운영종료) : '';
+    var S = D.설정;
+    var info = { 학교명: S.학교명, 학교장: S.학교장, 담당자: S.담당자, 전화: S.전화, 이메일: S.이메일, 직위: c.직위 || '교사', 주소: c.주소 };
+    return { c: c, info: info, acts: list, stus: stus, st: st, totalMin: totalMin, goalMin: goalMin, comps: comps, photos: photos, spent: spent, period: period, opts: opts };
+  }
+  function reportOpts() {
+    return { title: $('cbRpTitle').value.trim(), from: $('cbRpFrom').value, to: $('cbRpTo').value, mask: $('cbRpMask').checked,
+             info: $('cbRpSecInfo').checked, log: $('cbRpSecLog').checked, mem: $('cbRpSecMem').checked, att: $('cbRpSecAtt').checked, comp: $('cbRpSecComp').checked, budget: $('cbRpSecBudget').checked, photo: $('cbRpSecPhoto').checked };
+  }
+  function defaultTitle(c) { return c.학년도 + '학년도 학교스포츠클럽(' + c.종목 + ') 운영 결과(정산) 보고서'; }
+  var rpClub = null;
+  function renderReportPage() {
+    var c = C();
+    if (!$('cbRpTitle').value || rpClub !== c.id) { $('cbRpTitle').value = defaultTitle(c); rpClub = c.id; $('cbRpPaper').innerHTML = '<div class="empty"><i class="ti ti-file-text"></i><strong>미리보기 버튼을 눌러 주세요</strong>클럽 정보와 활동 기록으로 보고서를 만듭니다.</div>'; }
+    setSt('cbRpStatus', '');
+  }
+  function nm(r, s) { return r.opts.mask ? maskName(s.이름) : s.이름; }
+  /** 보고서에 넣을 사진(원본) 준비 → { 파일ID: {data, w, h} } */
+  function preparePhotos(r) {
+    if (!r.opts.photo || !r.photos.length) return Promise.resolve({});
+    var ids = r.photos.map(function (p) { return p.파일ID; });
+    return loadImages(ids).then(function () {
+      return Promise.all(ids.map(function (id) {
+        return new Promise(function (res) {
+          var data = IMG[id]; if (!data) { res(null); return; }
+          var im = new Image(); im.onload = function () { res({ id: id, data: data, w: im.width, h: im.height }); }; im.onerror = function () { res(null); }; im.src = data;
+        });
+      }));
+    }).then(function (arr) { var m = {}; arr.forEach(function (x) { if (x) m[x.id] = x; }); return m; });
+  }
+
+  /* ---------- HTML 보고서 ---------- */
+  function reportHTML(r, imgs) {
+    var c = r.c, o = r.opts, I = r.info, h = '';
+    h += '<h1>' + esc(o.title || defaultTitle(c)) + '</h1>';
+    if (o.info) {
+      h += '<h2>학교 정보</h2><table><tr><th style="width:18%">학교명</th><td class="c" style="width:32%">' + esc(I.학교명) + '</td><th style="width:18%">학교장</th><td class="c">' + esc(I.학교장) + '</td></tr>' +
+        '<tr><th>학교 주소</th><td colspan="3" class="c">' + esc(I.주소) + '</td></tr>' +
+        '<tr><th rowspan="2">담당자</th><th>직위 / 성명</th><th>전화번호</th><th>이메일</th></tr><tr><td class="c">' + esc(I.직위) + ' ' + esc(I.담당자) + '</td><td class="c">' + esc(I.전화) + '</td><td class="c">' + esc(I.이메일) + '</td></tr></table>';
+      h += '<h2>클럽 개요</h2><table><tr><th style="width:18%">클럽명</th><td style="width:32%">' + esc(c.이름) + '</td><th style="width:18%">종목</th><td>' + esc(c.종목) + '</td></tr>' +
+        '<tr><th>대상</th><td>' + esc(c.대상) + '</td><th>운영 기간</th><td>' + esc(r.period) + '</td></tr>' +
+        '<tr><th>활동 시간대</th><td>' + esc(c.활동시간대) + '</td><th>활동 장소</th><td>' + esc(c.활동장소) + '</td></tr>' +
+        '<tr><th>참가 인원</th><td>' + r.stus.length + '명 (남 ' + r.stus.filter(function (s) { return s.성별 === '남'; }).length + ', 여 ' + r.stus.filter(function (s) { return s.성별 === '여'; }).length + ')</td><th>활동 실적</th><td>' + r.acts.length + '회 · 총 ' + hm(r.totalMin) + ' (' + hours1(r.totalMin) + '시간)</td></tr></table>';
+      var ov = lines(c.개요); if (ov.length) h += '<h2>운영 개요</h2><ul>' + ov.map(function (l) { return '<li>◦ ' + esc(l) + '</li>'; }).join('') + '</ul>';
+      var ct = lines(c.내용); if (ct.length) h += '<h2>운영 내용</h2><ul>' + ct.map(function (l) { return '<li>◦ ' + esc(l) + '</li>'; }).join('') + '</ul>';
+    }
+    if (o.log) {
+      h += '<h2>활동 일지</h2><table><thead><tr><th>순</th><th>일자</th><th>요일</th><th>시간</th><th>활동시간</th><th>구분</th><th>장소</th><th>활동 내용</th><th>참여</th></tr></thead><tbody>';
+      h += r.acts.map(function (a, i) { return '<tr><td class="c">' + (i + 1) + '</td><td class="c">' + esc(kdate(a.날짜)) + '</td><td class="c">' + wd(a.날짜) + '</td><td class="c">' + esc((a.시작 || '') + (a.종료 ? '~' + a.종료 : '')) + '</td><td class="c">' + (a.분 || 0) + '분</td><td class="c">' + esc(a.유형) + '</td><td class="c">' + esc(a.장소) + '</td><td>' + esc(a.내용) + (a.비고 ? ' (' + esc(a.비고) + ')' : '') + '</td><td class="c">' + (a.참여 || []).length + '명</td></tr>'; }).join('');
+      h += '<tr><th colspan="4">합계</th><th>' + r.totalMin + '분 (' + hours1(r.totalMin) + '시간)</th><th colspan="3">' + r.acts.length + '회</th><th></th></tr></tbody></table>';
+    }
+    if (o.mem) {
+      h += '<h2>참가 학생 명단 및 활동 시간</h2><table><thead><tr><th>순</th><th>학년</th><th>반</th><th>번호</th><th>이름</th><th>성별</th><th>참여 횟수</th><th>누적 활동시간</th><th>' + (c.목표시간 || 17) + '시간 이상</th><th>비고</th></tr></thead><tbody>';
+      h += r.stus.map(function (s, i) { var m = r.st[s.id]; return '<tr><td class="c">' + (i + 1) + '</td><td class="c">' + s.학년 + '</td><td class="c">' + s.반 + '</td><td class="c">' + s.번호 + '</td><td class="c">' + esc(nm(r, s)) + '</td><td class="c">' + esc(s.성별) + '</td><td class="c">' + m.횟수 + '회</td><td class="c">' + hm(m.분) + ' (' + hours1(m.분) + 'h)</td><td class="c">' + (m.분 >= r.goalMin ? '○' : '') + '</td><td>' + esc(s.비고) + '</td></tr>'; }).join('');
+      h += '</tbody></table>';
+    }
+    if (o.att && r.acts.length && r.stus.length) {
+      h += '<h2>출석부</h2>';
+      var groups = chunk(r.acts, 12);
+      groups.forEach(function (grp, gi) {
+        var last = gi === groups.length - 1;
+        h += '<table><thead><tr><th style="text-align:left">학생</th>' + grp.map(function (a) { return '<th>' + md(a.날짜) + '</th>'; }).join('') + (last ? '<th>횟수</th><th>누적</th>' : '') + '</tr></thead><tbody>';
+        h += r.stus.map(function (s) { var m = r.st[s.id]; return '<tr><td style="white-space:nowrap">' + esc(stuLabel(s, o.mask)) + '</td>' + grp.map(function (a) { return '<td class="c">' + ((a.참여 || []).indexOf(s.id) > -1 ? '○' : '') + '</td>'; }).join('') + (last ? '<td class="c">' + m.횟수 + '</td><td class="c">' + hours1(m.분) + 'h</td>' : '') + '</tr>'; }).join('');
+        h += '</tbody></table>';
+      });
+    }
+    if (o.comp && r.comps.length) {
+      h += '<h2>대회 참가 및 입상 실적</h2><table><thead><tr><th>순</th><th>일자</th><th>대회명</th><th>주최</th><th>장소</th><th>결과</th><th>참가 인원</th><th>비고</th></tr></thead><tbody>';
+      h += r.comps.map(function (k, i) { return '<tr><td class="c">' + (i + 1) + '</td><td class="c">' + esc(kdate(k.일자)) + '</td><td>' + esc(k.대회명) + '</td><td class="c">' + esc(k.주최) + '</td><td class="c">' + esc(k.장소) + '</td><td class="c"><b>' + esc(k.결과) + '</b></td><td class="c">' + (k.인원 ? k.인원 + '명' : '') + '</td><td>' + esc(k.비고) + '</td></tr>'; }).join('');
+      h += '</tbody></table>';
+    }
+    if (o.budget && (c.예산.length || c.배정예산)) {
+      h += '<h2>예산 집행 내역</h2><table><thead><tr><th>항목</th><th>세부 지출 내용</th><th>단가</th><th>수량</th><th>금액(원)</th><th>집행일</th><th>비고</th></tr></thead><tbody>';
+      h += c.예산.map(function (b) { return '<tr><td class="c">' + esc(b.항목) + '</td><td>' + esc(b.세부) + '</td><td class="r">' + (b.단가 !== '' && b.단가 !== undefined ? fmt(b.단가) : '') + '</td><td class="c">' + esc(b.수량) + '</td><td class="r">' + fmt(b.금액) + '</td><td class="c">' + esc(kdate(b.집행일)) + '</td><td>' + esc(b.비고) + '</td></tr>'; }).join('');
+      h += '<tr><th colspan="4">총 지출액' + (c.배정예산 ? ' (배정 ' + fmt(c.배정예산) + '원)' : '') + '</th><th style="text-align:right">' + fmt(r.spent) + '</th><th colspan="2">' + (c.배정예산 ? '잔액 ' + fmt(c.배정예산 - r.spent) + '원' : '') + '</th></tr></tbody></table>';
+    }
+    var res = lines(c.결과);
+    if (o.info && (res.length || (o.comp && r.comps.length))) {
+      h += '<h2>운영 결과</h2><ul>' + res.map(function (l) { return '<li>◦ ' + esc(l) + '</li>'; }).join('');
+      if (o.comp && r.comps.length) h += '<li>◦ 대회 참가 실적<ul style="margin-left:14pt">' + r.comps.map(function (k) { return '<li>- ' + esc(k.대회명) + (k.결과 ? ' ' + esc(k.결과) : '') + '</li>'; }).join('') + '</ul></li>';
+      h += '</ul>';
+    }
+    if (o.photo && r.photos.length) {
+      var ph = r.photos.filter(function (p) { return imgs[p.파일ID]; });
+      if (ph.length) h += '<h2 class="pb">활동 사진</h2><div class="photos">' + ph.map(function (p) { return '<figure><img src="' + imgs[p.파일ID].data + '" alt=""><figcaption>' + esc(kdate(p.날짜)) + (p.설명 ? ' ' + esc(p.설명) : '') + '</figcaption></figure>'; }).join('') + '</div>';
+    }
+    h += '<div class="sign"><p>' + kdate(today()) + '</p><p>' + esc(I.학교명) + ' 지도교사 ' + esc(I.담당자) + ' (인)</p></div>';
+    return h;
+  }
+  function buildReport(then) {
+    var r = reportData(reportOpts());
+    setSt('cbRpStatus', r.opts.photo && r.photos.length ? '사진 ' + r.photos.length + '장을 불러오는 중…' : '만드는 중…');
+    preparePhotos(r).then(function (imgs) { then(r, imgs); }).catch(function (e) { setSt('cbRpStatus', (e && e.message) || String(e), 'err'); });
+  }
+  $('cbBtnRpPreview').onclick = function () {
+    buildReport(function (r, imgs) {
+      $('cbRpPaper').innerHTML = reportHTML(r, imgs);
+      setSt('cbRpStatus', '미리보기를 만들었습니다. 활동 ' + r.acts.length + '회 · 학생 ' + r.stus.length + '명 · 사진 ' + Object.keys(imgs).length + '장', 'ok');
+    });
+  };
+  $('cbBtnRpPrint').onclick = function () {
+    buildReport(function (r, imgs) {
+      var html = reportHTML(r, imgs);
+      $('cbRpPaper').innerHTML = html;
+      var area = document.getElementById('cbPrintArea');
+      if (!area) { area = document.createElement('div'); area.id = 'cbPrintArea'; area.className = 'print-area cb-papers'; document.body.appendChild(area); }
+      area.innerHTML = '<style>@page{size:A4 portrait;margin:15mm;}</style><div class="paper">' + html + '</div>';
+      document.body.classList.add('printing');
+      setSt('cbRpStatus', '인쇄 창을 열었습니다.', 'ok');
+      setTimeout(function () { window.print(); }, 150);
+    });
+  };
+  window.addEventListener('afterprint', function () { document.body.classList.remove('printing'); var a = document.getElementById('cbPrintArea'); if (a) a.innerHTML = ''; });
+
+  /* ---------- ZIP (저장 전용, 압축 없음) ---------- */
+  var CRC_T = (function () { var t = new Uint32Array(256); for (var i = 0; i < 256; i++) { var c = i; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[i] = c >>> 0; } return t; })();
+  function crc32(u8) { var c = 0xFFFFFFFF; for (var i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function makeZip(files) {
+    var enc = new TextEncoder(), parts = [], central = [], offset = 0;
+    files.forEach(function (f) {
+      var name = enc.encode(f.name), data = typeof f.data === 'string' ? enc.encode(f.data) : f.data, crc = crc32(data);
+      var lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true);
+      lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+      parts.push(new Uint8Array(lh.buffer), name, data);
+      var ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true);
+      ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true); ch.setUint16(30, 0, true); ch.setUint16(32, 0, true); ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), name);
+      offset += 30 + name.length + data.length;
+    });
+    var cdSize = central.reduce(function (s, p) { return s + p.length; }, 0);
+    var e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(4, 0, true); e.setUint16(6, 0, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, cdSize, true); e.setUint32(16, offset, true); e.setUint16(20, 0, true);
+    return new Blob(parts.concat(central, [new Uint8Array(e.buffer)]), { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  }
+  function b64ToU8(b64) { var bin = atob(b64), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+
+  /* ---------- DOCX 작성기 ---------- */
+  function xesc(s) { return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function Docx() { this.body = ''; this.media = []; this.imgN = 0; }
+  Docx.prototype.run = function (text, o) {
+    o = o || {};
+    var rpr = '<w:rPr>' + (o.b ? '<w:b/>' : '') + (o.sz ? '<w:sz w:val="' + o.sz + '"/><w:szCs w:val="' + o.sz + '"/>' : '') + (o.color ? '<w:color w:val="' + o.color + '"/>' : '') + '</w:rPr>';
+    return String(text).split('\n').map(function (t, i) { return '<w:r>' + rpr + (i ? '<w:br/>' : '') + '<w:t xml:space="preserve">' + xesc(t) + '</w:t></w:r>'; }).join('');
+  };
+  Docx.prototype.pXml = function (text, o) {
+    o = o || {};
+    var ppr = '<w:pPr>' + (o.align ? '<w:jc w:val="' + o.align + '"/>' : '') + '<w:spacing w:before="' + (o.before || 0) + '" w:after="' + (o.after === undefined ? 40 : o.after) + '"/>' + (o.ind ? '<w:ind w:left="' + o.ind + '"' + (o.hanging ? ' w:hanging="' + o.hanging + '"' : '') + '/>' : '') + (o.keep ? '<w:keepNext/>' : '') + (o.pb ? '<w:pageBreakBefore/>' : '') + '</w:pPr>';
+    return '<w:p>' + ppr + (text === '' ? '' : this.run(text, o)) + '</w:p>';
+  };
+  Docx.prototype.p = function (text, o) { this.body += this.pXml(text, o); };
+  Docx.prototype.title = function (t) { this.p(t, { b: true, sz: 34, align: 'center', after: 240 }); };
+  Docx.prototype.h = function (t) { this.p('▣ ' + t, { b: true, sz: 25, before: 240, after: 80, keep: true, color: '1F3A6E' }); };
+  Docx.prototype.bullet = function (t, lvl) { this.p((lvl ? '- ' : '◦ ') + t, { ind: lvl ? 560 : 280, hanging: 200, after: 20 }); };
+  Docx.prototype.table = function (rows, widths, o) {
+    o = o || {};
+    var x = '<w:tbl><w:tblPr><w:tblW w:w="' + widths.reduce(function (a, b) { return a + b; }, 0) + '" w:type="dxa"/><w:jc w:val="center"/>' +
+      '<w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return '<w:' + s + ' w:val="single" w:sz="4" w:space="0" w:color="444444"/>'; }).join('') + '</w:tblBorders>' +
+      '<w:tblCellMar><w:left w:w="60" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tblCellMar><w:tblLook w:val="0000"/></w:tblPr>';
+    x += '<w:tblGrid>' + widths.map(function (w) { return '<w:gridCol w:w="' + w + '"/>'; }).join('') + '</w:tblGrid>';
+    var self = this;
+    rows.forEach(function (row, ri) {
+      var isHead = o.header && ri === 0;
+      x += '<w:tr>' + (isHead ? '<w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>' : '<w:trPr><w:cantSplit/></w:trPr>');
+      var ci = 0;
+      row.forEach(function (cell) {
+        var c = (cell && typeof cell === 'object') ? cell : { t: cell };
+        var span = c.span || 1, w = 0; for (var k = 0; k < span; k++) w += widths[ci + k] || 0; ci += span;
+        var shade = c.shade || (isHead ? 'E8EEF5' : (c.th ? 'E8EEF5' : null));
+        var align = c.align || (isHead || c.th ? 'center' : (o.aligns ? o.aligns[ci - span] : null));
+        x += '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/>' + (span > 1 ? '<w:gridSpan w:val="' + span + '"/>' : '') + (c.vmerge ? '<w:vMerge' + (c.vmerge === 'restart' ? ' w:val="restart"' : '') + '/>' : '') + (shade ? '<w:shd w:val="clear" w:color="auto" w:fill="' + shade + '"/>' : '') + '<w:vAlign w:val="center"/></w:tcPr>';
+        if (c.img) x += c.img; else x += self.pXml(c.t === undefined || c.t === null ? '' : String(c.t), { b: isHead || c.th || c.b, align: align, sz: c.sz || o.sz || 18, after: 0 });
+        x += '</w:tc>';
+      });
+      x += '</w:tr>';
+    });
+    x += '</w:tbl>';
+    this.body += x + this.pXml('', { after: 60 });
+  };
+  Docx.prototype.imageXml = function (dataUrl, wPx, hPx, maxW) {
+    var b64 = dataUrl.split(',')[1]; this.imgN++;
+    var name = 'image' + this.imgN + '.jpg', rid = 'rIdImg' + this.imgN;
+    this.media.push({ name: name, rid: rid, data: b64ToU8(b64) });
+    var cx = maxW, cy = Math.round(maxW * (hPx / wPx));
+    return '<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="0"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="' + cx + '" cy="' + cy + '"/><wp:docPr id=\'' + this.imgN + '\' name="' + name + '"/>' +
+      '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id=\'' + this.imgN + '\' name="' + name + '"/><pic:cNvPicPr/></pic:nvPicPr>' +
+      '<pic:blipFill><a:blip r:embed="' + rid + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+  };
+  Docx.prototype.build = function (opts) {
+    var doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body>' + this.body +
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="567" w:footer="567" w:gutter="0"/></w:sectPr></w:body></w:document>';
+    var styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="맑은 고딕" w:eastAsia="맑은 고딕" w:hAnsi="맑은 고딕" w:cs="맑은 고딕"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:lang w:val="ko-KR" w:eastAsia="ko-KR"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="40" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>';
+    var ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>';
+    var rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>';
+    var drels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+      this.media.map(function (m) { return '<Relationship Id="' + m.rid + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/' + m.name + '"/>'; }).join('') + '</Relationships>';
+    var now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+    var core = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>' + xesc(opts.title) + '</dc:title><dc:creator>' + xesc(opts.creator || '') + '</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">' + now + '</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">' + now + '</dcterms:modified></cp:coreProperties>';
+    var app = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>체육교사 보조 프로그램</Application></Properties>';
+    var files = [{ name: '[Content_Types].xml', data: ct }, { name: '_rels/.rels', data: rels }, { name: 'word/document.xml', data: doc }, { name: 'word/styles.xml', data: styles }, { name: 'word/_rels/document.xml.rels', data: drels }, { name: 'docProps/core.xml', data: core }, { name: 'docProps/app.xml', data: app }];
+    this.media.forEach(function (m) { files.push({ name: 'word/media/' + m.name, data: m.data }); });
+    return makeZip(files);
+  };
+
+  function reportDocx(r, imgs) {
+    var c = r.c, o = r.opts, I = r.info, d = new Docx(), W = 9638;
+    function cols(fr) { var s = fr.reduce(function (a, b) { return a + b; }, 0); return fr.map(function (f) { return Math.round(W * f / s); }); }
+    d.title(o.title || defaultTitle(c));
+    if (o.info) {
+      d.h('학교 정보');
+      d.table([
+        [{ t: '학교명', th: true }, I.학교명, { t: '학교장', th: true }, I.학교장],
+        [{ t: '학교 주소', th: true }, { t: I.주소, span: 3 }],
+        [{ t: '담당자', th: true, vmerge: 'restart' }, { t: '직위 / 성명', th: true }, { t: '전화번호', th: true }, { t: '이메일', th: true }],
+        [{ t: '', th: true, vmerge: 'continue' }, (I.직위 + ' ' + I.담당자).trim(), I.전화, I.이메일]
+      ], cols([18, 32, 22, 28]), { aligns: ['center', 'center', 'center', 'center'] });
+      d.h('클럽 개요');
+      var 남 = r.stus.filter(function (s) { return s.성별 === '남'; }).length, 여 = r.stus.filter(function (s) { return s.성별 === '여'; }).length;
+      d.table([
+        [{ t: '클럽명', th: true }, c.이름, { t: '종목', th: true }, c.종목],
+        [{ t: '대상', th: true }, c.대상, { t: '운영 기간', th: true }, r.period],
+        [{ t: '활동 시간대', th: true }, c.활동시간대, { t: '활동 장소', th: true }, c.활동장소],
+        [{ t: '참가 인원', th: true }, r.stus.length + '명 (남 ' + 남 + ', 여 ' + 여 + ')', { t: '활동 실적', th: true }, r.acts.length + '회 · 총 ' + hm(r.totalMin) + ' (' + hours1(r.totalMin) + '시간)']
+      ], cols([18, 32, 18, 32]));
+      var ov = lines(c.개요); if (ov.length) { d.h('운영 개요'); ov.forEach(function (l) { d.bullet(l); }); }
+      var ct = lines(c.내용); if (ct.length) { d.h('운영 내용'); ct.forEach(function (l) { d.bullet(l); }); }
+    }
+    if (o.log) {
+      d.h('활동 일지');
+      var rows = [['순', '일자', '요일', '시간', '활동시간', '구분', '장소', '활동 내용', '참여']];
+      r.acts.forEach(function (a, i) { rows.push([i + 1, kdate(a.날짜), wd(a.날짜), (a.시작 || '') + (a.종료 ? '~' + a.종료 : ''), (a.분 || 0) + '분', a.유형, a.장소, a.내용 + (a.비고 ? ' (' + a.비고 + ')' : ''), (a.참여 || []).length + '명']); });
+      rows.push([{ t: '합계', th: true, span: 4 }, { t: r.totalMin + '분 (' + hours1(r.totalMin) + '시간)', th: true }, { t: r.acts.length + '회', th: true, span: 3 }, { t: '', th: true }]);
+      d.table(rows, cols([5, 13, 5, 12, 9, 10, 9, 30, 7]), { header: true, sz: 17, aligns: ['center', 'center', 'center', 'center', 'center', 'center', 'center', 'left', 'center'] });
+    }
+    if (o.mem) {
+      d.h('참가 학생 명단 및 활동 시간');
+      var rows2 = [['순', '학년', '반', '번호', '이름', '성별', '참여 횟수', '누적 활동시간', (c.목표시간 || 17) + '시간 이상', '비고']];
+      r.stus.forEach(function (s, i) { var m = r.st[s.id]; rows2.push([i + 1, s.학년, s.반, s.번호, nm(r, s), s.성별, m.횟수 + '회', hm(m.분) + ' (' + hours1(m.분) + 'h)', m.분 >= r.goalMin ? '○' : '', s.비고]); });
+      d.table(rows2, cols([5, 6, 6, 6, 12, 6, 10, 20, 11, 18]), { header: true, sz: 17, aligns: ['center', 'center', 'center', 'center', 'center', 'center', 'center', 'center', 'center', 'left'] });
+    }
+    if (o.att && r.acts.length && r.stus.length) {
+      d.h('출석부');
+      var groups = chunk(r.acts, 12);
+      groups.forEach(function (grp, gi) {
+        var last = gi === groups.length - 1;
+        var head = ['학생'].concat(grp.map(function (a) { return md(a.날짜); })); if (last) head = head.concat(['횟수', '누적']);
+        var rows3 = [head];
+        r.stus.forEach(function (s) { var m = r.st[s.id]; var row = [stuLabel(s, o.mask)].concat(grp.map(function (a) { return (a.참여 || []).indexOf(s.id) > -1 ? '○' : ''; })); if (last) row = row.concat([m.횟수, hours1(m.분) + 'h']); rows3.push(row); });
+        var fr = [22].concat(grp.map(function () { return 78 / grp.length; })); if (last) fr = fr.concat([8, 10]);
+        d.table(rows3, cols(fr), { header: true, sz: 16, aligns: ['left'].concat(head.slice(1).map(function () { return 'center'; })) });
+      });
+    }
+    if (o.comp && r.comps.length) {
+      d.h('대회 참가 및 입상 실적');
+      var rows4 = [['순', '일자', '대회명', '주최', '장소', '결과', '참가 인원', '비고']];
+      r.comps.forEach(function (k, i) { rows4.push([i + 1, kdate(k.일자), k.대회명, k.주최, k.장소, { t: k.결과, b: true, align: 'center' }, k.인원 ? k.인원 + '명' : '', k.비고]); });
+      d.table(rows4, cols([5, 13, 32, 12, 12, 9, 8, 9]), { header: true, sz: 17, aligns: ['center', 'center', 'left', 'center', 'center', 'center', 'center', 'left'] });
+    }
+    if (o.budget && (c.예산.length || c.배정예산)) {
+      d.h('예산 집행 내역');
+      var rows5 = [['항목', '세부 지출 내용', '단가', '수량', '금액(원)', '집행일', '비고']];
+      c.예산.forEach(function (b) { rows5.push([b.항목, b.세부, (b.단가 !== '' && b.단가 !== undefined) ? fmt(b.단가) : '', b.수량, fmt(b.금액), kdate(b.집행일), b.비고]); });
+      rows5.push([{ t: '총 지출액' + (c.배정예산 ? ' (배정 ' + fmt(c.배정예산) + '원)' : ''), th: true, span: 4 }, { t: fmt(r.spent), th: true, align: 'right' }, { t: c.배정예산 ? '잔액 ' + fmt(c.배정예산 - r.spent) + '원' : '', th: true, span: 2 }]);
+      d.table(rows5, cols([14, 30, 12, 7, 13, 12, 12]), { header: true, sz: 17, aligns: ['center', 'left', 'right', 'center', 'right', 'center', 'left'] });
+    }
+    var res = lines(c.결과);
+    if (o.info && (res.length || (o.comp && r.comps.length))) {
+      d.h('운영 결과');
+      res.forEach(function (l) { d.bullet(l); });
+      if (o.comp && r.comps.length) { d.bullet('대회 참가 실적'); r.comps.forEach(function (k) { d.bullet(k.대회명 + (k.결과 ? ' ' + k.결과 : ''), 1); }); }
+    }
+    var ph = o.photo ? r.photos.filter(function (p) { return imgs[p.파일ID]; }) : [];
+    if (ph.length) {
+      d.p('', { pb: true, after: 0 });
+      d.h('활동 사진');
+      var cw = Math.round(W / 2), maxW = (cw - 200) * 635;
+      chunk(ph, 2).forEach(function (pair) {
+        var row = pair.map(function (p) { var im = imgs[p.파일ID]; return { img: d.imageXml(im.data, im.w || 4, im.h || 3, maxW) + d.pXml(kdate(p.날짜) + (p.설명 ? ' ' + p.설명 : ''), { align: 'center', sz: 17, after: 0 }) }; });
+        while (row.length < 2) row.push('');
+        d.table([row], [cw, W - cw], {});
+      });
+    }
+    d.p('', { after: 200 });
+    d.p(kdate(today()), { align: 'right' });
+    d.p(I.학교명 + ' 지도교사 ' + I.담당자 + ' (인)', { align: 'right', b: true });
+    return d.build({ title: o.title || defaultTitle(c), creator: I.담당자 });
+  }
+  function download(name, blob) {
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+  $('cbBtnRpDocx').onclick = function () {
+    buildReport(function (r, imgs) {
+      try {
+        var blob = reportDocx(r, imgs);
+        download((r.opts.title || defaultTitle(r.c)).replace(/[\\/:*?"<>|]/g, '_') + '.docx', blob);
+        setSt('cbRpStatus', 'Word 파일을 내려받았습니다. 한글(HWP)에서도 바로 열 수 있습니다.', 'ok');
+      } catch (e) { setSt('cbRpStatus', '문서 생성 실패: ' + e.message, 'err'); }
+    });
+  };
+
+  return { nav: nav, init: init, show: show, reset: reset };
+})();
+</script>

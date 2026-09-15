@@ -1,0 +1,630 @@
+<!-- FMS 도전 · 교사 화면 (모듈 FMS) — 공통 도우미(FMSX)도 여기서 정의합니다 (FMS_S.html 이 같이 씁니다) -->
+<style>
+/* FMS 공통 (교사·학생) */
+.fms-ui .tag.low{background:#E8F5E9;color:#1B6B3A;} .fms-ui .tag.mid{background:#E3F2FD;color:#1F4E9C;} .fms-ui .tag.high{background:#FFF3E0;color:#9A5B00;}
+.fms-ui .tag.c-move{background:var(--accent-soft);color:var(--accent-ink);} .fms-ui .tag.c-still{background:var(--violet-soft);color:#4B43C9;} .fms-ui .tag.c-obj{background:var(--sun-soft);color:#946C00;}
+.fms-ui .sdots{display:flex;gap:6px;}
+.fms-ui .sdots span{width:26px;height:26px;border-radius:50%;border:2.5px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--ink-3);}
+.fms-ui .sdots span.ok{background:linear-gradient(135deg,#FFD66B,#F5B301);border-color:#F5B301;color:#fff;}
+.fms-ui .sdots span.now{border-color:var(--accent);color:var(--accent-dk);}
+.fms-ui .sdots span.wait{border-color:var(--coral);color:var(--coral);}
+.fms-ui .sdots span.no{border-color:var(--coral);border-style:dashed;color:var(--coral);}
+.fms-ui .opt{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:14px;cursor:pointer;}
+.fms-ui .opt input{width:17px;height:17px;accent-color:var(--coral);margin-top:3px;}
+/* 교사 전용 */
+#fms_T .pend-card .pc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line-2);}
+#fms_T .pend-card .pc-head b{font-size:16px;letter-spacing:-.02em;}
+#fms_T .pend-card .pc-body{padding:12px 18px 4px;}
+#fms_T .pend-card .pc-task{font-weight:700;margin:0 0 2px;}
+#fms_T .plist{list-style:none;margin:8px 0;padding:0;}
+#fms_T .plist li{display:flex;gap:8px;padding:3px 0;font-size:13.5px;color:var(--ink-3);}
+#fms_T .plist li.y{color:var(--ink);} #fms_T .plist li i{font-size:16px;}
+#fms_T .plist li.y i{color:var(--green);} #fms_T .plist li.n i{color:var(--coral);}
+#fms_T .reject-box{border-top:1px dashed var(--line);margin-top:10px;padding:12px 0 4px;}
+#fms_T .stat-row{display:grid;grid-template-columns:1fr 180px 52px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line-2);font-size:14px;}
+#fms_T .stat-row .v{text-align:right;font-weight:800;}
+#fms_T .stat-row.low .v{color:var(--coral);}
+#fms_T .matrix td.full{background:var(--sun-soft);font-weight:800;color:#946C00;}
+#fms_T .matrix td.some{background:var(--accent-soft);color:var(--accent-ink);font-weight:700;}
+#fms_T .matrix td.na{color:var(--line);}
+#fms_T #fmEvCrit .chk{margin-bottom:8px;font-size:15px;}
+#fms_T #fmEvCrit .chk span.t{flex:1;}
+#fms_T table.sd td{padding:6px 8px;vertical-align:top;}
+#fms_T table.sd td input[type=text]{width:100%;min-width:130px;}
+#fms_T table.sd td input[type=number]{width:72px;min-width:0;}
+#fms_T table.sd td input.f-task{min-width:230px;}
+#fms_T table.sd td input.f-note{min-width:100px;}
+#fms_T table.sd td input.f-order,#fms_T table.sd td input.f-step{width:56px;}
+#fms_T table.sd td select{min-width:0;}
+#fms_T table.sd tr.off{opacity:.5;}
+#fms_T table.sd td.c{text-align:center;vertical-align:middle;}
+#fms_T .band-sel{padding:5px 8px;min-width:0;font-size:13px;}
+@media (max-width:900px){ #fms_T .stat-row{grid-template-columns:1fr 90px 44px;} }
+</style>
+
+<div class="mroot hide fms-ui" data-mod="FMS" data-role="T" id="fms_T">
+
+  <!-- ===== 대시보드 ===== -->
+  <div class="page" id="fms_tp_dash">
+    <div class="page-head"><h2>오늘의 FMS 도전</h2><span class="sub">관찰평가와 배지 승인을 한눈에 봅니다.</span></div>
+    <div id="fmDashEmpty" class="note hide"><i class="ti ti-users"></i><div>아직 학생이 없습니다. <b>학생 명단</b>에서 학생을 추가해 주세요.</div></div>
+    <div class="kpis" id="fmDashKpis"></div>
+    <div class="grid g2">
+      <div class="panel" style="margin:0">
+        <div class="panel-head"><h3><i class="ti ti-clock"></i>확인 기다리는 도전</h3><div class="spacer"></div><span class="unit" id="fmDashPeerWait"></span><button class="mini ghost" id="fmDashGoPending">전체 보기</button></div>
+        <div class="scroll-x"><table><thead><tr><th>학생</th><th>기술·단계</th><th>신청</th></tr></thead><tbody id="fmDashPending"></tbody></table></div>
+      </div>
+      <div class="panel" style="margin:0">
+        <div class="panel-head"><h3><i class="ti ti-chart-bar"></i>학년별 현황</h3></div>
+        <div class="scroll-x"><table><thead><tr><th>학년</th><th>학생</th><th>통과한 단계</th><th>관찰평가</th></tr></thead><tbody id="fmDashGrades"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 관찰평가 ===== -->
+  <div class="page hide" id="fms_tp_eval">
+    <div class="page-head"><h2>관찰평가</h2><span class="sub">충족한 준거에 체크합니다. 체크하지 않은 준거는 미충족으로 저장됩니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>학년</label><select id="fmEvGrade"></select></div>
+      <div class="field"><label>학생</label><select id="fmEvStudent" style="min-width:150px"></select></div>
+      <div class="field"><label>기술</label><select id="fmEvSkill" style="min-width:150px"></select></div>
+      <span id="fmEvBand" style="padding-bottom:7px"></span>
+      <div class="spacer"></div>
+      <button class="ghost mini" id="fmEvPrevStu"><i class="ti ti-chevron-left"></i>이전 학생</button>
+      <button class="ghost mini" id="fmEvNextStu">다음 학생<i class="ti ti-chevron-right"></i></button>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-eye-check"></i><span id="fmEvTitle">학생을 골라 주세요</span></h3><div class="spacer"></div><span class="unit" id="fmEvPrev"></span></div>
+      <div class="panel-body">
+        <div id="fmEvCrit"></div>
+        <div class="field" style="margin-top:6px"><label>메모 (선택)</label><input type="text" id="fmEvMemo" maxlength="100" placeholder="예: 팔 스윙은 좋아졌으나 착지 때 무릎이 모임"></div>
+      </div>
+      <div class="savebar"><span class="status" id="fmEvStatus"></span><div class="spacer"></div>
+        <button class="ghost" id="fmEvSave"><i class="ti ti-device-floppy"></i>저장</button>
+        <button id="fmEvSaveNext"><i class="ti ti-player-track-next"></i>저장하고 다음 학생</button></div>
+    </div>
+  </div>
+
+  <!-- ===== 승인 대기 ===== -->
+  <div class="page hide" id="fms_tp_pending">
+    <div class="page-head"><h2>승인 대기</h2><span class="sub">짝이 확인한 도전을 승인하면 학생에게 배지가 생깁니다.</span></div>
+    <div id="fmPendList"></div>
+    <div class="panel hide" id="fmPendEmpty"><div class="empty"><i class="ti ti-circle-check"></i><strong>확인할 도전이 없습니다</strong>학생이 짝에게 확인받고 보내면 여기에 쌓입니다.</div></div>
+  </div>
+
+  <!-- ===== 학급 현황 ===== -->
+  <div class="page hide" id="fms_tp_overview">
+    <div class="page-head"><h2>학급 현황</h2><span class="sub">칸의 숫자는 통과한 단계 / 전체 단계입니다. 학년군 조정이 반영됩니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>학년군</label><select id="fmOvBand"><option value="전체">전체</option><option value="저">저학년군</option><option value="중">중학년군</option><option value="고">고학년군</option></select></div>
+      <div class="spacer"></div>
+      <span class="unit"><span class="tag sun">모두 통과</span> <span class="tag brand">도전 중</span></span>
+    </div>
+    <div class="panel"><div class="scroll-x"><table class="matrix"><thead id="fmOvHead"></thead><tbody id="fmOvRows"></tbody></table></div></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-chart-histogram"></i>준거별 달성률</h3><div class="spacer"></div>
+        <div class="field"><label>기술</label><select id="fmStSkill"></select></div>
+        <div class="field"><label>학년군</label><select id="fmStBand"></select></div>
+      </div>
+      <div class="panel-body" id="fmOvStats"></div>
+    </div>
+  </div>
+
+  <!-- ===== 학년군 ===== -->
+  <div class="page hide" id="fms_tp_bands">
+    <div class="page-head"><h2>학년군 조정</h2><span class="sub">학생 명단·비밀번호는 공통 학생 명단 메뉴에서 관리합니다. 여기서는 FMS 학년군만 정합니다.</span></div>
+    <div class="note sun"><i class="ti ti-adjustments"></i><div><b>학년군</b>은 기본으로 학년에 따라 정해집니다(1~2 저, 3~4 중, 5~6 고). 학생 전체를 다른 학년군으로 바꾸거나, <b>기술별</b> 버튼으로 특정 기술만 올리고 내릴 수 있습니다. 기술별 조정이 전체 지정보다 우선합니다.</div></div>
+    <div class="bar">
+      <div class="field"><label>선택 학생 학년군</label><div style="display:flex;gap:6px"><select id="fmBandBulk"><option value="">자동 (학년 기준)</option><option value="저">저학년군</option><option value="중">중학년군</option><option value="고">고학년군</option></select><button class="ghost" id="fmBtnBand">적용</button></div></div>
+      <div class="spacer"></div>
+      <div class="field"><label>학년</label><select id="fmStuFilter"></select></div>
+    </div>
+    <div class="panel">
+      <div class="scroll-x"><table><thead><tr>
+        <th><input type="checkbox" id="fmChkAll" title="모두 선택"></th><th>학년</th><th>반</th><th>번호</th><th>이름</th><th>학년군 <span class="unit" style="font-weight:500">(전체 · 기술별)</span></th><th>통과</th>
+      </tr></thead><tbody id="fmStuRows"></tbody></table></div>
+      <div class="empty hide" id="fmStuEmpty"><i class="ti ti-users"></i><strong>학생이 없습니다</strong>학생 명단에서 등록해 주세요.</div>
+    </div>
+  </div>
+
+  <!-- ===== 기준표 ===== -->
+  <div class="page hide" id="fms_tp_standards">
+    <div class="page-head"><h2>기준표</h2><span class="sub">기술별·학년군별 관찰 준거와 도전 단계를 보고 고칩니다. 지우는 대신 사용을 끄면 지난 기록이 그대로 남습니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>기술</label><select id="fmSdSkill" style="min-width:170px"></select></div>
+      <div class="field"><label>학년군</label><select id="fmSdBand"><option value="저">저학년군 (1~2)</option><option value="중">중학년군 (3~4)</option><option value="고">고학년군 (5~6)</option></select></div>
+      <span id="fmSdSkillInfo" class="unit" style="padding-bottom:8px"></span>
+      <div class="spacer"></div>
+      <button class="ghost" id="fmSdSkillEdit"><i class="ti ti-pencil"></i>기술 정보 수정</button>
+      <button class="soft" id="fmSdSkillAdd"><i class="ti ti-plus"></i>새 기술</button>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-eye-check"></i>관찰 준거</h3><span class="unit">학생 화면에 켜 둔 준거만 학생·짝에게 보입니다.</span></div>
+      <div class="scroll-x"><table class="sd"><thead><tr><th>순서</th><th>교사용 관찰 준거</th><th>학생용 문구 (쉬운 말)</th><th>학생 화면</th><th>사용</th></tr></thead><tbody id="fmSdCrit"></tbody></table></div>
+      <div class="savebar"><button class="ghost" id="fmSdCritAdd"><i class="ti ti-plus"></i>준거 추가</button><div class="spacer"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-stairs-up"></i>도전 단계</h3><span class="unit">기록: 숫자만 / 준거: 동작만 / 혼합: 둘 다 충족해야 통과</span></div>
+      <div class="scroll-x"><table class="sd"><thead><tr><th>단계</th><th>도전 과제</th><th>유형</th><th>기록 기준</th><th>단위</th><th>방향</th><th>필요 준거 수</th><th>비고</th><th>사용</th></tr></thead><tbody id="fmSdLevels"></tbody></table></div>
+      <div class="savebar"><button class="ghost" id="fmSdLevelAdd"><i class="ti ti-plus"></i>단계 추가</button><div class="spacer"></div><span class="status" id="fmSdStatus"></span>
+        <button id="fmSdSave"><i class="ti ti-device-floppy"></i>이 기술·학년군 저장</button></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-message-circle"></i>반려할 때 보내는 말</h3><span class="unit">배지를 반려할 때 고르는 격려 문구입니다.</span></div>
+      <div class="panel-body" id="fmSdFeedback"></div>
+      <div class="savebar"><button class="ghost" id="fmSdFbAdd"><i class="ti ti-plus"></i>문구 추가</button><div class="spacer"></div><span class="status" id="fmSdFbStatus"></span><button id="fmSdFbSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 기술별 학년군 -->
+<div id="fmMdBands" class="modal hide fms-ui">
+  <div style="max-width:560px">
+    <div class="panel-head"><h3 id="fmMbTitle"><i class="ti ti-adjustments"></i>기술별 학년군</h3><div class="spacer"></div><button class="ghost mini" data-close="fmMdBands"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body">
+      <div class="unit" id="fmMbSub" style="margin-bottom:10px"></div>
+      <div class="scroll-x" style="max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:10px">
+        <table><thead><tr><th>기술</th><th>적용 학년군</th></tr></thead><tbody id="fmMbRows"></tbody></table>
+      </div>
+      <div class="field" style="margin-top:10px"><label>사유 (선택)</label><input type="text" id="fmMbReason" placeholder="예: 한발뛰기 연속 동작이 어려워 저학년 준거로 도전"></div>
+    </div>
+    <div class="savebar"><span class="status" id="fmMbStatus"></span><div class="spacer"></div><button id="fmBtnBandsSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+  </div>
+</div>
+
+<!-- 모달: 기술 정보 -->
+<div id="fmMdSkill" class="modal hide fms-ui">
+  <div style="max-width:520px">
+    <div class="panel-head"><h3 id="fmMkTitle"><i class="ti ti-run"></i>기술 정보</h3><div class="spacer"></div><button class="ghost mini" data-close="fmMdSkill"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body">
+      <input type="hidden" id="fmMkId">
+      <div class="grid g2" style="margin-bottom:10px">
+        <div class="field"><label>기술 이름</label><input type="text" id="fmMkName"></div>
+        <div class="field"><label>범주</label><select id="fmMkCat"><option>이동</option><option>비이동</option><option>조작</option></select></div>
+      </div>
+      <div class="field" style="margin-bottom:10px"><label>학생용 설명 (한 줄)</label><input type="text" id="fmMkDesc"></div>
+      <div class="grid g2" style="margin-bottom:10px">
+        <div class="field"><label>준비물</label><input type="text" id="fmMkGear"></div>
+        <div class="field"><label>적용 학년군 (표시용)</label><select id="fmMkBands"><option>저·중·고</option><option>중·고</option><option>고</option><option>저·중</option><option>저</option></select></div>
+      </div>
+      <label class="chk on" style="display:inline-flex"><input type="checkbox" id="fmMkUse" checked><span>사용 (끄면 학생·교사 화면에서 숨김)</span></label>
+      <div class="unit" style="margin-top:8px">새 기술을 만든 뒤에는 학년군마다 준거와 도전 단계를 추가해야 학생 화면에 나타납니다.</div>
+    </div>
+    <div class="savebar"><span class="status" id="fmMkStatus"></span><div class="spacer"></div><button id="fmBtnSkillSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+  </div>
+</div>
+
+<script>
+/* ================= FMS 공통 도우미 (교사·학생) ================= */
+var FMSX = {
+  app: null,
+  BAND_CLASS: { '저': 'low', '중': 'mid', '고': 'high' },
+  CATS: [['이동', '몸을 옮기는 기술', 'c-move', 'walk'], ['비이동', '제자리에서 몸을 다루는 기술', 'c-still', 'yoga'], ['조작', '물건을 다루는 기술', 'c-obj', 'ball-basketball']],
+  skill: function (id) { return findOne(FMSX.app.skills, function (k) { return k.id === id; }); },
+  level: function (id) { return findOne(FMSX.app.levels, function (l) { return l.id === id; }); },
+  crit: function (id) { return findOne(FMSX.app.criteria, function (c) { return c.id === id; }); },
+  feedbackText: function (id) { var f = findOne(FMSX.app.feedback, function (x) { return x.id === id; }); return f ? f.text : ''; },
+  levelsFor: function (skillId, band) { return FMSX.app.levels.filter(function (l) { return l.skillId === skillId && l.band === band; }).sort(function (a, b) { return a.step - b.step; }); },
+  critFor: function (skillId, band, kidOnly) { return FMSX.app.criteria.filter(function (c) { return c.skillId === skillId && c.band === band && (!kidOnly || c.show); }); },
+  bandOf: function (student, adjust, skillId) { return (adjust && adjust[skillId]) || student.band; },
+  bandTag: function (band, adjusted) { return '<span class="tag ' + (FMSX.BAND_CLASS[band] || '') + '">' + esc(band) + '학년군' + (adjusted ? ' (조정)' : '') + '</span>'; },
+  catInfo: function (category) { return findOne(FMSX.CATS, function (c) { return c[0] === category; }) || [category || '기타', '', '', 'activity']; },
+  condText: function (l, kid) {
+    var parts = [];
+    if (l.type === '기록' || l.type === '혼합') parts.push((l.target === null ? '?' : l.target) + l.unit + ' ' + l.dir);
+    if (l.type === '준거' || l.type === '혼합') { if (kid && l.band === '저') parts.push('선생님이 동작 확인'); else parts.push((kid ? '동작 체크 ' : '준거 ') + (l.need === null ? '?' : l.need) + '개 이상'); }
+    return parts.join(' + ');
+  },
+  recordMet: function (l, v) {
+    if (v === '' || v === null || v === undefined || l.target === null) return null;
+    var n = Number(v); if (isNaN(n)) return null;
+    return l.dir === '이하' ? n <= l.target : n >= l.target;
+  },
+  /* 단계 상태: ok 통과 · peer 짝 확인 기다림 · wait 선생님 확인 기다림 · no 반려 · peerno 짝이 아직이래요 · none */
+  levelState: function (apps, levelId) {
+    var last = null, ok = false;
+    apps.forEach(function (a) { if (a.levelId !== levelId || a.status === '취소') return; if (a.status === '승인') ok = true; last = a; });
+    if (ok) return { s: 'ok', app: null };
+    var map = { '동료확인대기': 'peer', '교사승인대기': 'wait', '반려': 'no', '동료반려': 'peerno' };
+    if (last && map[last.status]) return { s: map[last.status], app: last };
+    return { s: 'none', app: null };
+  }
+};
+
+MODS.FMS = MODS.FMS || {};
+MODS.FMS.teacher = (function () {
+  var D = null, dirty = false, marks = {}, rejecting = null, SD = null, sdDirty = false;
+  var ev = { grade: null, studentId: null, skillId: null }, ov = { skillId: null, band: null }, sd = { skillId: null, band: '저' };
+  var pages = ['dash', 'eval', 'pending', 'overview', 'bands', 'standards'];
+  var nav = [
+    { section: 'FMS 도전' },
+    { id: 'dash', label: '대시보드', icon: 'layout-dashboard' },
+    { id: 'eval', label: '관찰평가', icon: 'eye-check' },
+    { id: 'pending', label: '승인 대기', icon: 'checklist' },
+    { id: 'overview', label: '학급 현황', icon: 'chart-bar' },
+    { id: 'bands', label: '학년군 조정', icon: 'adjustments' },
+    { id: 'standards', label: '기준표', icon: 'list-details' }
+  ];
+  function init(ctx) { D = null; SD = null; dirty = false; sdDirty = false; api('fms_t_pending', TOKEN).then(function (list) { setNavCount('FMS', 'pending', list.length); }).catch(function () {}); }
+  function reset() { D = null; SD = null; dirty = false; marks = {}; rejecting = null; ev = { grade: null, studentId: null, skillId: null }; }
+  function show(p) {
+    pages.forEach(function (id) { $('fms_tp_' + id).classList.toggle('hide', id !== p); });
+    dirty = false; rejecting = null;
+    var fn = { dash: renderDash, eval: renderEval, pending: renderPending, overview: renderOverview, bands: renderStudents, standards: renderStandards }[p];
+    if (!fn) return;
+    if (!D) { reload().then(fn).catch(handleErr); return; }
+    fn();
+  }
+  function reload() {
+    return api('fms_t_boot', TOKEN).then(function (d) { D = d; FMSX.app = d.app; setNavCount('FMS', 'pending', D.pending.length); });
+  }
+  function studentLabel(s) { return s.grade + '-' + s.cls + ' ' + s.no + '번 ' + s.name; }
+  function studentById(id) { return findOne(D.students, function (s) { return s.id === id; }); }
+  function grades() { var g = []; D.students.forEach(function (s) { if (g.indexOf(s.grade) < 0) g.push(s.grade); }); return g.sort(function (a, b) { return a - b; }); }
+  function passedCount(s) {
+    var appr = D.approved[s.id] || {}, adj = D.adjust[s.id] || {}, n = 0, total = 0;
+    FMSX.app.skills.forEach(function (k) { var lv = FMSX.levelsFor(k.id, FMSX.bandOf(s, adj, k.id)); total += lv.length; lv.forEach(function (l) { if (appr[l.id]) n++; }); });
+    return { n: n, total: total };
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#fmMdBands [data-close], #fmMdSkill [data-close]'), function (b) { b.onclick = function () { $(b.getAttribute('data-close')).classList.add('hide'); }; });
+
+  /* ================= 대시보드 ================= */
+  function renderDash() {
+    var passed = 0, evals = 0;
+    D.students.forEach(function (s) { passed += passedCount(s).n; evals += Object.keys(D.latestTeacher[s.id] || {}).length; });
+    $('fmDashEmpty').classList.toggle('hide', D.students.length > 0);
+    $('fmDashKpis').innerHTML = kpiTile('학생', D.students.length, '명', 'users', 'brand') + kpiTile('승인 대기', D.pending.length, '건', 'clock', D.pending.length ? 'coral' : '') +
+      kpiTile('통과한 단계', passed, '개', 'award', 'sun') + kpiTile('관찰평가 (학생×기술)', evals, '건', 'eye-check', 'violet');
+    $('fmDashPeerWait').textContent = D.peerWaiting ? '짝 확인 중 ' + D.peerWaiting + '건 · ' : '';
+    $('fmDashPending').innerHTML = D.pending.slice(0, 6).map(function (a) {
+      var s = studentById(a.studentId), l = FMSX.level(a.levelId), k = l ? FMSX.skill(l.skillId) : null;
+      return '<tr><td class="name">' + esc(s ? s.grade + '-' + s.cls + ' ' + s.name : a.studentId) + '</td><td>' + esc(k ? k.name : '') + ' <span class="unit">' + (l ? l.step + '단계' : a.levelId) + '</span></td><td class="unit">' + esc(a.at.slice(5)) + '</td></tr>';
+    }).join('') || '<tr><td colspan="3" class="unit" style="padding:14px">기다리는 도전이 없습니다</td></tr>';
+    $('fmDashGrades').innerHTML = grades().map(function (g) {
+      var list = D.students.filter(function (s) { return s.grade === g; }), p = 0, t = 0, e = 0;
+      list.forEach(function (s) { var c = passedCount(s); p += c.n; t += c.total; if (Object.keys(D.latestTeacher[s.id] || {}).length) e++; });
+      return '<tr><td class="name">' + g + '학년</td><td>' + list.length + '명</td><td><div style="display:flex;align-items:center;gap:8px"><div class="prog thin" style="width:90px"><i style="width:' + pct(p, t) + '%"></i></div><span class="unit">' + p + '/' + t + '</span></div></td><td class="unit">' + e + '명</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="unit" style="padding:14px">학생이 없습니다</td></tr>';
+  }
+  $('fmDashGoPending').onclick = function () { go('FMS', 'pending'); };
+
+  /* ================= 관찰평가 ================= */
+  function renderEval() {
+    var gs = grades();
+    if (gs.indexOf(ev.grade) < 0) ev.grade = gs.length ? gs[0] : null;
+    $('fmEvGrade').innerHTML = gs.map(function (g) { return '<option value="' + g + '"' + (g === ev.grade ? ' selected' : '') + '>' + g + '학년</option>'; }).join('');
+    var list = D.students.filter(function (s) { return s.grade === ev.grade; });
+    var stu = findOne(list, function (s) { return s.id === ev.studentId; }) || list[0] || null;
+    ev.studentId = stu ? stu.id : null;
+    $('fmEvStudent').innerHTML = list.map(function (s) { return '<option value="' + esc(s.id) + '"' + (s === stu ? ' selected' : '') + '>' + esc(s.cls + '반 ' + s.no + '번 ' + s.name) + '</option>'; }).join('');
+    marks = {}; dirty = false; $('fmEvMemo').value = ''; $('fmEvStatus').textContent = '';
+    UNSAVED.check = function () { return dirty ? 'FMS 관찰평가' : ''; };
+    var disable = function (on) { $('fmEvSave').disabled = on; $('fmEvSaveNext').disabled = on; };
+    if (!stu) {
+      $('fmEvSkill').innerHTML = ''; $('fmEvBand').innerHTML = ''; $('fmEvTitle').textContent = '학생이 없습니다'; $('fmEvPrev').textContent = '';
+      $('fmEvCrit').innerHTML = '<div class="empty"><i class="ti ti-users"></i><strong>학생 명단이 비어 있어요</strong>학생 명단에서 먼저 학생을 등록해 주세요.</div>';
+      disable(true); return;
+    }
+    var adj = D.adjust[stu.id] || {};
+    var skills = FMSX.app.skills.filter(function (k) { return FMSX.critFor(k.id, FMSX.bandOf(stu, adj, k.id), false).length > 0; });
+    if (!findOne(skills, function (k) { return k.id === ev.skillId; })) ev.skillId = skills.length ? skills[0].id : null;
+    $('fmEvSkill').innerHTML = skills.map(function (k) { return '<option value="' + esc(k.id) + '"' + (k.id === ev.skillId ? ' selected' : '') + '>' + esc(k.name) + '</option>'; }).join('');
+    if (!ev.skillId) { $('fmEvCrit').innerHTML = '<div class="unit">이 학생의 학년군에 준거가 있는 기술이 없습니다.</div>'; disable(true); return; }
+    disable(false);
+    var band = FMSX.bandOf(stu, adj, ev.skillId), crit = FMSX.critFor(ev.skillId, band, false);
+    var prev = (D.latestTeacher[stu.id] || {})[ev.skillId];
+    if (prev && prev.band !== band) prev = null;
+    $('fmEvBand').innerHTML = FMSX.bandTag(band, !!adj[ev.skillId]);
+    $('fmEvTitle').textContent = stu.name + ' / ' + FMSX.skill(ev.skillId).name;
+    $('fmEvPrev').textContent = prev ? '지난 교사 평가 ' + prev.at : '첫 관찰평가';
+    $('fmEvCrit').innerHTML = crit.map(function (c) {
+      var pv = prev && prev.results[c.id] !== undefined ? (prev.results[c.id] ? '<span class="tag green">지난번 충족</span>' : '<span class="tag">지난번 미충족</span>') : '';
+      return '<label class="chk" data-crit="' + esc(c.id) + '"><input type="checkbox"><span class="t">' + esc(c.teacher) + '</span>' + pv + '</label>';
+    }).join('');
+    Array.prototype.forEach.call($('fmEvCrit').querySelectorAll('[data-crit]'), function (lab) {
+      var cb = lab.querySelector('input');
+      cb.onchange = function () { marks[lab.getAttribute('data-crit')] = cb.checked; lab.classList.toggle('on', cb.checked); dirty = true; };
+    });
+  }
+  function guardSelect(sel, apply) {
+    var before = null;
+    sel.onfocus = function () { before = sel.value; };
+    sel.onchange = function () { if (!confirmLeave()) { if (before !== null) sel.value = before; return; } apply(sel.value); renderEval(); };
+  }
+  guardSelect($('fmEvGrade'), function (v) { ev.grade = Number(v); ev.studentId = null; });
+  guardSelect($('fmEvStudent'), function (v) { ev.studentId = v; });
+  guardSelect($('fmEvSkill'), function (v) { ev.skillId = v; });
+  function moveStudent(d) {
+    var list = D.students.filter(function (s) { return s.grade === ev.grade; });
+    var i = list.map(function (s) { return s.id; }).indexOf(ev.studentId), j = i + d;
+    if (j < 0 || j >= list.length) { toast(d > 0 ? '이 학년 마지막 학생입니다' : '이 학년 첫 학생입니다', 'err'); return false; }
+    if (!confirmLeave()) return false;
+    ev.studentId = list[j].id; renderEval(); return true;
+  }
+  $('fmEvPrevStu').onclick = function () { moveStudent(-1); };
+  $('fmEvNextStu').onclick = function () { moveStudent(1); };
+  function saveEval(next) {
+    var stu = studentById(ev.studentId); if (!stu || !ev.skillId) return;
+    var adj = D.adjust[stu.id] || {}, band = FMSX.bandOf(stu, adj, ev.skillId);
+    var results = FMSX.critFor(ev.skillId, band, false).map(function (c) { return { id: c.id, met: !!marks[c.id] }; });
+    $('fmEvSave').disabled = true; $('fmEvSaveNext').disabled = true; $('fmEvStatus').className = 'status'; $('fmEvStatus').textContent = '저장 중…';
+    api('fms_t_saveEvaluation', TOKEN, { studentId: stu.id, skillId: ev.skillId, band: band, results: results, memo: $('fmEvMemo').value }).then(function (r) {
+      var map = {}; results.forEach(function (x) { map[x.id] = x.met ? 1 : 0; });
+      if (!D.latestTeacher[stu.id]) D.latestTeacher[stu.id] = {};
+      D.latestTeacher[stu.id][ev.skillId] = { band: band, at: r.at, results: map };
+      dirty = false; toast(stu.name + ' 관찰평가를 저장했습니다');
+      if (!(next && moveStudent(1))) renderEval();
+    }).catch(function (e) { $('fmEvSave').disabled = false; $('fmEvSaveNext').disabled = false; $('fmEvStatus').textContent = ''; handleErr(e); });
+  }
+  $('fmEvSave').onclick = function () { saveEval(false); };
+  $('fmEvSaveNext').onclick = function () { saveEval(true); };
+
+  /* ================= 승인 대기 ================= */
+  function renderPending() {
+    setNavCount('FMS', 'pending', D.pending.length);
+    $('fmPendEmpty').classList.toggle('hide', D.pending.length > 0);
+    $('fmPendList').innerHTML = D.pending.map(pendCard).join('');
+    var box = $('fmPendList');
+    Array.prototype.forEach.call(box.querySelectorAll('[data-approve]'), function (b) { b.onclick = function () { decide(b.getAttribute('data-approve'), true); }; });
+    Array.prototype.forEach.call(box.querySelectorAll('[data-reject]'), function (b) { b.onclick = function () { rejecting = b.getAttribute('data-reject'); renderPending(); }; });
+    Array.prototype.forEach.call(box.querySelectorAll('[data-cancel]'), function (b) { b.onclick = function () { rejecting = null; renderPending(); }; });
+    Array.prototype.forEach.call(box.querySelectorAll('[data-send]'), function (b) {
+      b.onclick = function () {
+        var id = b.getAttribute('data-send'), card = b.closest('.pend-card');
+        var fb = card.querySelector('input[type=radio]:checked');
+        var unmet = Array.prototype.map.call(card.querySelectorAll('input[data-unmet]:checked'), function (x) { return x.getAttribute('data-unmet'); });
+        decide(id, false, fb ? fb.value : '', unmet);
+      };
+    });
+  }
+  function pendCard(a) {
+    var s = studentById(a.studentId), l = FMSX.level(a.levelId), k = l ? FMSX.skill(l.skillId) : null;
+    var peer = findOne(D.students, function (x) { return x.id === a.peerId; });
+    var head = '<div class="pc-head"><b>' + esc(s ? s.name : a.studentId) + '</b>' + (s ? '<span class="unit">' + s.grade + '학년 ' + s.cls + '반</span>' : '') +
+      (k ? '<span class="tag ' + FMSX.catInfo(k.category)[2] + '">' + esc(k.name) + '</span>' : '') + (l ? FMSX.bandTag(l.band) : '') +
+      '<div class="spacer"></div><span class="unit">확인한 짝 ' + esc(peer ? peer.name : a.peerId) + ' · ' + esc(a.at.slice(5)) + '</span></div>';
+    var body = '';
+    if (!l) body = '<p class="unit">' + esc(a.levelId) + ' 단계를 찾을 수 없습니다. 기준표에서 사용이 꺼졌는지 확인하세요.</p>';
+    else {
+      var crit = FMSX.critFor(l.skillId, l.band, false);
+      body += '<p class="pc-task">' + l.step + '단계: ' + esc(l.task) + '</p><div class="unit">통과 조건: ' + esc(FMSX.condText(l, false)) + '</div>';
+      if (l.type !== '준거') {
+        var ok = FMSX.recordMet(l, a.record);
+        body += '<p style="margin:8px 0 0">기록 <b>' + (a.record === '' ? '없음' : esc(a.record) + esc(l.unit)) + '</b> ' + (ok === null ? '' : '<span class="tag ' + (ok ? 'green' : 'coral') + '">' + (ok ? '기준 충족' : '기준 미달') + '</span>') + '</p>';
+      }
+      if (l.type !== '기록') {
+        var checked = 0, met = 0;
+        crit.forEach(function (c) { var v = a.peerResults[c.id]; if (v !== undefined) { checked++; if (v) met++; } });
+        if (checked) {
+          var enough = l.need === null ? null : met >= l.need;
+          body += '<p style="margin:8px 0 0">짝 체크 <b>' + met + '/' + checked + '</b> <span class="unit">(필요 ' + l.need + '개)</span> ' + (enough === null ? '' : '<span class="tag ' + (enough ? 'green' : 'coral') + '">' + (enough ? '기준 충족' : '기준 미달') + '</span>') + '</p>';
+          body += '<ul class="plist">' + crit.map(function (c) { var v = a.peerResults[c.id]; return '<li class="' + (v === 1 ? 'y' : v === 0 ? 'n' : '') + '"><i class="ti ti-' + (v === 1 ? 'circle-check' : v === 0 ? 'circle-x' : 'minus') + '"></i>' + esc(c.teacher) + '</li>'; }).join('') + '</ul>';
+        } else body += '<p class="unit" style="margin:8px 0 0">짝이 동작 체크 없이 확인했습니다(저학년). 동작은 직접 봐 주세요.</p>';
+      }
+      if (rejecting === a.id) {
+        var unmet = {}; a.unmet.forEach(function (id) { unmet[id] = true; });
+        body += '<div class="reject-box"><div class="field"><label>학생에게 보낼 말</label></div>' +
+          FMSX.app.feedback.map(function (f, i) { return '<label class="opt"><input type="radio" name="fmfb_' + esc(a.id) + '" value="' + esc(f.id) + '"' + (i === 0 ? ' checked' : '') + '><span>' + esc(f.text) + '</span></label>'; }).join('') +
+          (crit.length ? '<div class="field" style="margin-top:8px"><label>더 연습할 동작 (학생 화면에 쉬운 말로 보여요)</label></div>' + crit.map(function (c) { return '<label class="opt"><input type="checkbox" data-unmet="' + esc(c.id) + '"' + (unmet[c.id] ? ' checked' : '') + '><span>' + esc(c.teacher) + '</span></label>'; }).join('') : '') + '</div>';
+      }
+    }
+    var actions = rejecting === a.id
+      ? '<button class="ghost" data-cancel="1">취소</button><button class="coral" data-send="' + esc(a.id) + '"><i class="ti ti-send"></i>반려 보내기</button>'
+      : '<button class="danger" data-reject="' + esc(a.id) + '"><i class="ti ti-x"></i>반려</button><button data-approve="' + esc(a.id) + '"><i class="ti ti-award"></i>승인</button>';
+    return '<div class="panel pend-card">' + head + '<div class="pc-body">' + body + '</div><div class="savebar"><div class="spacer"></div>' + actions + '</div></div>';
+  }
+  function decide(appId, approve, feedbackId, unmet) {
+    var a = findOne(D.pending, function (x) { return x.id === appId; });
+    api('fms_t_decide', TOKEN, { appId: appId, approve: approve, feedbackId: feedbackId || '', unmet: unmet || [] }).then(function () {
+      D.pending = D.pending.filter(function (x) { return x.id !== appId; });
+      if (approve && a) { if (!D.approved[a.studentId]) D.approved[a.studentId] = {}; D.approved[a.studentId][a.levelId] = 1; }
+      rejecting = null; toast(approve ? '승인했습니다' : '반려했습니다'); renderPending();
+    }).catch(handleErr);
+  }
+
+  /* ================= 학급 현황 ================= */
+  function renderOverview() {
+    var bandSel = $('fmOvBand').value;
+    var list = D.students.filter(function (s) { return bandSel === '전체' || s.band === bandSel; });
+    $('fmOvHead').innerHTML = '<tr><th>학생</th>' + FMSX.app.skills.map(function (k) { return '<th>' + esc(k.name) + '</th>'; }).join('') + '</tr>';
+    $('fmOvRows').innerHTML = list.map(function (s) {
+      var adj = D.adjust[s.id] || {}, appr = D.approved[s.id] || {};
+      return '<tr><td class="name">' + esc(s.grade + '-' + s.cls + ' ' + s.name) + '</td>' + FMSX.app.skills.map(function (k) {
+        var band = FMSX.bandOf(s, adj, k.id), lv = FMSX.levelsFor(k.id, band);
+        if (!lv.length) return '<td class="na">–</td>';
+        var n = lv.filter(function (l) { return appr[l.id]; }).length;
+        return '<td class="' + (n === lv.length ? 'full' : n ? 'some' : '') + '" title="' + band + '학년군' + (adj[k.id] ? ' (조정)' : '') + '">' + n + '/' + lv.length + '</td>';
+      }).join('') + '</tr>';
+    }).join('') || '<tr><td colspan="' + (FMSX.app.skills.length + 1) + '" class="unit" style="padding:16px;text-align:left">해당하는 학생이 없습니다</td></tr>';
+    if (!ov.skillId || !FMSX.skill(ov.skillId)) ov.skillId = FMSX.app.skills.length ? FMSX.app.skills[0].id : null;
+    $('fmStSkill').innerHTML = FMSX.app.skills.map(function (k) { return '<option value="' + esc(k.id) + '"' + (k.id === ov.skillId ? ' selected' : '') + '>' + esc(k.name) + '</option>'; }).join('');
+    var bands = ['저', '중', '고'].filter(function (b) { return ov.skillId && FMSX.critFor(ov.skillId, b, false).length; });
+    if (bands.indexOf(ov.band) < 0) ov.band = bands[0] || null;
+    $('fmStBand').innerHTML = bands.map(function (b) { return '<option value="' + b + '"' + (b === ov.band ? ' selected' : '') + '>' + b + '학년군</option>'; }).join('');
+    var crit = ov.band ? FMSX.critFor(ov.skillId, ov.band, false) : [], evaluated = 0, metC = {}, seenC = {};
+    D.students.forEach(function (s) {
+      var e = (D.latestTeacher[s.id] || {})[ov.skillId];
+      if (!e || e.band !== ov.band) return;
+      evaluated++;
+      crit.forEach(function (c) { if (e.results[c.id] === undefined) return; seenC[c.id] = (seenC[c.id] || 0) + 1; if (e.results[c.id]) metC[c.id] = (metC[c.id] || 0) + 1; });
+    });
+    if (!evaluated) { $('fmOvStats').innerHTML = '<div class="unit">이 기술과 학년군으로 관찰평가를 저장하면 준거별 달성률이 나타납니다.</div>'; return; }
+    var pcts = crit.map(function (c) { return seenC[c.id] ? Math.round((metC[c.id] || 0) / seenC[c.id] * 100) : null; });
+    var valid = pcts.filter(function (x) { return x !== null; }), lowest = valid.length > 1 ? Math.min.apply(null, valid) : null;
+    $('fmOvStats').innerHTML = '<div class="unit" style="margin-bottom:6px">학생 ' + evaluated + '명의 가장 최근 교사 관찰 기준 · 가장 낮은 준거는 주황색</div>' +
+      crit.map(function (c, i) { var v = pcts[i]; return '<div class="stat-row' + (v !== null && v === lowest ? ' low' : '') + '"><span>' + esc(c.teacher) + '</span><div class="prog' + (v !== null && v === lowest ? ' coral' : '') + '"><i style="width:' + (v || 0) + '%"></i></div><span class="v">' + (v === null ? '–' : v + '%') + '</span></div>'; }).join('');
+  }
+  $('fmOvBand').onchange = function () { if (D) renderOverview(); };
+  $('fmStSkill').onchange = function () { ov.skillId = this.value; renderOverview(); };
+  $('fmStBand').onchange = function () { ov.band = this.value; renderOverview(); };
+
+  /* ================= 학년군 조정 ================= */
+  function filteredStudents() { var f = $('fmStuFilter').value; return D.students.filter(function (s) { return !f || String(s.grade) === f; }); }
+  function renderStudents() {
+    var cur = $('fmStuFilter').value;
+    $('fmStuFilter').innerHTML = '<option value="">전체</option>' + grades().map(function (g) { return '<option value="' + g + '"' + (String(g) === cur ? ' selected' : '') + '>' + g + '학년</option>'; }).join('');
+    var list = filteredStudents();
+    $('fmChkAll').checked = false;
+    $('fmStuEmpty').classList.toggle('hide', list.length > 0);
+    $('fmStuRows').innerHTML = list.map(function (s) {
+      var adjN = Object.keys(D.adjust[s.id] || {}).length, c = passedCount(s);
+      return '<tr><td><input type="checkbox" data-stu="' + esc(s.id) + '"></td><td class="num">' + s.grade + '</td><td class="num">' + esc(s.cls) + '</td><td class="num">' + s.no + '</td>' +
+        '<td class="name">' + esc(s.name) + '</td><td style="white-space:nowrap"><select class="band-sel" data-band="' + esc(s.id) + '">' +
+          '<option value=""' + (s.bandFixed ? '' : ' selected') + '>자동 (' + esc(s.baseBand || '-') + ')</option>' +
+          ['저', '중', '고'].map(function (b) { return '<option value="' + b + '"' + (s.bandFixed && s.band === b ? ' selected' : '') + '>' + b + '학년군</option>'; }).join('') +
+          '</select> <button class="mini ' + (adjN ? 'soft' : 'ghost') + '" data-skillband="' + esc(s.id) + '">기술별' + (adjN ? ' ' + adjN : '') + '</button></td>' +
+        '<td class="unit">' + c.n + '/' + c.total + '</td></tr>';
+    }).join('');
+    Array.prototype.forEach.call($('fmStuRows').querySelectorAll('[data-band]'), function (sel) { sel.onchange = function () { setBands([sel.getAttribute('data-band')], sel.value); }; });
+    Array.prototype.forEach.call($('fmStuRows').querySelectorAll('[data-skillband]'), function (b) { b.onclick = function () { openSkillBands(studentById(b.getAttribute('data-skillband'))); }; });
+  }
+  $('fmStuFilter').onchange = function () { if (D) renderStudents(); };
+  $('fmChkAll').onchange = function () { var on = this.checked; Array.prototype.forEach.call($('fmStuRows').querySelectorAll('[data-stu]'), function (cb) { cb.checked = on; }); };
+  function selectedIds() { return Array.prototype.map.call($('fmStuRows').querySelectorAll('[data-stu]:checked'), function (cb) { return cb.getAttribute('data-stu'); }); }
+  function setBands(ids, band) {
+    api('fms_t_setStudentBands', TOKEN, ids, band).then(function (r) {
+      if (!r.ok) { toast(r.message, 'err'); return; }
+      D.students = r.students; D.adjust = r.adjust; renderStudents();
+      toast(r.count + '명의 학년군을 ' + (band ? band + '학년군으로' : '학년 기준으로') + ' 바꿨습니다');
+    }).catch(handleErr);
+  }
+  $('fmBtnBand').onclick = function () { var ids = selectedIds(); if (!ids.length) { toast('표에서 학생을 먼저 선택해 주세요', 'err'); return; } setBands(ids, $('fmBandBulk').value); };
+  var bandStudent = null;
+  function openSkillBands(s) {
+    bandStudent = s;
+    var adj = D.adjust[s.id] || {};
+    $('fmMbTitle').innerHTML = '<i class="ti ti-adjustments"></i>' + esc(s.name) + ' 기술별 학년군';
+    $('fmMbSub').innerHTML = '기본 학년군 ' + FMSX.bandTag(s.band, s.bandFixed) + ' 바꾸고 싶은 기술만 골라 주세요.';
+    $('fmMbRows').innerHTML = FMSX.app.skills.map(function (k) {
+      var cur = adj[k.id] || '';
+      return '<tr><td class="name">' + esc(k.name) + '</td><td><select data-mb="' + esc(k.id) + '"><option value=""' + (cur ? '' : ' selected') + '>기본 따름 (' + esc(s.band) + ')</option>' +
+        ['저', '중', '고'].map(function (b) { return '<option value="' + b + '"' + (cur === b ? ' selected' : '') + '>' + b + '학년군</option>'; }).join('') + '</select></td></tr>';
+    }).join('');
+    $('fmMbReason').value = ''; $('fmMbStatus').textContent = '';
+    $('fmMdBands').classList.remove('hide');
+  }
+  $('fmBtnBandsSave').onclick = function () {
+    if (!bandStudent) return;
+    var map = {};
+    Array.prototype.forEach.call($('fmMbRows').querySelectorAll('[data-mb]'), function (sel) { if (sel.value) map[sel.getAttribute('data-mb')] = sel.value; });
+    var btn = this; btn.disabled = true; $('fmMbStatus').className = 'status'; $('fmMbStatus').textContent = '저장 중…';
+    api('fms_t_saveSkillBands', TOKEN, bandStudent.id, map, $('fmMbReason').value).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { $('fmMbStatus').className = 'status err'; $('fmMbStatus').textContent = r.message; return; }
+      D.adjust = r.adjust; $('fmMdBands').classList.add('hide'); renderStudents();
+      toast(bandStudent.name + ': 기술 ' + r.count + '개 조정');
+    }).catch(function (e) { btn.disabled = false; handleErr(e); });
+  };
+
+  /* ================= 기준표 ================= */
+  function renderStandards() {
+    UNSAVED.check = function () { return sdDirty ? 'FMS 기준표 수정 내용' : ''; };
+    if (!SD) {
+      $('fmSdCrit').innerHTML = '<tr><td colspan="5" class="unit" style="padding:14px">불러오는 중…</td></tr>';
+      api('fms_t_getStandards', TOKEN).then(function (d) { SD = d; renderStandards(); }).catch(handleErr);
+      return;
+    }
+    if (!findOne(SD.skills, function (k) { return k.id === sd.skillId; })) sd.skillId = SD.skills.length ? SD.skills[0].id : null;
+    $('fmSdSkill').innerHTML = SD.skills.map(function (k) { return '<option value="' + esc(k.id) + '"' + (k.id === sd.skillId ? ' selected' : '') + '>' + esc(k.name) + (k.use ? '' : ' (사용 안 함)') + '</option>'; }).join('');
+    $('fmSdBand').value = sd.band;
+    var k = findOne(SD.skills, function (x) { return x.id === sd.skillId; });
+    $('fmSdSkillInfo').innerHTML = k ? '<span class="tag ' + FMSX.catInfo(k.category)[2] + '">' + esc(k.category) + '</span> ' + esc(k.desc) : '';
+    sdDirty = false; $('fmSdStatus').textContent = '';
+    var crit = SD.criteria.filter(function (c) { return c.skillId === sd.skillId && c.band === sd.band; });
+    $('fmSdCrit').innerHTML = crit.map(critRow).join('');
+    var lv = SD.levels.filter(function (l) { return l.skillId === sd.skillId && l.band === sd.band; });
+    $('fmSdLevels').innerHTML = lv.map(levelRow).join('');
+    if (!crit.length) addRow('fmSdCrit', critRow({ order: 1, show: true, use: true }));
+    if (!lv.length) addRow('fmSdLevels', levelRow({ step: 1, type: '준거', dir: '이상', use: true }));
+    bindStdRows();
+    $('fmSdFeedback').innerHTML = SD.feedback.map(fbRow).join('');
+  }
+  function yesBox(on, cls) { return '<input type="checkbox" class="' + cls + '"' + (on ? ' checked' : '') + '>'; }
+  function critRow(c) {
+    return '<tr data-id="' + esc(c.id || '') + '"' + (c.use === false ? ' class="off"' : '') + '><td><input type="number" class="f-order" min="1" value="' + esc(c.order || '') + '"></td>' +
+      '<td><input type="text" class="f-teacher" value="' + esc(c.teacher || '') + '" placeholder="예: 팔을 뒤로 보냈다가 앞으로 흔든다"></td>' +
+      '<td><input type="text" class="f-student" value="' + esc(c.student || '') + '" placeholder="비우면 교사용 문장 사용"></td>' +
+      '<td class="c">' + yesBox(c.show !== false, 'f-show') + '</td><td class="c">' + yesBox(c.use !== false, 'f-use') + '</td></tr>';
+  }
+  function levelRow(l) {
+    var t = l.type || '준거';
+    return '<tr data-id="' + esc(l.id || '') + '"' + (l.use === false ? ' class="off"' : '') + '><td><input type="number" class="f-step" min="1" value="' + esc(l.step || '') + '"></td>' +
+      '<td><input type="text" class="f-task" value="' + esc(l.task || '') + '" placeholder="예: 두발 멀리뛰기"></td>' +
+      '<td><select class="f-type">' + ['기록', '준거', '혼합'].map(function (x) { return '<option' + (x === t ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></td>' +
+      '<td><input type="number" class="f-target" step="any" value="' + (l.target === null || l.target === undefined ? '' : esc(l.target)) + '"></td>' +
+      '<td><input type="text" class="f-unit" value="' + esc(l.unit || '') + '" style="min-width:50px;width:60px"></td>' +
+      '<td><select class="f-dir"><option' + (l.dir === '이하' ? '' : ' selected') + '>이상</option><option' + (l.dir === '이하' ? ' selected' : '') + '>이하</option></select></td>' +
+      '<td><input type="number" class="f-need" min="1" value="' + (l.need === null || l.need === undefined ? '' : esc(l.need)) + '"></td>' +
+      '<td><input type="text" class="f-note" value="' + esc(l.note || '') + '"></td><td class="c">' + yesBox(l.use !== false, 'f-use') + '</td></tr>';
+  }
+  function fbRow(f) { return '<div class="field" style="margin-bottom:8px" data-fb="' + esc(f.id || '') + '"><input type="text" class="f-fb" value="' + esc(f.text || '') + '" placeholder="예: 거의 다 왔어요! 한 번만 더 해 볼까요?"></div>'; }
+  function addRow(tbodyId, html) { var tmp = document.createElement('tbody'); tmp.innerHTML = html; $(tbodyId).appendChild(tmp.firstChild); }
+  function syncTypeInputs(tr) {
+    var t = tr.querySelector('.f-type').value;
+    ['f-target', 'f-unit', 'f-dir'].forEach(function (c) { tr.querySelector('.' + c).disabled = t === '준거'; });
+    tr.querySelector('.f-need').disabled = t === '기록';
+  }
+  function bindStdRows() {
+    ['fmSdCrit', 'fmSdLevels'].forEach(function (id) {
+      Array.prototype.forEach.call($(id).querySelectorAll('tr'), function (tr) {
+        Array.prototype.forEach.call(tr.querySelectorAll('input,select'), function (el) {
+          el.oninput = el.onchange = function () { sdDirty = true; if (el.classList.contains('f-use')) tr.classList.toggle('off', !el.checked); if (el.classList.contains('f-type')) syncTypeInputs(tr); };
+        });
+        if (tr.querySelector('.f-type')) syncTypeInputs(tr);
+      });
+    });
+  }
+  function guardStd(sel, apply) {
+    var before = null;
+    sel.onfocus = function () { before = sel.value; };
+    sel.onchange = function () { if (!confirmLeave()) { if (before !== null) sel.value = before; return; } apply(sel.value); renderStandards(); };
+  }
+  guardStd($('fmSdSkill'), function (v) { sd.skillId = v; });
+  guardStd($('fmSdBand'), function (v) { sd.band = v; });
+  $('fmSdCritAdd').onclick = function () { addRow('fmSdCrit', critRow({ order: $('fmSdCrit').querySelectorAll('tr').length + 1, show: true, use: true })); bindStdRows(); sdDirty = true; };
+  $('fmSdLevelAdd').onclick = function () { addRow('fmSdLevels', levelRow({ step: $('fmSdLevels').querySelectorAll('tr').length + 1, type: '준거', dir: '이상', use: true })); bindStdRows(); sdDirty = true; };
+  $('fmSdSave').onclick = function () {
+    var val = function (tr, c) { var el = tr.querySelector('.' + c); return el ? el.value : ''; };
+    var chk = function (tr, c) { var el = tr.querySelector('.' + c); return el ? el.checked : true; };
+    var criteria = Array.prototype.map.call($('fmSdCrit').querySelectorAll('tr'), function (tr) { return { id: tr.getAttribute('data-id'), order: val(tr, 'f-order'), teacher: val(tr, 'f-teacher'), student: val(tr, 'f-student'), show: chk(tr, 'f-show'), use: chk(tr, 'f-use') }; });
+    var levels = Array.prototype.map.call($('fmSdLevels').querySelectorAll('tr'), function (tr) { return { id: tr.getAttribute('data-id'), step: val(tr, 'f-step'), task: val(tr, 'f-task'), type: val(tr, 'f-type'), target: val(tr, 'f-target'), unit: val(tr, 'f-unit'), dir: val(tr, 'f-dir'), need: val(tr, 'f-need'), note: val(tr, 'f-note'), use: chk(tr, 'f-use') }; });
+    var btn = this; btn.disabled = true; $('fmSdStatus').className = 'status'; $('fmSdStatus').textContent = '저장 중…';
+    api('fms_t_saveStandards', TOKEN, { skillId: sd.skillId, band: sd.band, criteria: criteria, levels: levels }).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { $('fmSdStatus').className = 'status err'; $('fmSdStatus').textContent = r.message; return; }
+      SD = r.standards; sdDirty = false;
+      return reload().then(function () { renderStandards(); $('fmSdStatus').className = 'status ok'; $('fmSdStatus').textContent = '저장했습니다. 학생 화면에 바로 반영됩니다.'; toast('기준표를 저장했습니다'); });
+    }).catch(function (e) { btn.disabled = false; $('fmSdStatus').textContent = ''; handleErr(e); });
+  };
+  function openSkill(k) {
+    $('fmMkTitle').innerHTML = '<i class="ti ti-run"></i>' + (k ? '기술 정보 수정' : '새 기술 추가');
+    $('fmMkId').value = k ? k.id : ''; $('fmMkName').value = k ? k.name : ''; $('fmMkCat').value = k ? k.category : '이동';
+    $('fmMkDesc').value = k ? k.desc : ''; $('fmMkGear').value = k ? k.gear : ''; $('fmMkBands').value = k && k.bands ? k.bands : '저·중·고';
+    $('fmMkUse').checked = k ? k.use : true; $('fmMkUse').parentNode.classList.toggle('on', $('fmMkUse').checked);
+    $('fmMkStatus').textContent = ''; $('fmMdSkill').classList.remove('hide');
+  }
+  $('fmMkUse').onchange = function () { this.parentNode.classList.toggle('on', this.checked); };
+  $('fmSdSkillEdit').onclick = function () { var k = SD && findOne(SD.skills, function (x) { return x.id === sd.skillId; }); if (k) openSkill(k); };
+  $('fmSdSkillAdd').onclick = function () { if (confirmLeave()) openSkill(null); };
+  $('fmBtnSkillSave').onclick = function () {
+    var btn = this; btn.disabled = true; $('fmMkStatus').className = 'status'; $('fmMkStatus').textContent = '저장 중…';
+    api('fms_t_saveSkill', TOKEN, { id: $('fmMkId').value, name: $('fmMkName').value, category: $('fmMkCat').value, desc: $('fmMkDesc').value, gear: $('fmMkGear').value, bands: $('fmMkBands').value, use: $('fmMkUse').checked }).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { $('fmMkStatus').className = 'status err'; $('fmMkStatus').textContent = r.message; return; }
+      SD = r.standards; sd.skillId = r.id; $('fmMdSkill').classList.add('hide');
+      return reload().then(function () { renderStandards(); toast('기술 정보를 저장했습니다'); });
+    }).catch(function (e) { btn.disabled = false; handleErr(e); });
+  };
+  $('fmSdFbAdd').onclick = function () { var d = document.createElement('div'); d.innerHTML = fbRow({}); $('fmSdFeedback').appendChild(d.firstChild); };
+  $('fmSdFbSave').onclick = function () {
+    var list = Array.prototype.map.call($('fmSdFeedback').querySelectorAll('[data-fb]'), function (el) { return { id: el.getAttribute('data-fb'), text: el.querySelector('input').value }; });
+    var btn = this; btn.disabled = true;
+    api('fms_t_saveFeedback', TOKEN, list).then(function (r) {
+      btn.disabled = false; SD = r.standards;
+      return reload().then(function () { $('fmSdFeedback').innerHTML = SD.feedback.map(fbRow).join(''); $('fmSdFbStatus').className = 'status ok'; $('fmSdFbStatus').textContent = '저장했습니다'; });
+    }).catch(function (e) { btn.disabled = false; handleErr(e); });
+  };
+
+  return { nav: nav, init: init, show: show, reset: reset, pendingPage: 'pending' };
+})();
+</script>

@@ -1,0 +1,476 @@
+<!-- 건강체력교실 · 학생 화면 (모듈 FIT, 역할 S) -->
+<style>
+/* 학생 화면 전용 — 모두 #fit_S 아래에만 적용 */
+#fit_S .s-hero{background:linear-gradient(135deg,#14A085 0%,#3CC4A5 55%,#8FE3CD 100%);color:#fff;border-radius:20px;padding:22px 24px;margin-bottom:18px;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden;box-shadow:0 16px 40px -18px rgba(20,160,133,.6);}
+#fit_S .s-hero::before{content:'';position:absolute;right:-30px;top:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.14);}
+#fit_S .s-hero h2{margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.04em;position:relative;}
+#fit_S .s-hero p{margin:0;opacity:.9;font-size:14px;position:relative;}
+#fit_S .s-hero .ring{position:relative;width:104px;height:104px;flex-shrink:0;}
+#fit_S .s-hero .ring svg{width:104px;height:104px;transform:rotate(-90deg);}
+#fit_S .s-hero .ring .bg{fill:none;stroke:rgba(255,255,255,.28);stroke-width:10;}
+#fit_S .s-hero .ring .fg{fill:none;stroke:#fff;stroke-width:10;stroke-linecap:round;transition:stroke-dasharray .6s ease;}
+#fit_S .s-hero .ring .txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;line-height:1;}
+#fit_S .s-hero .ring .txt b{font-size:24px;letter-spacing:-.04em;}
+#fit_S .s-hero .ring .txt small{font-size:11px;opacity:.9;font-weight:600;margin-top:3px;}
+#fit_S .s-hero .stats{display:flex;gap:10px;flex-wrap:wrap;position:relative;}
+#fit_S .s-hero .stat{background:rgba(255,255,255,.18);border-radius:14px;padding:10px 14px;min-width:96px;}
+#fit_S .s-hero .stat .l{font-size:11.5px;opacity:.9;font-weight:600;}
+#fit_S .s-hero .stat .v{font-size:22px;font-weight:800;letter-spacing:-.04em;line-height:1.15;}
+#fit_S .s-hero .stat .v small{font-size:12px;opacity:.85;margin-left:2px;}
+
+#fit_S .place-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+#fit_S .place-pick button{padding:12px;border-radius:12px;background:#fff;color:var(--ink-2);border:1.5px solid var(--line);font-size:15px;}
+#fit_S .place-pick button[aria-selected=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);}
+#fit_S .fac-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+#fit_S .fac-tabs button{background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:99px;padding:7px 13px;font-size:13.5px;}
+#fit_S .fac-tabs button[aria-selected=true].f1{border-color:var(--f1);background:var(--coral-soft);color:#C4522F;}
+#fit_S .fac-tabs button[aria-selected=true].f2{border-color:var(--f2);background:var(--violet-soft);color:#4B43C9;}
+#fit_S .fac-tabs button[aria-selected=true].f3{border-color:var(--f3);background:var(--green-soft);color:#177A4E;}
+#fit_S .fac-tabs button[aria-selected=true].f4{border-color:var(--f4);background:var(--sun-soft);color:#946C00;}
+#fit_S .ev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+#fit_S .ev-grid button{background:#fff;color:var(--ink);border:1.5px solid var(--line);border-radius:12px;padding:12px 10px;flex-direction:column;gap:2px;font-weight:700;}
+#fit_S .ev-grid button small{font-weight:500;color:var(--ink-3);font-size:11.5px;}
+#fit_S .ev-grid button[aria-selected=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);}
+#fit_S .amount{display:flex;align-items:center;gap:8px;}
+#fit_S .amount input{font-size:26px;font-weight:800;text-align:center;width:150px;padding:8px;border-radius:12px;letter-spacing:-.03em;}
+#fit_S .amount .u{font-size:16px;color:var(--ink-2);font-weight:700;}
+#fit_S .amount button{border-radius:12px;padding:10px 14px;}
+#fit_S .pts-preview{display:inline-flex;align-items:center;gap:6px;background:var(--sun-soft);color:#946C00;padding:6px 12px;border-radius:99px;font-weight:800;}
+#fit_S .bigsave{width:100%;padding:15px;font-size:17px;border-radius:14px;}
+#fit_S .chk{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:#fff;}
+#fit_S .chk input{width:18px;height:18px;accent-color:var(--accent);margin:0;}
+#fit_S .chk.on{border-color:var(--accent);background:var(--accent-soft);}
+
+#fit_S .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+#fit_S .badge-card{border:1px solid var(--line);border-radius:16px;padding:14px 12px;text-align:center;background:#fff;position:relative;}
+#fit_S .badge-card .ic{width:54px;height:54px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:26px;background:var(--line-2);color:var(--ink-3);}
+#fit_S .badge-card.on .ic{background:linear-gradient(135deg,#FFD66B,#F5B301);color:#fff;box-shadow:0 8px 18px -8px rgba(245,179,1,.7);}
+#fit_S .badge-card.on{border-color:#F1DDA0;background:#FFFCF2;}
+#fit_S .badge-card b{display:block;font-size:14px;letter-spacing:-.02em;}
+#fit_S .badge-card small{display:block;color:var(--ink-3);font-size:11.5px;margin-top:3px;line-height:1.35;}
+#fit_S .badge-card .prog{margin-top:8px;}
+#fit_S .badge-card:not(.on) .ic i{opacity:.6;}
+
+#fit_S .rec-item{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line-2);}
+#fit_S .rec-item:last-child{border-bottom:none;}
+#fit_S .rec-item .d{width:64px;font-size:12.5px;color:var(--ink-3);font-weight:600;flex-shrink:0;}
+#fit_S .rec-item .m{flex:1;min-width:0;}
+#fit_S .rec-item .m b{letter-spacing:-.02em;}
+#fit_S .rec-item .m .note-txt{font-size:13px;color:var(--ink-2);margin-top:2px;}
+#fit_S .rec-item .p{font-weight:800;color:var(--accent-dk);white-space:nowrap;}
+
+#fit_S .chart-wrap{display:flex;gap:6px;align-items:flex-end;height:150px;padding:8px 0 0;}
+#fit_S .chart-wrap .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;}
+#fit_S .chart-wrap .colbar{width:100%;max-width:34px;border-radius:8px 8px 3px 3px;background:var(--line);position:relative;transition:height .5s ease;}
+#fit_S .chart-wrap .colbar.on{background:linear-gradient(180deg,#3CC4A5,var(--accent));}
+#fit_S .chart-wrap .colbar.now{outline:2px dashed var(--accent);outline-offset:2px;}
+#fit_S .chart-wrap .goal{position:absolute;left:-4px;right:-4px;border-top:2px dashed var(--coral);}
+#fit_S .chart-wrap .lbl{font-size:10.5px;color:var(--ink-3);}
+#fit_S .chart-wrap .v{font-size:11.5px;font-weight:700;color:var(--ink-2);}
+
+#fsCelebrate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:150;pointer-events:none;}
+#fsCelebrate .card{background:#fff;border-radius:22px;padding:26px 34px;text-align:center;box-shadow:0 30px 80px -20px rgba(0,0,0,.4);animation:fsPop .5s cubic-bezier(.2,1.4,.4,1);}
+#fsCelebrate .card i{font-size:54px;color:var(--sun);display:block;margin-bottom:6px;}
+#fsCelebrate .card b{font-size:22px;letter-spacing:-.03em;}
+#fsCelebrate .card p{margin:4px 0 0;color:var(--ink-2);}
+@keyframes fsPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@media (max-width:900px){ #fit_S .s-hero{padding:18px;} #fit_S .s-hero .ring{width:88px;height:88px;} #fit_S .s-hero .ring svg{width:88px;height:88px;} }
+</style>
+
+<div class="mroot hide" data-mod="FIT" data-role="S" id="fit_S">
+
+  <!-- ===== 홈: 오늘 기록하기 ===== -->
+  <div class="page" id="fit_sp_home">
+    <div class="s-hero">
+      <div class="ring">
+        <svg viewBox="0 0 104 104"><circle class="bg" cx="52" cy="52" r="46"></circle><circle class="fg" id="fsRingFg" cx="52" cy="52" r="46" stroke-dasharray="0 289"></circle></svg>
+        <div class="txt"><b id="fsRingPct">0%</b><small>이번 주</small></div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <h2 id="fsHeroTitle">안녕!</h2>
+        <p id="fsHeroSub"></p>
+        <div class="stats" style="margin-top:12px">
+          <div class="stat"><div class="l">이번 주 운동</div><div class="v"><span id="fsWeekCnt">0</span><small id="fsWeekGoal">/3회</small></div></div>
+          <div class="stat"><div class="l">이번 주 포인트</div><div class="v"><span id="fsWeekPts">0</span><small id="fsWeekPtsGoal">/50p</small></div></div>
+          <div class="stat"><div class="l">누적 포인트</div><div class="v"><span id="fsTotPts">0</span><small>p</small></div></div>
+          <div class="stat"><div class="l">배지</div><div class="v"><span id="fsBadgeCnt">0</span><small>개</small></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="fsHomeNotes"></div>
+
+    <div class="grid g2" style="align-items:start">
+      <div class="panel" style="margin:0">
+        <div class="panel-head"><h3><i class="ti ti-pencil-plus"></i>오늘 운동 기록하기</h3><div class="spacer"></div><input type="date" id="fsDate" style="padding:6px 9px"></div>
+        <div class="panel-body">
+          <div class="field" style="margin-bottom:12px"><label>어디에서 했나요?</label>
+            <div class="place-pick">
+              <button id="fsPlClass" aria-selected="true"><i class="ti ti-building"></i>건강체력교실</button>
+              <button id="fsPlHome" aria-selected="false"><i class="ti ti-home"></i>집에서</button>
+            </div>
+          </div>
+          <label class="chk on" id="fsChkAttWrap" style="margin-bottom:12px"><input type="checkbox" id="fsChkAtt" checked><span>오늘 건강체력교실에 <b>출석</b>했어요</span></label>
+
+          <div class="field" style="margin-bottom:10px"><label>어떤 체력 요소?</label><div class="fac-tabs" id="fsFacTabs"></div></div>
+          <div class="field" style="margin-bottom:14px"><label>무슨 운동?</label><div class="ev-grid" id="fsEvGrid"></div></div>
+
+          <div class="field" style="margin-bottom:14px"><label>얼마나 했나요?</label>
+            <div class="amount">
+              <button class="ghost" id="fsAmtMinus"><i class="ti ti-minus"></i></button>
+              <input type="number" id="fsAmount" min="1" inputmode="numeric" placeholder="0">
+              <span class="u" id="fsUnit">회</span>
+              <button class="ghost" id="fsAmtPlus"><i class="ti ti-plus"></i></button>
+              <div class="spacer"></div>
+              <span class="pts-preview" id="fsPtsPreview"><i class="ti ti-coin"></i>0p</span>
+            </div>
+            <span class="unit" id="fsPtsHint"></span>
+          </div>
+          <div class="field hide" id="fsPhotoWrap" style="margin-bottom:14px"><label id="fsPhotoLabel">운동 사진</label>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <label class="chk" style="padding:9px 12px;cursor:pointer"><i class="ti ti-camera" style="font-size:18px;color:var(--accent)"></i><span>사진 찍기</span><input type="file" id="fsPhotoCam" accept="image/*" capture="environment" style="display:none"></label>
+              <label class="chk" style="padding:9px 12px;cursor:pointer"><i class="ti ti-photo" style="font-size:18px;color:var(--sky)"></i><span>갤러리에서 고르기</span><input type="file" id="fsPhotoFile" accept="image/*" style="display:none"></label>
+              <div id="fsPhotoPreview" class="hide" style="position:relative"><img id="fsPhotoImg" src="" alt="" style="height:64px;border-radius:8px;display:block"><button class="mini danger" id="fsPhotoClear" style="position:absolute;top:-8px;right:-8px;padding:1px 6px;border-radius:99px"><i class="ti ti-x"></i></button></div>
+            </div>
+            <span class="unit">운동하는 모습이나 운동 기구, 앱 화면을 찍어 올려요. 선생님이 확인한 뒤에는 지워질 수 있어요.</span>
+          </div>
+          <div class="field" style="margin-bottom:14px"><label>한 줄 소감 (선택)</label>
+            <input type="text" id="fsNote" maxlength="200" placeholder="예: 줄넘기 2단 뛰기가 3번 성공했어요!"></div>
+          <button class="bigsave" id="fsBtnSave"><i class="ti ti-rocket"></i>기록 저장</button>
+          <div class="status" id="fsSaveStatus" style="margin-top:8px;text-align:center"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel" style="margin:0 0 14px">
+          <div class="panel-head"><h3><i class="ti ti-target-arrow"></i>이번 주 목표</h3><div class="spacer"></div><span class="unit" id="fsGoalWeekLabel"></span></div>
+          <div class="panel-body">
+            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
+              <div class="field"><label>운동 횟수</label><input type="number" id="fsGoalCnt" min="1" max="30" style="width:90px"></div>
+              <div class="field"><label>포인트</label><input type="number" id="fsGoalPts" min="10" max="2000" step="10" style="width:100px"></div>
+              <button class="soft" id="fsBtnGoal"><i class="ti ti-flag"></i>목표 정하기</button>
+            </div>
+            <div style="margin-top:14px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>운동 횟수</span><b id="fsGCntTxt"></b></div>
+              <div class="prog"><i id="fsGCntBar"></i></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin:10px 0 4px"><span>포인트</span><b id="fsGPtsTxt"></b></div>
+              <div class="prog coral"><i id="fsGPtsBar"></i></div>
+              <div id="fsGDone" class="hide" style="margin-top:10px;text-align:center"><span class="tag brand" style="font-size:13px;padding:6px 12px"><i class="ti ti-confetti"></i>이번 주 목표 달성! 연속 <span id="fsGStreak">0</span>주</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin:0 0 14px">
+          <div class="panel-head"><h3><i class="ti ti-calendar-event"></i>이번 달 집중 요소</h3></div>
+          <div class="panel-body" id="fsMonthPlan"></div>
+        </div>
+
+        <div class="panel" style="margin:0">
+          <div class="panel-head"><h3><i class="ti ti-history"></i>최근 기록</h3><div class="spacer"></div><button class="mini ghost" id="fsBtnGoRecords">전체 보기</button></div>
+          <div class="panel-body" id="fsRecentList" style="padding-top:6px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 내 기록 ===== -->
+  <div class="page hide" id="fit_sp_records">
+    <div class="page-head"><h2>내 운동 기록</h2><span class="sub">선생님이 확인한 기록만 포인트로 쌓입니다.</span></div>
+    <div class="kpis" id="fsRecKpis"></div>
+    <div class="grid g2" style="align-items:start;margin-bottom:14px">
+      <div class="panel" style="margin:0"><div class="panel-head"><h3><i class="ti ti-chart-bar"></i>주별 포인트</h3><div class="spacer"></div><span class="unit"><span style="display:inline-block;width:14px;border-top:2px dashed var(--coral);vertical-align:middle"></span> 목표</span></div>
+        <div class="panel-body" id="fsWeekChart"></div></div>
+      <div class="panel" style="margin:0"><div class="panel-head"><h3><i class="ti ti-chart-donut"></i>체력요소별 누적</h3></div>
+        <div class="panel-body" id="fsFactorBars"></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-list"></i>전체 기록</h3><div class="spacer"></div>
+        <select id="fsRecFilter"><option value="">전체</option><option value="확인">확인됨</option><option value="대기">확인 대기</option><option value="반려">반려</option></select></div>
+      <div class="panel-body" id="fsAllRecords"></div>
+    </div>
+  </div>
+
+  <!-- ===== 배지 ===== -->
+  <div class="page hide" id="fit_sp_badges">
+    <div class="page-head"><h2>건강체력교실 배지</h2><span class="sub" id="fsBadgeSub"></span></div>
+    <div class="badges" id="fsBadgeGrid"></div>
+  </div>
+
+  <!-- ===== 계획 ===== -->
+  <div class="page hide" id="fit_sp_plan">
+    <div class="page-head"><h2>건강체력교실 계획</h2><span class="sub" id="fsPlanSub"></span></div>
+    <div class="panel"><div class="scroll-x"><table><thead><tr><th>월</th><th>주</th><th>체력요소</th><th>무엇을 하나요?</th></tr></thead><tbody id="fsPlanRows"></tbody></table></div></div>
+  </div>
+
+</div>
+
+<div id="fsCelebrate" class="hide"><div class="card"><i class="ti ti-confetti"></i><b id="fsCelebTitle"></b><p id="fsCelebSub"></p></div></div>
+
+<script>
+MODS.FIT = MODS.FIT || {};
+MODS.FIT.student = (function () {
+  var D = null;           // fit_s_boot 결과
+  var place = '교실', factor = '심폐지구력', event = null, PHOTO = null, LOADING = false;
+  var pages = ['home', 'records', 'badges', 'plan'];
+  var nav = [
+    { section: '건강체력교실' },
+    { id: 'home', label: '오늘 기록하기', icon: 'pencil-plus' },
+    { id: 'records', label: '내 운동 기록', icon: 'chart-bar' },
+    { id: 'badges', label: '교실 배지', icon: 'award' },
+    { id: 'plan', label: '교실 계획', icon: 'calendar-event' }
+  ];
+
+  function init(ctx) { D = null; place = '교실'; event = null; PHOTO = null; load(null); }
+  function reset() { D = null; event = null; place = '교실'; PHOTO = null; clearPhoto(); $('fsDate').value = ''; }
+  function load(then) {
+    if (LOADING) return;
+    LOADING = true;
+    api('fit_s_boot', TOKEN).then(function (d) { LOADING = false; apply(d); if (then) then(); }).catch(function (e) { LOADING = false; handleErr(e); });
+  }
+  function show(p) {
+    pages.forEach(function (id) { $('fit_sp_' + id).classList.toggle('hide', id !== p); });
+    var fn = { home: renderHome, records: renderRecords, badges: renderBadges, plan: renderPlan }[p];
+    if (!fn) return;
+    if (!D) { load(fn); return; }
+    fn();
+  }
+  function apply(d) {
+    D = d;
+    if (!$('fsDate').value) $('fsDate').value = d.오늘;
+    $('fsDate').max = d.오늘; $('fsDate').min = addDays(d.오늘, -14);
+    setNavCount('FIT', 'badges', d.요약.배지수);
+  }
+
+  /* ================= 홈 ================= */
+  function renderHome() {
+    var y = D.요약, w = y.이번주 || { 횟수: 0, 목표횟수: 3, 포인트: 0, 목표포인트: 50, 달성: false };
+    var hour = new Date().getHours();
+    var greet = hour < 12 ? '좋은 아침이에요' : hour < 17 ? '오늘도 힘차게' : '오늘 하루도 수고했어요';
+    $('fsHeroTitle').textContent = greet + ', ' + D.학생.이름 + '!';
+    var sub = (D.설정.운영요일 || []).join('·') + '요일 ' + (D.설정.운영시간 || '') + ' 건강체력교실';
+    if (y.대기수) sub += ' · 선생님 확인 대기 ' + y.대기수 + '건(' + y.대기포인트 + 'p)';
+    $('fsHeroSub').textContent = sub;
+    $('fsWeekCnt').textContent = w.횟수; $('fsWeekGoal').textContent = '/' + w.목표횟수 + '회';
+    $('fsWeekPts').textContent = w.포인트; $('fsWeekPtsGoal').textContent = '/' + w.목표포인트 + 'p';
+    $('fsTotPts').textContent = fmt(y.누적포인트); $('fsBadgeCnt').textContent = y.배지수;
+    var p = Math.round((pct(w.횟수, w.목표횟수) + pct(w.포인트, w.목표포인트)) / 2);
+    $('fsRingPct').textContent = p + '%';
+    var circ = 2 * Math.PI * 46;
+    $('fsRingFg').setAttribute('stroke-dasharray', (circ * p / 100) + ' ' + circ);
+
+    // 안내
+    var notes = '';
+    var today = parseYmd(D.오늘), wd = 요일[today.getDay()];
+    if ((D.설정.운영요일 || []).indexOf(wd) > -1 && !D.오늘출석) {
+      notes += '<div class="note sun"><i class="ti ti-bell-ringing"></i><div>오늘은 건강체력교실이 있는 날! 운동을 기록하면서 <b>출석</b>도 함께 체크해요.</div></div>';
+    }
+    D.기록.filter(function (r) { return r.상태 === '반려' && r.교사메모; }).slice(0, 2).forEach(function (r) {
+      notes += '<div class="note warn"><i class="ti ti-message-circle"></i><div>' + md(r.날짜) + ' <b>' + esc(r.종목) + '</b> 기록에 선생님 메모: ' + esc(r.교사메모) + '</div></div>';
+    });
+    $('fsHomeNotes').innerHTML = notes;
+
+    // 목표
+    $('fsGoalWeekLabel').textContent = w.주시작 ? md(w.주시작) + ' ~ ' + md(addDays(w.주시작, 6)) : '';
+    $('fsGoalCnt').value = w.목표횟수; $('fsGoalPts').value = w.목표포인트;
+    $('fsGCntTxt').textContent = w.횟수 + ' / ' + w.목표횟수 + '회'; $('fsGCntBar').style.width = pct(w.횟수, w.목표횟수) + '%';
+    $('fsGPtsTxt').textContent = w.포인트 + ' / ' + w.목표포인트 + 'p'; $('fsGPtsBar').style.width = pct(w.포인트, w.목표포인트) + '%';
+    $('fsGDone').classList.toggle('hide', !w.달성); $('fsGStreak').textContent = y.연속달성;
+
+    // 이번 달 계획
+    var mp = D.이번달계획 || [];
+    $('fsMonthPlan').innerHTML = mp.length ? mp.map(function (pl) {
+      return '<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)"><span class="unit" style="width:38px">' + esc(pl.주) + '주</span>' + ftag(pl.요소, true) + '<span style="font-size:14px">' + esc(pl.지도내용) + '</span></div>';
+    }).join('') : '<span class="unit">이번 달 계획이 아직 없어요.</span>';
+    if (!event && mp.length && mp[0].요소) factor = mp[0].요소;
+    if (!D.종목.some(function (t) { return t.요소 === factor; }) && D.종목.length) factor = D.종목[0].요소;
+
+    renderFacTabs(); renderEvGrid(); updatePts();
+    $('fsRecentList').innerHTML = D.기록.slice(0, 6).map(recItem).join('') || '<div class="unit" style="padding:10px 0">아직 기록이 없어요. 첫 운동을 기록해 볼까요?</div>';
+    bindDelete($('fsRecentList'));
+    updatePlaceUI();
+  }
+
+  function renderFacTabs() {
+    $('fsFacTabs').innerHTML = D.요소.map(function (f) {
+      return '<button class="' + fclass(f) + '" aria-selected="' + (f === factor) + '" data-fac="' + esc(f) + '"><i class="ti ti-' + (FICON[f] || 'activity') + '"></i>&nbsp;' + esc(f) + '</button>';
+    }).join('');
+    Array.prototype.forEach.call($('fsFacTabs').querySelectorAll('[data-fac]'), function (b) {
+      b.onclick = function () { factor = b.dataset.fac; event = null; renderFacTabs(); renderEvGrid(); updatePts(); };
+    });
+  }
+  function renderEvGrid() {
+    var list = D.종목.filter(function (t) { return t.요소 === factor; });
+    if (!event || event.요소 !== factor) event = list[0] || null;
+    $('fsEvGrid').innerHTML = list.map(function (t) {
+      return '<button aria-selected="' + (event && event.종목 === t.종목) + '" data-ev="' + esc(t.종목) + '">' + esc(t.종목) + '<small>' + t.기준량 + esc(t.단위) + ' = ' + t.포인트 + 'p</small></button>';
+    }).join('') || '<span class="unit">이 요소에 쓸 수 있는 운동이 없어요.</span>';
+    Array.prototype.forEach.call($('fsEvGrid').querySelectorAll('[data-ev]'), function (b) {
+      b.onclick = function () { event = findOne(D.종목, function (t) { return t.종목 === b.dataset.ev; }); renderEvGrid(); updatePts(); };
+    });
+    $('fsUnit').textContent = event ? event.단위 : '';
+    if (event && !$('fsAmount').value) $('fsAmount').value = event.기준량;
+  }
+  function calcPts() {
+    if (!event) return 0;
+    var v = Number($('fsAmount').value);
+    if (!(v > 0)) return 0;
+    return Math.min(D.설정.기록당최대포인트, Math.max(1, Math.round(v / event.기준량 * event.포인트)));
+  }
+  function updatePts() {
+    var p = calcPts();
+    $('fsPtsPreview').innerHTML = '<i class="ti ti-coin"></i>' + p + 'p';
+    $('fsPtsHint').textContent = event ? (event.기준량 + event.단위 + '마다 ' + event.포인트 + '점 · 한 번에 최대 ' + D.설정.기록당최대포인트 + '점') : '';
+  }
+  $('fsAmount').oninput = updatePts;
+  $('fsAmtMinus').onclick = function () { $('fsAmount').value = Math.max(0, (Number($('fsAmount').value) || 0) - 1); updatePts(); };
+  $('fsAmtPlus').onclick = function () { $('fsAmount').value = (Number($('fsAmount').value) || 0) + 1; updatePts(); };
+
+  function updatePlaceUI() {
+    if (!D) return;
+    $('fsPlClass').setAttribute('aria-selected', place === '교실');
+    $('fsPlHome').setAttribute('aria-selected', place === '가정');
+    $('fsChkAttWrap').classList.toggle('hide', place !== '교실');
+    var pm = D.설정.가정운동사진 || '선택';
+    $('fsPhotoWrap').classList.toggle('hide', !(place === '가정' && pm !== '없음'));
+    $('fsPhotoLabel').textContent = pm === '필수' ? '운동 사진 (꼭 올려 주세요)' : '운동 사진 (선택)';
+    var wd = 요일[parseYmd($('fsDate').value || D.오늘).getDay()];
+    var isDay = (D.설정.운영요일 || []).indexOf(wd) > -1;
+    $('fsChkAtt').checked = isDay;
+    $('fsChkAttWrap').classList.toggle('on', isDay);
+  }
+  $('fsPlClass').onclick = function () { place = '교실'; updatePlaceUI(); };
+  $('fsPlHome').onclick = function () { place = '가정'; updatePlaceUI(); };
+  $('fsChkAtt').onchange = function () { $('fsChkAttWrap').classList.toggle('on', this.checked); };
+  $('fsDate').onchange = updatePlaceUI;
+
+  /* ---------- 가정 운동 사진 ---------- */
+  function takePhoto(input) {
+    var f = input.files && input.files[0];
+    if (!f) return;
+    toast('사진 준비 중…');
+    Promise.all([shrinkImage(f, 1200, 0.82), shrinkImage(f, 320, 0.7)]).then(function (arr) {
+      PHOTO = { 본문: arr[0].split(',')[1], 썸네일: arr[1].split(',')[1] };
+      $('fsPhotoImg').src = arr[1]; $('fsPhotoPreview').classList.remove('hide');
+    }).catch(function (e) { PHOTO = null; toast(e.message, 'err'); });
+  }
+  $('fsPhotoCam').onchange = function () { takePhoto(this); };
+  $('fsPhotoFile').onchange = function () { takePhoto(this); };
+  function clearPhoto() {
+    PHOTO = null; $('fsPhotoFile').value = ''; $('fsPhotoCam').value = ''; $('fsPhotoImg').src = '';
+    $('fsPhotoPreview').classList.add('hide');
+  }
+  $('fsPhotoClear').onclick = function (e) { e.preventDefault(); clearPhoto(); };
+
+  $('fsBtnSave').onclick = function () {
+    var st = $('fsSaveStatus');
+    if (!event) { st.className = 'status err'; st.textContent = '운동을 골라 주세요.'; return; }
+    var v = Number($('fsAmount').value);
+    if (!(v > 0)) { st.className = 'status err'; st.textContent = '얼마나 했는지 숫자로 적어 주세요.'; $('fsAmount').focus(); return; }
+    if (place === '가정' && (D.설정.가정운동사진 || '선택') === '필수' && !PHOTO) { st.className = 'status err'; st.textContent = '집에서 한 운동은 사진을 함께 올려 주세요.'; return; }
+    var btn = this; btn.disabled = true; st.className = 'status'; st.textContent = '저장 중…';
+    var before = D.요약;
+    api('fit_s_addRecord', TOKEN, { 날짜: $('fsDate').value, 장소: place, 종목: event.종목, 수치: v, 소감: $('fsNote').value, 출석: place === '교실' && $('fsChkAtt').checked,
+                                    사진: (place === '가정' && PHOTO) ? PHOTO : null })
+      .then(function (r) {
+        btn.disabled = false;
+        if (!r.ok) { st.className = 'status err'; st.textContent = r.message; return; }
+        st.className = 'status ok';
+        st.textContent = r.상태 === '확인' ? r.포인트 + '점을 받았어요!' : '저장했어요. 선생님이 확인하면 ' + r.포인트 + '점이 쌓여요.';
+        $('fsAmount').value = ''; $('fsNote').value = ''; clearPhoto();
+        apply(r); renderHome();
+        celebrateIfNeeded(before, r.요약, r.포인트, r.상태);
+      }).catch(function (e) { btn.disabled = false; handleErr(e); });
+  };
+
+  function celebrateIfNeeded(before, after, pts, 상태) {
+    var newBadges = (after.배지 || []).filter(function (b) {
+      var old = findOne(before.배지 || [], function (x) { return x.배지ID === b.배지ID; });
+      return b.달성 && !(old && old.달성);
+    });
+    var title = '', sub = '';
+    if (newBadges.length) { title = '새 배지: ' + newBadges.map(function (b) { return b.이름; }).join(', '); sub = newBadges[0].설명; }
+    else if (after.이번주 && after.이번주.달성 && !(before.이번주 && before.이번주.달성)) { title = '이번 주 목표 달성!'; sub = '연속 ' + after.연속달성 + '주째예요'; }
+    else if (상태 === '확인') { title = '+' + pts + '점'; sub = '잘했어요! 누적 ' + fmt(after.누적포인트) + '점'; }
+    else return;
+    $('fsCelebTitle').textContent = title; $('fsCelebSub').textContent = sub;
+    var c = $('fsCelebrate'); c.classList.remove('hide');
+    setTimeout(function () { c.classList.add('hide'); }, newBadges.length ? 2600 : 1600);
+  }
+
+  $('fsBtnGoal').onclick = function () {
+    api('fit_s_saveGoal', TOKEN, $('fsGoalCnt').value, $('fsGoalPts').value).then(function (r) { apply(r); renderHome(); toast('이번 주 목표를 정했어요'); }).catch(handleErr);
+  };
+  $('fsBtnGoRecords').onclick = function () { go('FIT', 'records'); };
+
+  function recItem(r) {
+    var del = (r.상태 === '대기' || r.날짜 === D.오늘) ? ' <button class="mini ghost" data-del="' + esc(r.기록ID) + '" title="지우기" style="padding:2px 6px"><i class="ti ti-trash"></i></button>' : '';
+    return '<div class="rec-item"><div class="d">' + mdw(r.날짜) + '</div><div class="m"><div>' + ftag(r.요소, true) + ' <b>' + esc(r.종목) + '</b> <span class="unit">' + r.수치 + esc(r.단위) + '</span> ' + placeTag(r.장소) + (r.사진ID ? ' <span class="tag sky" title="사진 첨부됨"><i class="ti ti-camera"></i></span>' : '') + '</div>' +
+      (r.소감 ? '<div class="note-txt">' + esc(r.소감) + '</div>' : '') + (r.교사메모 ? '<div class="note-txt" style="color:var(--warn)">선생님: ' + esc(r.교사메모) + '</div>' : '') + '</div>' +
+      '<div style="text-align:right"><div class="p">' + (r.상태 === '반려' ? '<s style="color:var(--ink-3)">' + r.포인트 + 'p</s>' : r.포인트 + 'p') + '</div><div>' + stateTag(r.상태) + del + '</div></div></div>';
+  }
+  function bindDelete(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-del]'), function (b) {
+      b.onclick = function () {
+        if (!confirm('이 기록을 지울까요?')) return;
+        api('fit_s_deleteRecord', TOKEN, b.dataset.del).then(function (r) {
+          if (!r.ok) { toast(r.message, 'err'); return; }
+          apply(r); renderHome(); if (!$('fit_sp_records').classList.contains('hide')) renderRecords(); toast('지웠어요');
+        }).catch(handleErr);
+      };
+    });
+  }
+
+  /* ================= 내 기록 ================= */
+  function renderRecords() {
+    var y = D.요약;
+    $('fsRecKpis').innerHTML =
+      kpiTile('누적 포인트', fmt(y.누적포인트), 'p', 'coin', 'brand') +
+      kpiTile('운동 기록', y.누적횟수, '회', 'notes', '') +
+      kpiTile('교실 출석', y.출석수, '회', 'calendar-check', 'violet') +
+      kpiTile('가정 운동', y.가정횟수, '회', 'home', '') +
+      kpiTile('목표 달성', y.달성주, '주', 'target-arrow', 'sun');
+
+    var weeks = (y.주별 || []).slice(-10);
+    var max = Math.max.apply(null, weeks.map(function (w) { return Math.max(w.포인트, w.목표포인트); }).concat([1]));
+    $('fsWeekChart').innerHTML = weeks.length ? '<div class="chart-wrap">' + weeks.map(function (w) {
+      var h = Math.max(6, Math.round(w.포인트 / max * 110));
+      var g = Math.round(w.목표포인트 / max * 110);
+      return '<div class="col"><span class="v">' + (w.포인트 || '') + '</span><div class="colbar' + (w.포인트 ? ' on' : '') + (y.이번주 && w.주시작 === y.이번주.주시작 ? ' now' : '') + '" style="height:' + h + 'px"><div class="goal" style="bottom:' + (g - h) + 'px"></div></div><span class="lbl">' + md(w.주시작) + '</span></div>';
+    }).join('') + '</div>' : '<span class="unit">아직 주별 기록이 없어요.</span>';
+
+    var maxF = Math.max.apply(null, D.요소.map(function (f) { return y.요소포인트[f] || 0; }).concat([1]));
+    $('fsFactorBars').innerHTML = D.요소.map(function (f) {
+      return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' + ftag(f, true) + '<span class="unit"><b style="color:var(--ink)">' + (y.요소포인트[f] || 0) + 'p</b> · ' + (y.요소횟수[f] || 0) + '회</span></div><div class="prog"><i style="width:' + pct(y.요소포인트[f] || 0, maxF) + '%;background:' + FVAR[f] + '"></i></div></div>';
+    }).join('');
+
+    var flt = $('fsRecFilter').value;
+    var list = D.기록.filter(function (r) { return !flt || r.상태 === flt; });
+    $('fsAllRecords').innerHTML = list.map(recItem).join('') || '<div class="unit" style="padding:10px 0">기록이 없어요.</div>';
+    bindDelete($('fsAllRecords'));
+  }
+  $('fsRecFilter').onchange = function () { if (D) renderRecords(); };
+
+  /* ================= 배지 ================= */
+  function renderBadges() {
+    var y = D.요약, list = y.배지 || [];
+    $('fsBadgeSub').textContent = list.length + '개 중 ' + y.배지수 + '개 획득';
+    $('fsBadgeGrid').innerHTML = list.map(function (b) {
+      return '<div class="badge-card' + (b.달성 ? ' on' : '') + '"><div class="ic"><i class="ti ti-' + esc(b.아이콘) + '"></i></div><b>' + esc(b.이름) + '</b><small>' + esc(b.설명) + '</small>' +
+        (b.달성 ? '<div style="margin-top:8px"><span class="tag sun"><i class="ti ti-check"></i>획득</span></div>' : '<div class="prog thin"><i style="width:' + pct(b.진행, b.기준값) + '%;background:var(--sun)"></i></div><small>' + Math.min(b.진행, b.기준값) + ' / ' + b.기준값 + '</small>') + '</div>';
+    }).join('') || '<span class="unit">아직 배지가 없어요.</span>';
+  }
+
+  /* ================= 계획 ================= */
+  function renderPlan() {
+    var s = D.설정;
+    $('fsPlanSub').textContent = (s.운영시작 || '') + ' ~ ' + (s.운영종료 || '') + ' · ' + (s.운영요일 || []).join('·') + ' ' + (s.운영시간 || '');
+    var nowM = new Date().getMonth() + 1;
+    $('fsPlanRows').innerHTML = (D.계획 || []).map(function (p) {
+      return '<tr' + (Number(p.월) === nowM ? ' style="background:var(--accent-soft)"' : '') + '><td class="num">' + p.월 + '월</td><td class="unit">' + esc(p.주) + '주</td><td>' + ftag(p.요소, true) + '</td><td>' + esc(p.지도내용) + (p.비고 ? ' <span class="unit">' + esc(p.비고) + '</span>' : '') + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="unit" style="padding:14px">아직 계획이 없어요.</td></tr>';
+  }
+
+  return { nav: nav, init: init, show: show, reset: reset };
+})();
+</script>

@@ -1,0 +1,349 @@
+<!-- 줄넘기 · 교사 화면 (모듈 ROPE) -->
+<style>
+#rope_T .king{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px;}
+#rope_T .king .k{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;}
+#rope_T .king .k i{font-size:22px;color:var(--accent);}
+#rope_T .king .k .l{font-size:11.5px;color:var(--ink-3);font-weight:700;}
+#rope_T .king .k .n{font-size:16px;font-weight:800;letter-spacing:-.03em;}
+#rope_T .king .k .v{font-size:12.5px;color:var(--ink-2);}
+#rope_T .stu-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line-2);font-size:13.5px;}
+#rope_T .stu-row:last-child{border-bottom:none;}
+#rope_T .stu-row .n{width:130px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#rope_T .stu-row .prog{flex:1;}
+#rope_T .stu-row .v{width:150px;text-align:right;color:var(--ink-2);font-size:12.5px;white-space:nowrap;}
+#rope_T .bars{display:flex;align-items:flex-end;gap:4px;height:120px;padding:6px 4px 0;}
+#rope_T .bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px;}
+#rope_T .bars .b i{display:block;width:100%;max-width:34px;background:var(--accent);border-radius:6px 6px 2px 2px;min-height:2px;}
+#rope_T .bars .b.today i{background:var(--accent-dk);}
+#rope_T .bars .b span{font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;}
+#rope_T .bars .b b{font-size:11px;color:var(--ink-2);}
+#rope_T .in-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;}
+#rope_T .in-grid label{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;background:#fff;}
+#rope_T .in-grid label span{flex:1;font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#rope_T .in-grid label input{width:80px;text-align:right;font-weight:800;padding:6px 8px;}
+#rope_T .in-grid label.on{border-color:var(--accent);background:var(--accent-soft);}
+#rope_T .goal-line{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+#rope_T .goal-line .prog{flex:1;height:14px;}
+#rope_T .goal-line b{white-space:nowrap;}
+#rope_T table input[type=number],#rope_T table input[type=text],#rope_T table input[type=date]{padding:5px 8px;font-size:13px;min-width:0;}
+#rope_T .rec-inline input[type=number]{width:80px;}
+</style>
+
+<div class="mroot hide" data-mod="ROPE" data-role="T" id="rope_T">
+
+  <!-- ===== 학급 현황 ===== -->
+  <div class="page" id="rope_tp_dash">
+    <div class="page-head"><h2>줄넘기 학급 현황</h2><span class="sub" id="rpDashSub"></span></div>
+    <div class="bar">
+      <div class="field"><label>학년</label><select id="rpDashGrade"><option value="0">전체</option></select></div>
+      <div class="field"><label>반</label><select id="rpDashClass"><option value="0">전체</option></select></div>
+      <button class="ghost" id="rpDashReload"><i class="ti ti-refresh"></i>새로 고침</button>
+      <div class="spacer"></div>
+      <span class="unit" id="rpDashGoal"></span>
+    </div>
+    <div class="note sun" id="rpDashMsg"><i class="ti ti-message-heart"></i><div id="rpDashMsgTxt"></div></div>
+    <div class="kpis" id="rpDashKpis"></div>
+    <div class="king" id="rpKings"></div>
+    <div class="grid g2" style="align-items:start">
+      <div class="panel" style="margin:0">
+        <div class="panel-head"><h3><i class="ti ti-users"></i>학생별 누적</h3><div class="spacer"></div>
+          <select id="rpDashSort" style="padding:5px 8px;font-size:12.5px"><option value="번호">번호순</option><option value="누적">누적 많은 순</option><option value="오늘">오늘 많은 순</option><option value="연속">연속 일수 순</option></select></div>
+        <div class="panel-body" id="rpDashStudents" style="padding-top:6px"></div>
+      </div>
+      <div>
+        <div class="panel" style="margin:0 0 14px">
+          <div class="panel-head"><h3><i class="ti ti-chart-bar"></i>최근 2주 학급 합계</h3></div>
+          <div class="panel-body" style="padding-top:4px"><div class="bars" id="rpDashBars"></div></div>
+        </div>
+        <div class="panel" style="margin:0 0 14px">
+          <div class="panel-head"><h3><i class="ti ti-target-arrow"></i>학급 공동 목표</h3></div>
+          <div class="panel-body" id="rpDashClassGoal"></div>
+        </div>
+        <div class="panel" style="margin:0">
+          <div class="panel-head"><h3><i class="ti ti-podium"></i>학급 비교</h3><span class="unit">오늘 목표 달성률 순</span></div>
+          <div class="scroll-x"><table><thead><tr><th>순위</th><th>학급</th><th>오늘 달성률</th><th>오늘 합계</th><th>1인 평균 누적</th><th>평균 기록일</th></tr></thead><tbody id="rpDashRank"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 기록 확인 ===== -->
+  <div class="page hide" id="rope_tp_pending">
+    <div class="page-head"><h2>기록 확인</h2><span class="sub">학생이 입력한 횟수를 확인하면 누적·순위·그래프에 반영됩니다.</span></div>
+    <div class="bar">
+      <button id="rpBtnApproveSel"><i class="ti ti-checks"></i>선택 확인</button>
+      <button class="danger" id="rpBtnRejectSel"><i class="ti ti-x"></i>선택 반려</button>
+      <div class="field"><label>반려 사유 (선택)</label><input type="text" id="rpRejectMemo" placeholder="예: 횟수가 너무 커요" style="width:200px"></div>
+      <div class="spacer"></div>
+      <span class="unit" id="rpPendCount"></span>
+    </div>
+    <div class="panel">
+      <div class="scroll-x"><table><thead><tr><th><input type="checkbox" id="rpChkAll"></th><th>학생</th><th>날짜</th><th>시각</th><th>횟수</th><th>메모</th><th>입력</th><th></th></tr></thead><tbody id="rpPendRows"></tbody></table></div>
+      <div class="empty hide" id="rpPendEmpty"><i class="ti ti-circle-check"></i><strong>확인할 기록이 없습니다</strong>학생들이 줄넘기 횟수를 입력하면 여기에 쌓입니다.</div>
+    </div>
+  </div>
+
+  <!-- ===== 교사 입력 ===== -->
+  <div class="page hide" id="rope_tp_input">
+    <div class="page-head"><h2>수업 중 입력</h2><span class="sub">수업 시간에 잰 횟수를 반 전체에 한 번에 넣습니다. 교사 입력은 바로 확인된 기록이 됩니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>학년</label><select id="rpInGrade"></select></div>
+      <div class="field"><label>반</label><select id="rpInClass"></select></div>
+      <div class="field"><label>날짜</label><input type="date" id="rpInDate"></div>
+      <div class="field"><label>시각 (선택)</label><input type="time" id="rpInTime"></div>
+      <div class="field" style="flex:1;min-width:160px"><label>메모 (선택)</label><input type="text" id="rpInMemo" placeholder="예: 5분 도전"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-pencil-plus"></i>학생별 횟수</h3><div class="spacer"></div><button class="mini ghost" id="rpInClear">모두 지우기</button></div>
+      <div class="panel-body"><div class="in-grid" id="rpInGrid"></div><div class="unit" style="margin-top:10px">빈 칸은 저장하지 않습니다. 같은 날 여러 번 넣으면 그날 횟수에 더해집니다.</div></div>
+      <div class="savebar"><span class="status" id="rpInStatus"></span><div class="spacer"></div><button id="rpInSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+    </div>
+  </div>
+
+  <!-- ===== 학생별 기록 ===== -->
+  <div class="page hide" id="rope_tp_students">
+    <div class="page-head"><h2>학생별 기록</h2><span class="sub">한 학생의 기록을 보고 고치거나 지웁니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>학년</label><select id="rpStGrade"></select></div>
+      <div class="field"><label>반</label><select id="rpStClass"></select></div>
+      <div class="field"><label>학생</label><select id="rpStStudent" style="min-width:160px"></select></div>
+      <div class="spacer"></div>
+      <span id="rpStSummary" class="unit"></span>
+    </div>
+    <div class="panel">
+      <div class="scroll-x"><table><thead><tr><th>날짜</th><th>시각</th><th>횟수</th><th>상태</th><th>입력</th><th>메모</th><th></th></tr></thead><tbody id="rpStRows"></tbody></table></div>
+      <div class="empty hide" id="rpStEmpty"><i class="ti ti-jump-rope"></i><strong>기록이 없습니다</strong></div>
+    </div>
+  </div>
+
+  <!-- ===== 설정 ===== -->
+  <div class="page hide" id="rope_tp_settings">
+    <div class="page-head"><h2>줄넘기 설정</h2></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-adjustments"></i>운영</h3></div>
+      <div class="panel-body">
+        <div class="grid g3" style="margin-bottom:12px">
+          <div class="field"><label>하루 목표 (회)</label><input type="number" id="rpSetGoal" min="1"></div>
+          <div class="field"><label>학급 공동 목표 (누적 회)</label><input type="number" id="rpSetClassGoal" min="0" step="100"></div>
+          <div class="field"><label>학생 하루 입력 횟수 제한</label><input type="number" id="rpSetMaxIn" min="1" max="50"></div>
+          <div class="field"><label>한 번에 입력 가능한 최대 횟수</label><input type="number" id="rpSetMaxCnt" min="1"></div>
+          <div class="field"><label>대상 학년</label><div class="chks" id="rpSetGrades" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+          <div class="field"><label>학생 입력 자동 확인</label><label class="chk sm"><input type="checkbox" id="rpSetAuto"><span>교사 확인 없이 바로 인정</span></label></div>
+        </div>
+        <div class="field"><label>AI 응원 문구 (Gemini API 키 · 비우면 기본 문구)</label><input type="password" id="rpSetGemini" placeholder="AIza…" autocomplete="off"><span class="unit" id="rpSetGeminiHint"></span></div>
+      </div>
+      <div class="savebar"><span class="status" id="rpSetStatus"></span><div class="spacer"></div><button id="rpSetSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* 줄넘기 · 교사 — MODS.ROPE.teacher */
+MODS.ROPE = MODS.ROPE || {};
+MODS.ROPE.teacher = (function () {
+  var B = null, DASH = null, PEND = [], ST = null;
+  var pages = ['dash', 'pending', 'input', 'students', 'settings'];
+  var nav = [
+    { section: '줄넘기' },
+    { id: 'dash', label: '학급 현황', icon: 'chart-bar' },
+    { id: 'pending', label: '기록 확인', icon: 'checklist' },
+    { id: 'input', label: '수업 중 입력', icon: 'pencil-plus' },
+    { id: 'students', label: '학생별 기록', icon: 'user-search' },
+    { id: 'settings', label: '줄넘기 설정', icon: 'adjustments' }
+  ];
+  var ROOT = $('rope_T');
+  function qa(sel, root) { return Array.prototype.slice.call((root || ROOT).querySelectorAll(sel)); }
+  function roster() { return (CTX && CTX.학생 ? CTX.학생 : []).filter(function (s) { return s.상태 === '재학'; }); }
+  function grades() { var g = {}; roster().forEach(function (s) { g[s.학년] = 1; }); return Object.keys(g).map(Number).sort(function (a, b) { return a - b; }); }
+  function classesOf(g) { var c = {}; roster().forEach(function (s) { if (Number(s.학년) === Number(g)) c[s.반] = 1; }); return Object.keys(c).map(Number).sort(function (a, b) { return a - b; }); }
+  function label(s) { return s.학년 + '-' + s.반 + '-' + s.번호 + ' ' + s.이름; }
+
+  function init(ctx) { B = null; DASH = null; ST = null; api('rope_t_boot', TOKEN).then(function (b) { B = b; setNavCount('ROPE', 'pending', b.대기); }).catch(handleErr); }
+  function reset() { B = null; DASH = null; PEND = []; ST = null; }
+  function show(p) {
+    pages.forEach(function (id) { $('rope_tp_' + id).classList.toggle('hide', id !== p); });
+    var fn = { dash: loadDash, pending: loadPending, input: renderInput, students: renderStudents, settings: loadSettings }[p];
+    if (!fn) return;
+    if (!B) { api('rope_t_boot', TOKEN).then(function (b) { B = b; fn(); }).catch(handleErr); return; }
+    fn();
+  }
+  qa('[data-close]').forEach(function (b) { b.onclick = function () { $(b.getAttribute('data-close')).classList.add('hide'); }; });
+  /* 학년·반 select 채우기 (전체 포함 여부) */
+  function fillGC(gSel, cSel, withAll) {
+    var gs = grades();
+    gSel.innerHTML = (withAll ? '<option value="0">전체</option>' : '') + gs.map(function (g) { return '<option value="' + g + '">' + g + '학년</option>'; }).join('');
+    if (!withAll && gs.length && !gSel.value) gSel.value = gs[0];
+    var fillC = function () {
+      var cs = Number(gSel.value) ? classesOf(gSel.value) : [];
+      cSel.innerHTML = (withAll ? '<option value="0">전체</option>' : '') + cs.map(function (c) { return '<option value="' + c + '">' + c + '반</option>'; }).join('');
+    };
+    fillC();
+    return fillC;
+  }
+
+  /* ================= 학급 현황 ================= */
+  var dashInit = false;
+  function loadDash() {
+    if (!dashInit) {
+      dashInit = true;
+      var fc = fillGC($('rpDashGrade'), $('rpDashClass'), true);
+      $('rpDashGrade').onchange = function () { fc(); loadDash(); };
+      $('rpDashClass').onchange = loadDash; $('rpDashReload').onclick = loadDash; $('rpDashSort').onchange = renderDashStudents;
+    }
+    api('rope_t_getClass', TOKEN, Number($('rpDashGrade').value), Number($('rpDashClass').value)).then(function (d) { DASH = d; renderDash(); }).catch(handleErr);
+  }
+  function renderDash() {
+    var d = DASH, g = Number($('rpDashGrade').value), c = Number($('rpDashClass').value);
+    $('rpDashSub').textContent = (g ? g + '학년 ' + (c ? c + '반' : '전체') : '전체 학생') + ' · ' + d.학생.length + '명';
+    $('rpDashGoal').textContent = '하루 목표 ' + fmt(d.하루목표) + '회';
+    $('rpDashMsgTxt').textContent = d.문구;
+    $('rpDashKpis').innerHTML =
+      kpiTile('오늘 기록', d.오늘기록인원, '/ ' + d.학생.length + '명', 'users', 'brand') +
+      kpiTile('오늘 합계', fmt(d.오늘총), '회', 'jump-rope', 'coral') +
+      kpiTile('목표 달성', d.달성, '명', 'target-arrow', 'sun') +
+      kpiTile('누적 합계', fmt(d.총), '회', 'sum', 'violet');
+    var king = function (icon, lab, o, unit) { return '<div class="k"><i class="ti ti-' + icon + '"></i><div><div class="l">' + lab + '</div><div class="n">' + (o ? esc(o.이름) : '아직 없음') + '</div><div class="v">' + (o ? (g ? '' : o.학년 + '-' + o.반 + ' · ') + fmt(o.값) + unit : '') + '</div></div></div>'; };
+    $('rpKings').innerHTML = king('crown', '오늘의 줄넘기왕', d.왕.오늘, '회') + king('trophy', '이번 주 줄넘기왕', d.왕.이번주, '회') + king('flame', '연속 기록왕', d.왕.연속, '일 연속') + king('mountain', '누적 1위', d.왕.누적, '회');
+    renderDashStudents();
+    var max = Math.max.apply(null, d.일별.map(function (x) { return x.횟수; }).concat([1]));
+    $('rpDashBars').innerHTML = d.일별.map(function (x) {
+      return '<div class="b' + (x.날짜 === B.오늘 ? ' today' : '') + '" title="' + x.날짜 + ' · ' + x.인원 + '명 ' + fmt(x.횟수) + '회"><b>' + (x.횟수 ? fmt(x.횟수) : '') + '</b><i style="height:' + Math.round(x.횟수 / max * 84) + 'px"></i><span>' + md(x.날짜) + '</span></div>';
+    }).join('');
+    var goal = d.학급목표;
+    $('rpDashClassGoal').innerHTML = goal ? '<div class="goal-line"><div class="prog"><i style="width:' + pct(d.총, goal) + '%"></i></div><b>' + pct(d.총, goal) + '%</b></div><div class="unit">누적 ' + fmt(d.총) + '회 / 목표 ' + fmt(goal) + '회' + (d.총 >= goal ? ' · 달성! 🎉' : ' · ' + fmt(goal - d.총) + '회 남음') + '</div>'
+      : '<div class="unit">설정에서 학급 공동 목표를 정하면 여기에 진행률이 보입니다.</div>';
+    $('rpDashRank').innerHTML = (d.학급비교 || []).map(function (r, i) {
+      return '<tr' + (i === 0 && r.달성률 ? ' style="font-weight:800"' : '') + '><td>' + (i === 0 && r.달성률 ? '🥇 ' : '') + (i + 1) + '</td><td class="name">' + r.학년 + '학년 ' + r.반 + '반 <span class="unit">' + r.인원 + '명</span></td><td>' + r.달성률 + '% <span class="unit">(' + r.오늘달성 + '명)</span></td><td>' + fmt(r.오늘총) + '회</td><td>' + fmt(r.평균) + '회</td><td>' + r.평균기록일 + '일</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="unit" style="padding:12px">학급이 없습니다.</td></tr>';
+  }
+  function renderDashStudents() {
+    var d = DASH, k = $('rpDashSort').value, list = d.학생.slice();
+    if (k === '번호') list.sort(function (a, b) { return (a.학년 - b.학년) || (a.반 - b.반) || (a.번호 - b.번호); });
+    else list.sort(function (a, b) { return b[k] - a[k]; });
+    var max = Math.max.apply(null, list.map(function (o) { return o.누적; }).concat([1]));
+    $('rpDashStudents').innerHTML = list.map(function (o) {
+      return '<div class="stu-row"><span class="n">' + esc(label(o)) + '</span><div class="prog' + (o.오늘 >= d.하루목표 ? '' : '') + '"><i style="width:' + pct(o.누적, max) + '%"></i></div>' +
+        '<span class="v">' + fmt(o.누적) + '회 · 오늘 ' + fmt(o.오늘) + (o.오늘 >= d.하루목표 ? ' ✓' : '') + (o.연속 ? ' · ' + o.연속 + '일' : '') + (o.대기 ? ' <span class="tag sun">대기 ' + o.대기 + '</span>' : '') + '</span></div>';
+    }).join('') || '<div class="unit" style="padding:10px 0">대상 학생이 없습니다.</div>';
+  }
+
+  /* ================= 기록 확인 ================= */
+  function loadPending() { api('rope_t_getPending', TOKEN).then(function (list) { PEND = list; renderPending(); setNavCount('ROPE', 'pending', list.length); }).catch(handleErr); }
+  function renderPending() {
+    $('rpPendCount').textContent = PEND.length + '건';
+    $('rpPendEmpty').classList.toggle('hide', !!PEND.length);
+    $('rpChkAll').checked = false;
+    $('rpPendRows').innerHTML = PEND.map(function (r) {
+      return '<tr><td><input type="checkbox" data-id="' + r.기록ID + '"></td><td class="name">' + esc(r.학년 + '-' + r.반 + '-' + r.번호 + ' ' + r.이름) + '</td><td>' + mdw(r.날짜) + '</td><td class="unit">' + esc(r.시각) + '</td><td><b>' + fmt(r.횟수) + '</b>회</td><td class="unit">' + esc(r.메모) + '</td><td class="unit">' + esc(r.입력일시) + '</td>' +
+        '<td style="white-space:nowrap"><button class="mini soft" data-ok="' + r.기록ID + '"><i class="ti ti-check"></i>확인</button> <button class="mini danger" data-no="' + r.기록ID + '"><i class="ti ti-x"></i></button></td></tr>';
+    }).join('');
+    qa('#rpPendRows [data-ok]').forEach(function (b) { b.onclick = function () { setStatus_([b.dataset.ok], '확인'); }; });
+    qa('#rpPendRows [data-no]').forEach(function (b) { b.onclick = function () { setStatus_([b.dataset.no], '반려'); }; });
+  }
+  function selIds() { return qa('#rpPendRows input[data-id]:checked').map(function (c) { return c.dataset.id; }); }
+  function setStatus_(ids, st) {
+    if (!ids.length) { toast('기록을 골라 주세요.', 'err'); return; }
+    if (st === '반려' && !confirm(ids.length + '건을 반려할까요? 학생 화면에 반려로 표시됩니다.')) return;
+    api('rope_t_setStatus', TOKEN, ids, st, st === '반려' ? $('rpRejectMemo').value.trim() : '').then(function (r) { toast(r.처리 + '건 ' + st); loadPending(); }).catch(handleErr);
+  }
+  $('rpChkAll').onchange = function () { qa('#rpPendRows input[data-id]').forEach(function (c) { c.checked = $('rpChkAll').checked; }); };
+  $('rpBtnApproveSel').onclick = function () { setStatus_(selIds(), '확인'); };
+  $('rpBtnRejectSel').onclick = function () { setStatus_(selIds(), '반려'); };
+
+  /* ================= 수업 중 입력 ================= */
+  var inInit = false;
+  function renderInput() {
+    if (!inInit) {
+      inInit = true;
+      var fc = fillGC($('rpInGrade'), $('rpInClass'), false);
+      $('rpInGrade').onchange = function () { fc(); renderInGrid(); };
+      $('rpInClass').onchange = renderInGrid;
+    }
+    if (!$('rpInDate').value) $('rpInDate').value = B.오늘;
+    renderInGrid();
+  }
+  function inStudents() { var g = Number($('rpInGrade').value), c = Number($('rpInClass').value); return roster().filter(function (s) { return Number(s.학년) === g && Number(s.반) === c; }).sort(function (a, b) { return a.번호 - b.번호; }); }
+  function renderInGrid() {
+    $('rpInGrid').innerHTML = inStudents().map(function (s) {
+      return '<label><span>' + s.번호 + '. ' + esc(s.이름) + '</span><input type="number" min="0" data-sid="' + s.학생ID + '" placeholder="회"></label>';
+    }).join('') || '<span class="unit">이 반에 학생이 없습니다.</span>';
+    qa('#rpInGrid input').forEach(function (i) { i.oninput = function () { i.parentNode.classList.toggle('on', !!Number(i.value)); }; });
+    setStatus('rpInStatus', '');
+  }
+  $('rpInClear').onclick = function () { qa('#rpInGrid input').forEach(function (i) { i.value = ''; i.parentNode.classList.remove('on'); }); };
+  $('rpInSave').onclick = function () {
+    var rows = qa('#rpInGrid input').map(function (i) { return { 학생ID: i.dataset.sid, 횟수: Number(i.value) }; }).filter(function (r) { return r.횟수 > 0; });
+    if (!rows.length) { setStatus('rpInStatus', '입력된 횟수가 없습니다.', 'err'); return; }
+    if (!confirm(rows.length + '명의 기록을 ' + mdw($('rpInDate').value) + ' 날짜로 저장할까요?')) return;
+    setStatus('rpInStatus', '저장 중…');
+    api('rope_t_addRecords', TOKEN, $('rpInDate').value, $('rpInTime').value, rows, $('rpInMemo').value.trim()).then(function (r) {
+      setStatus('rpInStatus', r.추가 + '명 기록을 저장했습니다.', 'ok'); toast('저장했습니다.'); $('rpInClear').click(); DASH = null;
+    }).catch(function (e) { setStatus('rpInStatus', (e && e.message) || String(e), 'err'); });
+  };
+
+  /* ================= 학생별 기록 ================= */
+  var stInit = false;
+  function renderStudents() {
+    if (!stInit) {
+      stInit = true;
+      var fc = fillGC($('rpStGrade'), $('rpStClass'), false);
+      var fillS = function () {
+        var g = Number($('rpStGrade').value), c = Number($('rpStClass').value);
+        $('rpStStudent').innerHTML = roster().filter(function (s) { return Number(s.학년) === g && Number(s.반) === c; }).sort(function (a, b) { return a.번호 - b.번호; }).map(function (s) { return '<option value="' + s.학생ID + '">' + s.번호 + '. ' + esc(s.이름) + '</option>'; }).join('');
+      };
+      $('rpStGrade').onchange = function () { fc(); fillS(); loadStudent(); };
+      $('rpStClass').onchange = function () { fillS(); loadStudent(); };
+      $('rpStStudent').onchange = loadStudent;
+      fillS();
+    }
+    loadStudent();
+  }
+  function loadStudent() {
+    var id = $('rpStStudent').value;
+    if (!id) { $('rpStRows').innerHTML = ''; $('rpStEmpty').classList.remove('hide'); $('rpStSummary').textContent = ''; return; }
+    api('rope_t_getStudent', TOKEN, id).then(function (d) {
+      ST = d;
+      $('rpStSummary').textContent = '누적 ' + fmt(d.요약.누적) + '회 · 기록한 날 ' + d.요약.기록일수 + '일 · 연속 ' + d.요약.연속 + '일' + (d.요약.대기 ? ' · 대기 ' + d.요약.대기 : '');
+      $('rpStEmpty').classList.toggle('hide', !!d.기록.length);
+      $('rpStRows').innerHTML = d.기록.map(function (r) {
+        return '<tr class="rec-inline" data-id="' + r.기록ID + '"><td>' + mdw(r.날짜) + '</td><td class="unit">' + esc(r.시각) + '</td><td><input type="number" min="1" data-k="횟수" value="' + r.횟수 + '"></td>' +
+          '<td><select data-k="상태" style="padding:5px 8px;font-size:13px">' + ['확인', '대기', '반려'].map(function (s) { return '<option' + (s === r.상태 ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td>' +
+          '<td class="unit">' + esc(r.입력자) + '</td><td><input type="text" data-k="메모" value="' + esc(r.메모) + '" style="width:140px"></td>' +
+          '<td style="white-space:nowrap"><button class="mini ghost" data-save="' + r.기록ID + '"><i class="ti ti-device-floppy"></i></button> <button class="mini danger" data-del="' + r.기록ID + '"><i class="ti ti-trash"></i></button></td></tr>';
+      }).join('');
+      qa('#rpStRows [data-save]').forEach(function (b) {
+        b.onclick = function () {
+          var tr = b.closest('tr');
+          api('rope_t_updateRecord', TOKEN, b.dataset.save, Number(tr.querySelector('[data-k=횟수]').value), tr.querySelector('[data-k=상태]').value, tr.querySelector('[data-k=메모]').value.trim()).then(function () { toast('고쳤습니다.'); loadStudent(); }).catch(handleErr);
+        };
+      });
+      qa('#rpStRows [data-del]').forEach(function (b) { b.onclick = function () { if (!confirm('이 기록을 지울까요?')) return; api('rope_t_deleteRecords', TOKEN, [b.dataset.del]).then(function () { toast('지웠습니다.'); loadStudent(); }).catch(handleErr); }; });
+    }).catch(handleErr);
+  }
+
+  /* ================= 설정 ================= */
+  function loadSettings() {
+    api('rope_t_getSettings', TOKEN).then(function (r) {
+      var s = r.설정;
+      $('rpSetGoal').value = s.하루목표; $('rpSetClassGoal').value = s.학급목표; $('rpSetMaxIn').value = s.하루최대입력; $('rpSetMaxCnt').value = s.한번최대횟수; $('rpSetAuto').checked = s.자동확인;
+      $('rpSetAuto').parentNode.classList.toggle('on', s.자동확인);
+      $('rpSetGrades').innerHTML = [1, 2, 3, 4, 5, 6].map(function (g) { var on = s.대상학년.indexOf(g) > -1; return '<label class="chk sm' + (on ? ' on' : '') + '"><input type="checkbox" value="' + g + '"' + (on ? ' checked' : '') + '><span>' + g + '학년</span></label>'; }).join('');
+      $('rpSetGemini').value = ''; $('rpSetGemini').placeholder = r.gemini ? '(등록됨 · 바꾸려면 새 키 입력, 지우려면 "삭제")' : 'AIza…';
+      $('rpSetGeminiHint').textContent = r.gemini ? 'Gemini 키가 등록되어 있어 응원 문구를 AI가 씁니다.' : '키가 없으면 기본 문구 6개를 돌아가며 보여 줍니다.';
+      setStatus('rpSetStatus', '');
+    }).catch(handleErr);
+  }
+  ROOT.addEventListener('change', function (e) { var l = e.target.closest && e.target.closest('label.chk'); if (l && e.target.type === 'checkbox') l.classList.toggle('on', e.target.checked); });
+  $('rpSetSave').onclick = function () {
+    var m = { 하루목표: Number($('rpSetGoal').value), 학급목표: Number($('rpSetClassGoal').value), 하루최대입력: Number($('rpSetMaxIn').value), 한번최대횟수: Number($('rpSetMaxCnt').value), 자동확인: $('rpSetAuto').checked,
+              대상학년: qa('#rpSetGrades input:checked').map(function (i) { return Number(i.value); }) };
+    var k = $('rpSetGemini').value.trim();
+    if (k === '삭제') m.geminiKey = ''; else if (k) m.geminiKey = k;
+    setStatus('rpSetStatus', '저장 중…');
+    api('rope_t_saveSettings', TOKEN, m).then(function () { setStatus('rpSetStatus', '저장했습니다.', 'ok'); toast('저장했습니다.'); DASH = null; loadSettings(); }).catch(function (e) { setStatus('rpSetStatus', (e && e.message) || String(e), 'err'); });
+  };
+
+  return { nav: nav, init: init, show: show, reset: reset, pendingPage: 'pending' };
+})();
+</script>

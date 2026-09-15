@@ -1,0 +1,157 @@
+{
+  "version": "0.9.0",
+  "date": "2026-09-15",
+  "notes": "학사일정·학기별 시간표·쉬는 날\n자동 업데이트 기능 (설정 → 업데이트)\n로딩 속도 개선 (로그인 왕복 줄임)",
+  "files": [
+    {
+      "name": "App.html",
+      "type": "HTML",
+      "sha256": "5d6d4380861534dc",
+      "bytes": 50465
+    },
+    {
+      "name": "Class_T.html",
+      "type": "HTML",
+      "sha256": "016c51ad60b5f3fe",
+      "bytes": 95747
+    },
+    {
+      "name": "Club_T.html",
+      "type": "HTML",
+      "sha256": "44a3a50ad30f902f",
+      "bytes": 96738
+    },
+    {
+      "name": "Code.gs",
+      "type": "SERVER_JS",
+      "sha256": "6b76de580cdca9fd",
+      "bytes": 46164
+    },
+    {
+      "name": "FMS_Data.gs",
+      "type": "SERVER_JS",
+      "sha256": "d110c54a7b2f6786",
+      "bytes": 36085
+    },
+    {
+      "name": "FMS_S.html",
+      "type": "HTML",
+      "sha256": "851e2c58dc07b8fa",
+      "bytes": 36691
+    },
+    {
+      "name": "FMS_T.html",
+      "type": "HTML",
+      "sha256": "283d0bae8c28e974",
+      "bytes": 53420
+    },
+    {
+      "name": "Fit_S.html",
+      "type": "HTML",
+      "sha256": "3e6ba4e9ea881deb",
+      "bytes": 34397
+    },
+    {
+      "name": "Fit_T.html",
+      "type": "HTML",
+      "sha256": "f159848fd4500f2b",
+      "bytes": 71747
+    },
+    {
+      "name": "Home_S.html",
+      "type": "HTML",
+      "sha256": "f1d52adf3fefff1f",
+      "bytes": 16217
+    },
+    {
+      "name": "Home_T.html",
+      "type": "HTML",
+      "sha256": "a7851f378c82eb79",
+      "bytes": 52680
+    },
+    {
+      "name": "Lib.gs",
+      "type": "SERVER_JS",
+      "sha256": "f135ff08159ec266",
+      "bytes": 12242
+    },
+    {
+      "name": "Mod_Class.gs",
+      "type": "SERVER_JS",
+      "sha256": "803c6111ab48d38e",
+      "bytes": 28411
+    },
+    {
+      "name": "Mod_Club.gs",
+      "type": "SERVER_JS",
+      "sha256": "afd54f739ba5cf40",
+      "bytes": 23462
+    },
+    {
+      "name": "Mod_Fit.gs",
+      "type": "SERVER_JS",
+      "sha256": "356442bcddbb2fd2",
+      "bytes": 62862
+    },
+    {
+      "name": "Mod_Fms.gs",
+      "type": "SERVER_JS",
+      "sha256": "31f37a684ffa68e0",
+      "bytes": 35565
+    },
+    {
+      "name": "Mod_Paps.gs",
+      "type": "SERVER_JS",
+      "sha256": "ddff0df895df489b",
+      "bytes": 43353
+    },
+    {
+      "name": "Mod_Rope.gs",
+      "type": "SERVER_JS",
+      "sha256": "375a25b89db765cf",
+      "bytes": 28729
+    },
+    {
+      "name": "PAPS_Data.gs",
+      "type": "SERVER_JS",
+      "sha256": "0b4d5fe3cafc5756",
+      "bytes": 17007
+    },
+    {
+      "name": "PAPS_S.html",
+      "type": "HTML",
+      "sha256": "7b545f8e041d5dce",
+      "bytes": 30826
+    },
+    {
+      "name": "PAPS_T.html",
+      "type": "HTML",
+      "sha256": "42a1ef4cd09bf144",
+      "bytes": 41841
+    },
+    {
+      "name": "Rope_S.html",
+      "type": "HTML",
+      "sha256": "e647be80bbf37694",
+      "bytes": 18050
+    },
+    {
+      "name": "Rope_T.html",
+      "type": "HTML",
+      "sha256": "178e8c46576b8cb0",
+      "bytes": 27515
+    },
+    {
+      "name": "Updater.gs",
+      "type": "SERVER_JS",
+      "sha256": "171945a905b6a578",
+      "bytes": 13193
+    },
+    {
+      "name": "appsscript.json",
+      "type": "JSON",
+      "sha256": "e949f289bfc2cf3d",
+      "bytes": 597
+    }
+  ]
+}

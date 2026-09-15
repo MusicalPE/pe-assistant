@@ -1,0 +1,226 @@
+<!-- 줄넘기 · 학생 화면 (모듈 ROPE, 역할 S) -->
+<style>
+#rope_S .ring{position:relative;width:110px;height:110px;flex-shrink:0;}
+#rope_S .ring svg{width:110px;height:110px;transform:rotate(-90deg);}
+#rope_S .ring .bg{fill:none;stroke:rgba(255,255,255,.28);stroke-width:10;}
+#rope_S .ring .fg{fill:none;stroke:#fff;stroke-width:10;stroke-linecap:round;transition:stroke-dasharray .6s ease;}
+#rope_S .ring .txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;line-height:1;}
+#rope_S .ring .txt b{font-size:24px;letter-spacing:-.04em;}
+#rope_S .ring .txt small{font-size:11px;opacity:.9;font-weight:600;margin-top:3px;}
+#rope_S .amount{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#rope_S .amount input{font-size:30px;font-weight:800;text-align:center;width:170px;padding:8px;border-radius:12px;letter-spacing:-.03em;}
+#rope_S .amount .u{font-size:18px;color:var(--ink-2);font-weight:700;}
+#rope_S .quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+#rope_S .quick button{background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:99px;padding:8px 14px;font-size:14px;}
+#rope_S .quick button:hover{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft);}
+#rope_S .bigsave{width:100%;padding:15px;font-size:17px;border-radius:14px;margin-top:12px;}
+#rope_S .msg{background:var(--accent-soft);color:var(--accent-ink);border-radius:14px;padding:12px 16px;font-weight:700;display:flex;gap:10px;align-items:center;margin-bottom:14px;}
+#rope_S .msg i{font-size:20px;}
+#rope_S .rec{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-2);font-size:14px;}
+#rope_S .rec:last-child{border-bottom:none;}
+#rope_S .rec .t{color:var(--ink-3);font-size:12.5px;width:52px;}
+#rope_S .rec .c{font-weight:800;font-size:16px;width:80px;}
+#rope_S .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;}
+#rope_S .bd{border:1.5px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center;background:#fff;}
+#rope_S .bd i{font-size:26px;color:var(--ink-3);display:block;margin-bottom:4px;}
+#rope_S .bd b{display:block;font-size:13px;letter-spacing:-.02em;}
+#rope_S .bd small{display:block;font-size:11px;color:var(--ink-3);margin-top:2px;}
+#rope_S .bd .prog{margin-top:6px;height:5px;}
+#rope_S .bd.on{border-color:var(--accent);background:var(--accent-soft);}
+#rope_S .bd.on i{color:var(--accent);}
+#rope_S .bd.on b{color:var(--accent-ink);}
+#rope_S .goal-line{display:flex;align-items:center;gap:10px;}
+#rope_S .goal-line .prog{flex:1;height:14px;}
+#rope_S .chart{width:100%;height:auto;display:block;}
+#rope_S .celebrate{position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden;}
+#rope_S .celebrate span{position:absolute;top:-20px;font-size:26px;animation:rpfall 1.6s ease-in forwards;}
+@keyframes rpfall{to{transform:translateY(110vh) rotate(360deg);opacity:.2;}}
+</style>
+
+<div class="mroot hide" data-mod="ROPE" data-role="S" id="rope_S">
+
+  <!-- ===== 오늘 줄넘기 ===== -->
+  <div class="page" id="rope_sp_home">
+    <div class="s-hero">
+      <div class="ring"><svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="42"></circle><circle class="fg" id="rsRing" cx="50" cy="50" r="42" stroke-dasharray="0 264"></circle></svg>
+        <div class="txt"><b id="rsRingVal">0</b><small id="rsRingLab">/ 100회</small></div></div>
+      <div style="flex:1;min-width:180px;position:relative">
+        <h2 id="rsHeroTitle">오늘 줄넘기</h2>
+        <p id="rsHeroSub"></p>
+        <div class="stats" style="margin-top:10px">
+          <div class="stat"><div class="l">누적</div><div class="v" id="rsTotal">0<small>회</small></div></div>
+          <div class="stat"><div class="l">이번 주</div><div class="v" id="rsWeek">0<small>회</small></div></div>
+          <div class="stat"><div class="l">연속</div><div class="v" id="rsStreak">0<small>일</small></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="msg"><i class="ti ti-message-heart"></i><span id="rsMsg"></span></div>
+    <div class="grid g2" style="align-items:start">
+      <div>
+        <div class="panel" style="margin:0 0 14px">
+          <div class="panel-head"><h3><i class="ti ti-jump-rope"></i>방금 뛴 횟수 넣기</h3><div class="spacer"></div><span class="unit" id="rsLeft"></span></div>
+          <div class="panel-body">
+            <div class="amount"><input type="number" id="rsCount" min="1" inputmode="numeric" placeholder="0"><span class="u">회</span></div>
+            <div class="quick"><button data-add="10">+10</button><button data-add="50">+50</button><button data-add="100">+100</button><button data-add="200">+200</button><button data-add="-1" class="ghost">지우기</button></div>
+            <div class="unit" style="margin-top:10px">여러 번 뛰었으면 그때마다 넣어요. 오늘 뛴 횟수가 모두 더해집니다.</div>
+            <button class="bigsave" id="rsSave"><i class="ti ti-device-floppy"></i>저장하기</button>
+            <div class="status" id="rsSaveStatus" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div class="panel" style="margin:0">
+          <div class="panel-head"><h3><i class="ti ti-history"></i>오늘 내 기록</h3><div class="spacer"></div><span class="unit" id="rsTodaySum"></span></div>
+          <div class="panel-body" id="rsTodayList" style="padding-top:4px"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel hide" style="margin:0 0 14px" id="rsCoopPanel">
+          <div class="panel-head"><h3><i class="ti ti-users-group"></i>우리 반 공동 목표</h3></div>
+          <div class="panel-body" id="rsCoopBody"></div>
+        </div>
+        <div class="panel" style="margin:0">
+          <div class="panel-head"><h3><i class="ti ti-award"></i>내 배지</h3><div class="spacer"></div><span class="unit" id="rsBadgeSum"></span></div>
+          <div class="panel-body"><div class="badges" id="rsBadges"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 내 그래프 ===== -->
+  <div class="page hide" id="rope_sp_graph">
+    <div class="page-head"><h2>내 줄넘기 그래프</h2><span class="sub" id="rsGraphSub"></span></div>
+    <div class="kpis" id="rsGraphKpis"></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-chart-line"></i>누적 횟수</h3><span class="unit">확인된 기록만 · 최근 30일</span></div>
+      <div class="panel-body"><svg class="chart" id="rsChart" viewBox="0 0 640 220" preserveAspectRatio="none"></svg></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-calendar"></i>날짜별 기록</h3></div>
+      <div class="scroll-x"><table><thead><tr><th>날짜</th><th>횟수</th><th>목표</th><th>상세</th></tr></thead><tbody id="rsDayRows"></tbody></table></div>
+      <div class="empty hide" id="rsDayEmpty"><i class="ti ti-jump-rope"></i><strong>아직 기록이 없어요</strong>오늘 줄넘기에서 첫 기록을 남겨 보세요.</div>
+    </div>
+  </div>
+  <div class="celebrate hide" id="rsCelebrate"></div>
+</div>
+
+<script>
+/* 줄넘기 · 학생 — MODS.ROPE.student */
+MODS.ROPE = MODS.ROPE || {};
+MODS.ROPE.student = (function () {
+  var D = null, LOADING = false;
+  var pages = ['home', 'graph'];
+  var nav = [
+    { section: '줄넘기' },
+    { id: 'home', label: '오늘 줄넘기', icon: 'jump-rope' },
+    { id: 'graph', label: '내 그래프', icon: 'chart-line' }
+  ];
+  var ROOT = $('rope_S');
+  function qa(sel, root) { return Array.prototype.slice.call((root || ROOT).querySelectorAll(sel)); }
+
+  function init(ctx) { D = null; load(null); }
+  function reset() { D = null; $('rsCount').value = ''; }
+  function load(then) {
+    if (LOADING) return; LOADING = true;
+    api('rope_s_boot', TOKEN).then(function (d) { LOADING = false; D = d; if (then) then(); }).catch(function (e) { LOADING = false; handleErr(e); });
+  }
+  function show(p) {
+    pages.forEach(function (id) { $('rope_sp_' + id).classList.toggle('hide', id !== p); });
+    var fn = { home: renderHome, graph: renderGraph }[p];
+    if (!fn) return;
+    if (!D) { load(fn); return; }
+    fn();
+  }
+  function stTag(s) { return s === '확인' ? '<span class="tag brand"><i class="ti ti-check"></i>확인</span>' : s === '반려' ? '<span class="tag warn"><i class="ti ti-x"></i>반려</span>' : '<span class="tag sun"><i class="ti ti-clock"></i>대기</span>'; }
+
+  /* ================= 오늘 줄넘기 ================= */
+  function renderHome() {
+    var y = D.요약, s = D.설정, 오늘 = D.오늘;
+    var 오늘대기 = D.기록.filter(function (r) { return r.날짜 === 오늘 && r.상태 === '대기'; }).reduce(function (a, r) { return a + r.횟수; }, 0);
+    var p = pct(y.오늘, y.하루목표);
+    $('rsRing').setAttribute('stroke-dasharray', (264 * p / 100) + ' 264');
+    $('rsRingVal').textContent = fmt(y.오늘); $('rsRingLab').textContent = '/ ' + fmt(y.하루목표) + '회';
+    $('rsHeroTitle').textContent = y.오늘 >= y.하루목표 ? '오늘 목표 달성! 🎉' : (y.오늘 ? '오늘 ' + fmt(y.하루목표 - y.오늘) + '회 남았어요' : '오늘 줄넘기, 시작해 볼까요?');
+    $('rsHeroSub').textContent = (오늘대기 ? '선생님 확인을 기다리는 ' + fmt(오늘대기) + '회가 더 있어요 · ' : '') + (y.연속 ? y.연속 + '일 연속 기록 중!' : '기록한 날 ' + y.기록일수 + '일');
+    $('rsTotal').innerHTML = fmt(y.누적) + '<small>회</small>'; $('rsWeek').innerHTML = fmt(y.이번주) + '<small>회</small>'; $('rsStreak').innerHTML = y.연속 + '<small>일</small>';
+    $('rsMsg').textContent = D.문구;
+    $('rsLeft').textContent = '오늘 ' + D.오늘입력 + '/' + s.하루최대입력 + '번 입력';
+    var today = D.기록.filter(function (r) { return r.날짜 === 오늘; });
+    $('rsTodaySum').textContent = today.length ? today.length + '번 · ' + fmt(today.reduce(function (a, r) { return a + r.횟수; }, 0)) + '회' : '';
+    $('rsTodayList').innerHTML = today.map(function (r) {
+      return '<div class="rec"><span class="t">' + esc(r.시각) + '</span><span class="c">' + fmt(r.횟수) + '회</span>' + stTag(r.상태) + (r.입력자 === '교사' ? '<span class="unit">선생님 입력</span>' : '') + (r.메모 ? '<span class="unit">' + esc(r.메모) + '</span>' : '') + '<div class="spacer"></div>' +
+        (r.상태 === '대기' && r.입력자 === '학생' ? '<button class="mini ghost" data-del="' + r.기록ID + '"><i class="ti ti-trash"></i></button>' : '') + '</div>';
+    }).join('') || '<div class="unit" style="padding:8px 0">아직 오늘 기록이 없어요.</div>';
+    qa('#rsTodayList [data-del]').forEach(function (b) {
+      b.onclick = function () { if (!confirm('이 기록을 지울까요?')) return; api('rope_s_deleteRecord', TOKEN, b.dataset.del).then(function (d) { D = d; renderHome(); toast('지웠어요.'); }).catch(handleErr); };
+    });
+    var c = D.학급;
+    $('rsCoopPanel').classList.toggle('hide', !c.학급목표);
+    if (c.학급목표) $('rsCoopBody').innerHTML = '<div class="goal-line"><div class="prog"><i style="width:' + c.진행 + '%"></i></div><b>' + c.진행 + '%</b></div>' +
+      '<div class="unit" style="margin-top:6px">우리 반 ' + c.인원 + '명이 함께 ' + fmt(c.총) + '회 / 목표 ' + fmt(c.학급목표) + '회' + (c.총 >= c.학급목표 ? ' · 달성했어요! 🎉' : ' · ' + fmt(c.학급목표 - c.총) + '회 남았어요') + ' · 오늘 ' + c.오늘기록인원 + '명 참여</div>';
+    var got = D.배지.filter(function (b) { return b.달성; });
+    $('rsBadgeSum').textContent = got.length + ' / ' + D.배지.length + '개';
+    var unit = { 누적: '회', 달성일: '일', 연속: '일', 기록일: '일', 하루최고: '회' };
+    $('rsBadges').innerHTML = D.배지.map(function (b) {
+      return '<div class="bd' + (b.달성 ? ' on' : '') + '" title="' + esc(b.설명) + '"><i class="ti ti-' + b.아이콘 + '"></i><b>' + esc(b.이름) + '</b><small>' + esc(b.설명) + '</small>' +
+        (b.달성 ? '' : '<div class="prog"><i style="width:' + b.진행 + '%"></i></div><small>' + fmt(b.값) + ' / ' + fmt(b.기준) + (unit[b.종류] || '') + '</small>') + '</div>';
+    }).join('');
+  }
+  qa('.quick button').forEach(function (b) {
+    b.onclick = function () { var n = Number(b.dataset.add); var i = $('rsCount'); if (n < 0) { i.value = ''; } else i.value = (Number(i.value) || 0) + n; i.focus(); };
+  });
+  $('rsSave').onclick = function () {
+    var n = Number($('rsCount').value);
+    if (!(n > 0)) { setStatus('rsSaveStatus', '횟수를 넣어 주세요.', 'err'); $('rsCount').focus(); return; }
+    if (n > D.설정.한번최대횟수) { setStatus('rsSaveStatus', '한 번에 ' + fmt(D.설정.한번최대횟수) + '회까지 넣을 수 있어요.', 'err'); return; }
+    $('rsSave').disabled = true; setStatus('rsSaveStatus', '저장 중…');
+    api('rope_s_addRecord', TOKEN, { 횟수: n }).then(function (d) {
+      $('rsSave').disabled = false; var before = D ? D.요약.오늘 : 0, had = D ? D.배지.filter(function (b) { return b.달성; }).length : 0; D = d; $('rsCount').value = '';
+      var now = d.배지.filter(function (b) { return b.달성; });
+      if (now.length > had) setTimeout(function () { toast('새 배지! ' + now[now.length - 1].이름 + ' 🏅'); }, 1200);
+      setStatus('rsSaveStatus', d.방금.상태 === '확인' ? fmt(n) + '회를 저장했어요!' : fmt(n) + '회를 저장했어요. 선생님이 확인하면 그래프에 들어가요.', 'ok');
+      renderHome();
+      if (d.요약.오늘 >= d.요약.하루목표 && before < d.요약.하루목표) celebrate();
+    }).catch(function (e) { $('rsSave').disabled = false; setStatus('rsSaveStatus', (e && e.message) || String(e), 'err'); });
+  };
+  function celebrate() {
+    var box = $('rsCelebrate'), em = ['🎉', '✨', '🏅', '💪', '⭐'], h = '';
+    for (var i = 0; i < 24; i++) h += '<span style="left:' + Math.random() * 100 + '%;animation-delay:' + (Math.random() * .6) + 's">' + em[i % em.length] + '</span>';
+    box.innerHTML = h; box.classList.remove('hide'); toast('오늘 목표 달성! 🎉');
+    setTimeout(function () { box.classList.add('hide'); box.innerHTML = ''; }, 2400);
+  }
+
+  /* ================= 내 그래프 ================= */
+  function renderGraph() {
+    var y = D.요약, 오늘 = D.오늘;
+    $('rsGraphSub').textContent = '누적 ' + fmt(y.누적) + '회 · 기록한 날 ' + y.기록일수 + '일';
+    $('rsGraphKpis').innerHTML = kpiTile('누적', fmt(y.누적), '회', 'sum', 'coral') + kpiTile('기록한 날', y.기록일수, '일', 'calendar-check', 'brand') + kpiTile('가장 길게 연속', y.최장연속, '일', 'flame', 'sun') + kpiTile('목표 달성한 날', y.목표달성일, '일', 'target-arrow', 'violet');
+    // 최근 30일 누적선 + 일별 막대
+    var days = [], map = y.날짜별 || {};
+    for (var i = 29; i >= 0; i--) days.push(addDays(오늘, -i));
+    var 이전 = 0; Object.keys(map).forEach(function (d) { if (d < days[0]) 이전 += map[d]; });
+    var cum = [], run = 이전, maxDay = 1;
+    days.forEach(function (d) { run += map[d] || 0; cum.push(run); if ((map[d] || 0) > maxDay) maxDay = map[d]; });
+    var W = 640, H = 220, L = 44, R = 12, T = 14, Bm = 30, w = W - L - R, h = H - T - Bm;
+    var maxC = Math.max(run, 1), x = function (i) { return L + i / (days.length - 1) * w; };
+    var yc = function (v) { return T + h - v / maxC * h; }, yb = function (v) { return h * v / maxDay; };
+    var svg = '';
+    [0, .5, 1].forEach(function (f) { svg += '<line x1="' + L + '" y1="' + yc(maxC * f) + '" x2="' + (W - R) + '" y2="' + yc(maxC * f) + '" stroke="#EEF3F7"/><text x="' + (L - 6) + '" y="' + (yc(maxC * f) + 4) + '" font-size="10" text-anchor="end" fill="#8797A6">' + fmt(Math.round(maxC * f)) + '</text>'; });
+    var bw = w / days.length * 0.6;
+    days.forEach(function (d, i) { var v = map[d] || 0; if (v) svg += '<rect x="' + (x(i) - bw / 2) + '" y="' + (T + h - yb(v)) + '" width="' + bw + '" height="' + yb(v) + '" rx="2" fill="#FFEDE7"><title>' + d + ' ' + fmt(v) + '회</title></rect>'; });
+    if (maxDay > 1 && y.하루목표 <= maxDay) svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + (T + h - yb(y.하루목표)) + '" y2="' + (T + h - yb(y.하루목표)) + '" stroke="#F5B301" stroke-dasharray="4 3"/>';
+    svg += '<polyline fill="none" stroke="var(--coral)" stroke-width="2.5" stroke-linejoin="round" points="' + cum.map(function (v, i) { return x(i) + ',' + yc(v); }).join(' ') + '"/>';
+    days.forEach(function (d, i) { if (map[d]) svg += '<circle cx="' + x(i) + '" cy="' + yc(cum[i]) + '" r="3.5" fill="#fff" stroke="var(--coral)" stroke-width="2"><title>' + d + ' 누적 ' + fmt(cum[i]) + '회</title></circle>'; });
+    days.forEach(function (d, i) { if (i % 5 === 0 || i === days.length - 1) svg += '<text x="' + x(i) + '" y="' + (H - 10) + '" font-size="10" text-anchor="middle" fill="#8797A6">' + md(d) + '</text>'; });
+    $('rsChart').innerHTML = svg;
+    var byDay = {};
+    D.기록.forEach(function (r) { (byDay[r.날짜] = byDay[r.날짜] || []).push(r); });
+    var keys = Object.keys(byDay).sort().reverse();
+    $('rsDayEmpty').classList.toggle('hide', !!keys.length);
+    $('rsDayRows').innerHTML = keys.map(function (d) {
+      var list = byDay[d], ok = list.filter(function (r) { return r.상태 === '확인'; }).reduce(function (a, r) { return a + r.횟수; }, 0);
+      return '<tr><td class="name">' + mdw(d) + '</td><td><b>' + fmt(ok) + '</b>회</td><td>' + (ok >= y.하루목표 ? '<span class="tag brand">달성</span>' : '<span class="unit">' + pct(ok, y.하루목표) + '%</span>') + '</td><td class="unit">' + list.map(function (r) { return r.시각 + ' ' + fmt(r.횟수) + (r.상태 !== '확인' ? '(' + r.상태 + ')' : ''); }).join(' · ') + '</td></tr>';
+    }).join('');
+  }
+
+  return { nav: nav, init: init, show: show, reset: reset };
+})();
+</script>
