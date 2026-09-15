@@ -36,6 +36,7 @@
 .mod-blue {--accent:#2A5BD7;--accent-dk:#1F46AC;--accent-soft:#E8EFFD;--accent-ink:#183A8C;}
 .mod-sun  {--accent:#E0A400;--accent-dk:#B58400;--accent-soft:#FFF4D1;--accent-ink:#7A5900;}
 .mod-violet{--accent:#6C63FF;--accent-dk:#4B43C9;--accent-soft:#ECEAFF;--accent-ink:#3A33A6;}
+.mod-plum  {--accent:#B4489C;--accent-dk:#8E3079;--accent-soft:#F8E6F3;--accent-ink:#6E245E;}
 
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;height:100%;}
@@ -191,7 +192,7 @@ td input[type=checkbox],th input[type=checkbox]{width:auto;min-width:0;}
 .tag.f3{background:var(--green-soft);color:#177A4E;} .tag.f4{background:var(--sun-soft);color:#946C00;}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;}
 .dot.f1{background:var(--f1);} .dot.f2{background:var(--f2);} .dot.f3{background:var(--f3);} .dot.f4{background:var(--f4);}
-.dot.sky{background:var(--sky);} .dot.mint{background:var(--brand);} .dot.coral{background:var(--coral);} .dot.blue{background:var(--blue);} .dot.sun{background:var(--sun);} .dot.violet{background:var(--violet);}
+.dot.sky{background:var(--sky);} .dot.mint{background:var(--brand);} .dot.coral{background:var(--coral);} .dot.blue{background:var(--blue);} .dot.sun{background:var(--sun);} .dot.violet{background:var(--violet);} .dot.plum{background:#B4489C;}
 
 .chk{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:#fff;}
 .chk input{width:18px;height:18px;accent-color:var(--accent);margin:0;}
@@ -670,6 +671,7 @@ function 학생짧게(s) { return s.학년 + '-' + s.반 + ' ' + s.번호 + '번
       <?!= include('Home_T'); ?>
       <?!= include('Home_S'); ?>
       <? if (mods.CLASS) { ?><?!= include('Class_T'); ?><? } ?>
+      <? if (mods.EVAL) { ?><?!= include('Eval_T'); ?><? } ?>
       <? if (mods.PAPS) { ?><?!= include('PAPS_T'); ?><?!= include('PAPS_S'); ?><? } ?>
       <? if (mods.FIT)  { ?><?!= include('Fit_T');  ?><?!= include('Fit_S');  ?><? } ?>
       <? if (mods.ROPE) { ?><?!= include('Rope_T'); ?><?!= include('Rope_S'); ?><? } ?>

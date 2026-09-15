@@ -2,7 +2,7 @@
  * 체육교사 보조 프로그램 — 공통 뼈대 (Code.gs)
  *
  * 하나의 스프레드시트 · 하나의 배포 · 한 번의 로그인으로
- * PAPS · 건강체력교실 · 줄넘기 · FMS · 스포츠클럽 모듈을 관리합니다.
+ * 수업 도우미 · 수행평가 · PAPS · 건강체력교실 · 줄넘기 · FMS · 스포츠클럽 모듈을 관리합니다.
  *
  * 이 파일이 맡는 것 (모듈은 여기를 건드리지 않습니다)
  *   진입점(doGet, include) · 시트 준비 · 설정 · 모듈 켜고 끄기
@@ -27,7 +27,7 @@
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '1.1.0';
+var APP_VERSION = '1.2.0';
 var 기본프로그램이름 = '체육교사 보조 프로그램';
 var 기본학생용이름 = '체육 활동 기록장';   // 학생·학부모가 보는 이름
 
@@ -51,6 +51,7 @@ var HEADERS = {
 /* 모듈 목록. 순서가 사이드바 순서입니다. */
 var MODULES = [
   { key: 'CLASS', 이름: '수업 도우미',  설명: '지금 수업·출석·특이사항·시간표·수업 계획·명렬표 출력 (교사 전용)', 아이콘: 'clock-play', 색: 'violet', 학생화면: false, hooks: 'class_hooks_' },
+  { key: 'EVAL',  이름: '수행평가',     설명: '평가 계획·단계별 체크·특기사항·결과표 출력 (교사 전용, 학생에게 보이지 않음)', 아이콘: 'checkbox', 색: 'plum', 학생화면: false, 로그인표시: false, hooks: 'eval_hooks_' },
   { key: 'PAPS', 이름: 'PAPS',        설명: '학생건강체력평가 기록·등급·나이스 내보내기',   아이콘: 'stopwatch',  색: 'sky',   학생화면: true,  hooks: 'paps_hooks_' },
   { key: 'FIT',  이름: '건강체력교실', 설명: '참가 학생의 운동 기록·출석·포인트·배지',       아이콘: 'heartbeat',  색: 'mint',  학생화면: true,  hooks: 'fit_hooks_'  },
   { key: 'ROPE', 이름: '줄넘기',       설명: '줄넘기 횟수 누적·승인·학급 공동 목표',          아이콘: 'jump-rope',  색: 'coral', 학생화면: true,  hooks: 'rope_hooks_' },
@@ -198,7 +199,7 @@ function 모듈상태_() {
 function 모듈목록_() {
   var 상태 = 모듈상태_(), s = 설정_();
   return 지원모듈_().map(function (m) {
-    return { key: m.key, 이름: m.이름, 설명: m.설명, 아이콘: m.아이콘, 색: m.색, 학생화면: m.학생화면,
+    return { key: m.key, 이름: m.이름, 설명: m.설명, 아이콘: m.아이콘, 색: m.색, 학생화면: m.학생화면, 로그인표시: m.로그인표시 !== false,
              설치: 모듈설치됨_(m.key), 켜짐: str_(s['모듈.' + m.key]).toUpperCase() !== 'N', 사용: 상태[m.key] };
   });
 }
@@ -264,6 +265,7 @@ function 안내시트_() {
     ['시트', '설명'],
     ['설정', '프로그램 이름, 학교 정보, 모듈 켜고 끄기(모듈.XXX 를 Y/N). 대부분 선생님 화면 > 설정에서 바꿀 수 있습니다.'],
     ['학생', '유일한 학생 명단. 학생ID는 바뀌지 않고, 학년·반·번호는 매년 바뀝니다. 선생님 화면 > 학생 명단에서 관리합니다.'],
+    ['수업_*', '수업 도우미 모듈 시트'], ['평가_*', '수행평가 모듈 시트 (교사 전용)'],
     ['PAPS_*', 'PAPS 모듈 시트'], ['체력_*', '건강체력교실 모듈 시트'], ['줄넘기_*', '줄넘기 모듈 시트'],
     ['FMS_*', 'FMS 도전 모듈 시트'], ['클럽_*', '스포츠클럽 모듈 시트'],
     ['', ''],
@@ -406,7 +408,7 @@ function getLoginInfo() {
   return {
     제목: 공개.프로그램이름, 학생용이름: 공개.학생용이름, 학교명: 공개.학교명, 버전: APP_VERSION,
     학생로그인: 공개.학생로그인, 자동나가기분: 공개.자동나가기분,
-    모듈: 모듈목록_().filter(function (m) { return m.사용; }).map(function (m) { return { key: m.key, 이름: m.이름, 아이콘: m.아이콘, 색: m.색 }; }),
+    모듈: 모듈목록_().filter(function (m) { return m.사용 && m.로그인표시; }).map(function (m) { return { key: m.key, 이름: m.이름, 아이콘: m.아이콘, 색: m.색 }; }),   // 로그인표시 false 인 모듈(수행평가)은 로그인 화면에도 안 보임
     학급: Object.keys(표).sort(숫자순).map(function (g) {
       return { 학년: Number(g), 반들: Object.keys(표[g]).sort(숫자순).map(function (c) {
         return { 반: Number(c), 번호: 표[g][c].sort(숫자순) }; }) };

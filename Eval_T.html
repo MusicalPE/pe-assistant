@@ -1,0 +1,578 @@
+<!-- 수행평가 · 교사 화면 (모듈 EVAL, 교사 전용 — 학생 화면 없음) -->
+<style>
+#eval_T .chks{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+#eval_T .chk.sm{padding:6px 10px;font-size:13.5px;border-radius:9px;}
+#eval_T .plan{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff;}
+#eval_T .plan .ord{width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#eval_T .plan .body{flex:1;min-width:0;}
+#eval_T .plan .ttl{font-size:15.5px;font-weight:800;letter-spacing:-.02em;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+#eval_T .plan .meta{font-size:12.5px;color:var(--ink-2);margin-top:3px;line-height:1.5;}
+#eval_T .plan .meta b{color:var(--ink);}
+#eval_T .plan .pchips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+#eval_T .plan .pchips span{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--ink-2);border:1px solid var(--line);}
+#eval_T .plan .pchips span.done{background:var(--accent-soft);color:var(--accent-ink);border-color:transparent;}
+#eval_T .plan .pchips span.part{background:var(--sun-soft);color:#7A5900;border-color:transparent;}
+#eval_T .plan .acts{display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+#eval_T .lv{display:inline-flex;align-items:center;gap:3px;}
+#eval_T button.lvb{background:#fff;color:var(--ink-2);border:1.5px solid var(--line);border-radius:9px;padding:6px 10px;font-size:13px;font-weight:700;min-width:44px;}
+#eval_T button.lvb:hover{border-color:var(--accent);color:var(--ink);background:#fff;}
+#eval_T button.lvb.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+#eval_T button.lvb.on.l2{background:#3AA37A;border-color:#3AA37A;}
+#eval_T button.lvb.on.l3{background:#E0A400;border-color:#E0A400;}
+#eval_T button.lvb.on.l4{background:#E5484D;border-color:#E5484D;}
+#eval_T .in-table th,#eval_T .in-table td{vertical-align:middle;}
+#eval_T .in-table td.nm{font-weight:700;white-space:nowrap;}
+#eval_T .in-table td.no{color:var(--ink-3);font-weight:700;width:44px;}
+#eval_T .in-table tr.miss td.nm::after{content:" ·";color:var(--coral);}
+#eval_T .in-table input.memo{width:100%;min-width:180px;}
+#eval_T .mx th,#eval_T .mx td{text-align:center;white-space:nowrap;}
+#eval_T .mx tbody td:nth-child(-n+2),#eval_T .mx thead th:nth-child(-n+2){text-align:left;}
+#eval_T .mx thead th:nth-child(2),#eval_T .mx tbody td:nth-child(2){position:sticky;left:0;background:#fff;z-index:1;}
+#eval_T .mx thead th:nth-child(2){background:var(--soft);z-index:2;}
+#eval_T .mx .c{display:inline-block;min-width:54px;padding:3px 8px;border-radius:8px;font-weight:700;font-size:12.5px;}
+#eval_T .mx .c.l1{background:var(--accent-soft);color:var(--accent-ink);} #eval_T .mx .c.l2{background:#E3F7EC;color:#177A4E;}
+#eval_T .mx .c.l3{background:var(--sun-soft);color:#7A5900;} #eval_T .mx .c.l4{background:var(--warn-soft);color:#A62D31;}
+#eval_T .mx .c.none{color:var(--ink-3);background:var(--soft);}
+#eval_T .mx .memo{font-size:11px;color:var(--ink-3);display:block;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#eval_T .dist{display:flex;height:9px;border-radius:99px;overflow:hidden;background:var(--soft);width:100%;}
+#eval_T .dist i{display:block;height:100%;}
+#eval_T .dist i.l1{background:var(--accent);} #eval_T .dist i.l2{background:#3AA37A;} #eval_T .dist i.l3{background:#E0A400;} #eval_T .dist i.l4{background:#E5484D;}
+#eval_T .paper-wrap{background:#D9DFE7;padding:24px;border-radius:var(--r);overflow:auto;}
+#eval_T .modal .panel-head{padding:14px 18px;}
+#eval_T .modal .savebar{position:sticky;bottom:0;display:flex;align-items:center;gap:14px;background:var(--card);border-top:1px solid var(--line);padding:12px 18px;flex-wrap:wrap;}
+#eval_T textarea{width:100%;font-family:inherit;}
+
+/* 용지 — 화면 미리보기와 인쇄(.print-area)에서 함께 씀 */
+.ev-papers .paper{background:#fff;width:210mm;min-height:297mm;margin:0 auto 18px;padding:15mm 18mm;box-shadow:0 10px 40px -12px rgba(0,0,0,.4);color:#000;font-family:'함초롬돋움','HCR Dotum','맑은 고딕','Malgun Gothic',var(--sans);}
+.ev-papers .paper:last-child{margin-bottom:0;}
+.ev-papers .paper.land{width:297mm;min-height:210mm;padding:12mm 14mm;}
+.ev-papers h1{text-align:center;font-size:18pt;margin:0 0 4mm;font-weight:700;letter-spacing:.1em;}
+.ev-papers .info{border-collapse:collapse;width:100%;margin-bottom:3mm;font-size:10pt;}
+.ev-papers .info td{border:1px solid #000;padding:1.2mm 2mm;background:none;color:#000;line-height:1.35;}
+.ev-papers .info td.k{width:22mm;background:#F2F2F2;text-align:center;font-weight:700;white-space:nowrap;}
+.ev-papers .rt{border-collapse:collapse;width:100%;table-layout:fixed;border:2px solid #000;}
+.ev-papers .rt td,.ev-papers .rt th{border:1px solid #000;padding:1mm 1.2mm;text-align:center;font-size:10pt;background:none;color:#000;line-height:1.3;font-weight:400;white-space:normal;}
+.ev-papers .rt th{background:#F2F2F2;font-weight:700;border-bottom:2px solid #000;font-size:9.5pt;}
+.ev-papers .rt tr{border:0;} .ev-papers .rt tr:hover{background:none;}
+.ev-papers .rt td.nm{font-weight:700;}
+.ev-papers .rt td.memo{text-align:left;font-size:9pt;}
+.ev-papers .rt td.mk{font-size:12pt;font-weight:700;}
+.ev-papers .sig{display:flex;justify-content:flex-end;gap:12mm;margin-top:6mm;font-size:10.5pt;}
+.ev-papers .sig span{border-bottom:1px solid #000;min-width:40mm;padding:0 3mm 1mm;}
+.ev-papers .foot{margin-top:4mm;font-size:9pt;color:#333;display:flex;justify-content:space-between;}
+@media print{
+  .print-area .paper{width:auto;min-height:0;margin:0;padding:0;box-shadow:none;page-break-after:always;break-after:page;}
+  .print-area .paper:last-child{page-break-after:auto;break-after:auto;}
+  .print-area .paper.land{width:auto;min-height:0;padding:0;}
+  .print-area .rt,.print-area .info{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+@media (max-width:860px){ #eval_T .paper-wrap{padding:8px;} #eval_T .paper-wrap .paper{zoom:.42;} }
+</style>
+
+<div class="mroot hide" data-mod="EVAL" data-role="T" id="eval_T">
+  <div class="page" id="eval_tp_plans"><div id="evPgPlans"></div></div>
+  <div class="page hide" id="eval_tp_input"><div id="evPgInput"></div></div>
+  <div class="page hide" id="eval_tp_overview"><div id="evPgOverview"></div></div>
+  <div class="page hide" id="eval_tp_print"><div id="evPgPrint"></div></div>
+  <div class="page hide" id="eval_tp_settings"><div id="evPgSettings"></div></div>
+  <div id="evModalRoot"></div>
+</div>
+
+<script>
+MODS.EVAL = MODS.EVAL || {};
+MODS.EVAL.teacher = (function () {
+  var D = null;              // { 설정, 계획, 요약, 학년도, 오늘 }
+  var pages = ['plans', 'input', 'overview', 'print', 'settings'];
+  var nav = [
+    { section: '수행평가' },
+    { id: 'plans', label: '평가 계획', icon: 'list-details' },
+    { id: 'input', label: '평가 입력', icon: 'checkbox' },
+    { id: 'overview', label: '결과 조회', icon: 'table' },
+    { id: 'print', label: '출력', icon: 'printer' },
+    { id: 'settings', label: '수행평가 설정', icon: 'adjustments' }
+  ];
+  var ROOT = $('eval_T');
+  var ST = { 학년: null, 학기: 0, 반: null, 평가: null };   // 화면들이 함께 쓰는 선택 상태
+  var IN = null;             // 평가 입력 화면 자료 { 평가, 학생, 결과, 평가일, dirty }
+  var PO = { 종류: 'sheet', classes: null, 날짜: 'auto', 직접: '', 특기: true, 성취: true, 사인: true, 비고: false };
+
+  /* ---------- 작은 도구 ---------- */
+  function qa(sel, root) { return Array.prototype.slice.call((root || ROOT).querySelectorAll(sel)); }
+  function P(id) { return $('evPg' + id); }
+  function today() { return ymd(new Date()); }
+  function kdate(s) { if (!s) return ''; var d = parseYmd(s); return d.getFullYear() + '. ' + (d.getMonth() + 1) + '. ' + d.getDate() + '.'; }
+  function classLabel(k) { var p = String(k).split('-'); return p[0] + '학년 ' + p[1] + '반'; }
+  function sortKeys(arr) { return arr.slice().sort(function (a, b) { var x = a.split('-').map(Number), y = b.split('-').map(Number); return (x[0] - y[0]) || (x[1] - y[1]); }); }
+  function uniq(arr) { var o = {}, out = []; arr.forEach(function (x) { if (!o[x]) { o[x] = 1; out.push(x); } }); return out; }
+  function roster() {
+    return (CTX && CTX.학생 ? CTX.학생 : []).filter(function (s) { return s.상태 === '재학' && s.반 && s.번호; })
+      .map(function (s) { return { id: s.학생ID, 학년: Number(s.학년), 반: Number(s.반), 번호: Number(s.번호), 이름: s.이름, 성별: s.성별 || '' }; });
+  }
+  function classKeys() { return sortKeys(uniq(roster().map(function (s) { return s.학년 + '-' + s.반; }))); }
+  function grades() { return uniq(classKeys().map(function (k) { return +k.split('-')[0]; })); }
+  function allGradesList() { return (CTX && CTX.설정 && CTX.설정.학년들) ? CTX.설정.학년들 : [1, 2, 3, 4, 5, 6]; }
+  function classesOf(g) { return classKeys().filter(function (k) { return +k.split('-')[0] === g; }); }
+  function studentsOf(k) { var p = k.split('-').map(Number); return roster().filter(function (s) { return s.학년 === p[0] && s.반 === p[1]; }).sort(function (a, b) { return a.번호 - b.번호; }); }
+  function plansOf(g, sem) { return (D.계획 || []).filter(function (p) { return p.학년 === g && (!sem || p.학기 === sem); }); }
+  function planById(id) { return (D.계획 || []).filter(function (p) { return p.id === id; })[0] || null; }
+  function lvClass(p, 단계) { var i = p.라벨.indexOf(단계); return i < 0 ? 'none' : 'l' + (i + 1); }
+  function detail() { return D.설정.계획방식 === '자세히'; }
+  function opt(list, cur, fn) { return list.map(function (v) { return '<option value="' + esc(v) + '"' + (String(v) === String(cur) ? ' selected' : '') + '>' + esc(fn ? fn(v) : v) + '</option>'; }).join(''); }
+  function bindChk(root) { qa('label.chk input[type=checkbox]', root).forEach(function (c) { c.onchange = function () { c.parentNode.classList.toggle('on', c.checked); }; }); }
+
+  /* ---------- 모듈 뼈대 ---------- */
+  var BOOTP = null;
+  function init(ctx) { D = null; boot(null); }
+  function reset() { D = null; BOOTP = null; IN = null; ST = { 학년: null, 학기: 0, 반: null, 평가: null }; }
+  function boot(then) {
+    if (!BOOTP) BOOTP = api('eval_t_boot', TOKEN).then(function (b) { D = b; BOOTP = null; setNavCount('EVAL', 'input', 0); }, function (e) { BOOTP = null; throw e; });
+    BOOTP.then(function () { if (then) then(); }).catch(handleErr);
+  }
+  function show(p) {
+    pages.forEach(function (id) { $('eval_tp_' + id).classList.toggle('hide', id !== p); });
+    boot(function () {
+      if (!ST.학년) { var g = grades(); ST.학년 = g.length ? g[0] : (allGradesList()[0] || 1); }
+      if (p === 'plans') renderPlans();
+      if (p === 'input') renderInput();
+      if (p === 'overview') renderOverview();
+      if (p === 'print') renderPrint();
+      if (p === 'settings') renderSettings();
+    });
+  }
+  function goPage(p) { if (p === 'reset') go('core', 'reset'); else if (p === 'students') go('core', 'students'); else go('EVAL', p); }
+  ROOT.addEventListener('click', function (e) {
+    var g = e.target.closest && e.target.closest('[data-go]');
+    if (g) { e.preventDefault(); closeModal(true); goPage(g.getAttribute('data-go')); }
+  });
+
+  /* ---------- 모달 ---------- */
+  var onModalClose = null;
+  function openModal(o) {
+    closeModal(true);
+    $('evModalRoot').innerHTML = '<div class="modal" id="evMdOpen"><div style="max-width:' + (o.width || 560) + 'px">' +
+      '<div class="panel-head"><h3><i class="ti ti-' + (o.icon || 'pencil') + '"></i>' + o.title + '</h3><div class="spacer"></div><button class="ghost mini" data-mclose><i class="ti ti-x"></i>닫기</button></div>' +
+      '<div class="panel-body">' + o.body + '</div>' +
+      (o.foot !== undefined ? '<div class="savebar">' + o.foot + '</div>' : '') + '</div></div>';
+    var m = $('evMdOpen');
+    m.addEventListener('mousedown', function (e) { if (e.target === m) closeModal(); });
+    qa('[data-mclose]', m).forEach(function (b) { b.onclick = function () { closeModal(); }; });
+    bindChk(m);
+    var f = m.querySelector('[autofocus]'); if (f) setTimeout(function () { f.focus(); }, 30);
+    return m;
+  }
+  function closeModal(silent) {
+    if (!$('evMdOpen')) return;
+    $('evModalRoot').innerHTML = '';
+    var f = onModalClose; onModalClose = null;
+    if (f && !silent) f();
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('evMdOpen')) closeModal(); });
+  function mstatus(m, msg, kind) { var s = m.querySelector('.status'); if (s) { s.className = 'status ' + (kind || ''); s.textContent = msg; } }
+
+  /* ---------- 학년·학기 고르기 막대 (여러 화면 공통) ---------- */
+  function pickBar(opts) {
+    opts = opts || {};
+    var gs = allGradesList(), keys = classesOf(ST.학년);
+    if (opts.반 && (!ST.반 || keys.indexOf(ST.반) < 0)) ST.반 = keys[0] || null;
+    return '<div class="bar">' +
+      '<div class="field"><label>학년</label><select id="evPkG">' + opt(gs, ST.학년, function (g) { return g + '학년'; }) + '</select></div>' +
+      (opts.학기 ? '<div class="field"><label>학기</label><select id="evPkS">' + opt([0, 1, 2], ST.학기, function (s) { return s ? s + '학기' : '전체'; }) + '</select></div>' : '') +
+      (opts.반 ? '<div class="field"><label>반</label><select id="evPkC">' + (keys.length ? opt(keys, ST.반, classLabel) : '<option value="">학생 없음</option>') + '</select></div>' : '') +
+      (opts.extra || '') + '</div>';
+  }
+  function bindPick(rerender) {
+    var g = $('evPkG'), s = $('evPkS'), c = $('evPkC');
+    if (g) g.onchange = function () { if (!confirmLeave()) { g.value = ST.학년; return; } ST.학년 = Number(g.value); ST.반 = null; ST.평가 = null; rerender(); };
+    if (s) s.onchange = function () { ST.학기 = Number(s.value); rerender(); };
+    if (c) c.onchange = function () { if (!confirmLeave()) { c.value = ST.반; return; } ST.반 = c.value; rerender(); };
+  }
+
+  /* ================= 평가 계획 ================= */
+  function renderPlans() {
+    var list = plansOf(ST.학년, ST.학기), keys = classesOf(ST.학년), 요약 = D.요약 || {};
+    var html = '<div class="page-head"><h2>평가 계획</h2><span class="sub">' + esc(D.학년도) + '학년도 · 학년마다 평가를 세우고 단계(3단계·4단계)를 정합니다. 학생에게는 보이지 않습니다.</span></div>' +
+      pickBar({ 학기: true, extra: '<div class="spacer"></div><button id="evBtnAdd"><i class="ti ti-plus"></i>평가 추가</button><button class="ghost" id="evBtnPaste"><i class="ti ti-clipboard-text"></i>표 붙여넣기</button><button class="ghost" id="evBtnCopy"><i class="ti ti-copy"></i>다른 학년에서 복제</button>' }) +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-list-details"></i>' + ST.학년 + '학년 평가 ' + list.length + '개</h3><span class="unit">' + (detail() ? '자세히 (영역·성취기준 포함)' : '간단 입력') + ' · 설정에서 바꿀 수 있습니다</span><div class="spacer"></div><span class="unit">순서는 ▲▼로</span></div><div class="panel-body">';
+    if (!list.length) {
+      html += '<div class="empty"><i class="ti ti-list-details"></i><strong>아직 평가 계획이 없습니다</strong>평가 추가를 누르거나, 학교 평가계획서의 표를 복사해 붙여 넣어 주세요.</div>';
+    } else {
+      list.forEach(function (p, i) {
+        var prog = keys.map(function (k) { var n = (요약[p.id] || {})[k] || 0, t = studentsOf(k).length; return '<span class="' + (t && n >= t ? 'done' : n ? 'part' : '') + '">' + k.split('-')[1] + '반 ' + n + '/' + t + '</span>'; }).join('');
+        html += '<div class="plan" data-id="' + p.id + '"><div class="ord">' + (i + 1) + '</div><div class="body">' +
+          '<div class="ttl">' + esc(p.평가명) + '<span class="tag brand" style="font-size:11px">' + p.학기 + '학기</span>' + (p.영역 ? '<span class="tag violet" style="font-size:11px">' + esc(p.영역) + '</span>' : '') + '<span class="tag" style="font-size:11px">' + p.단계수 + '단계 · ' + esc(p.라벨.join('/')) + '</span></div>' +
+          '<div class="meta">' + (p.성취기준 ? '<b>성취기준</b> ' + esc(p.성취기준) + '<br>' : '') + (p.평가요소 ? '<b>평가요소</b> ' + esc(p.평가요소) + '<br>' : '') +
+            [p.방법 ? '<b>방법</b> ' + esc(p.방법) : '', p.시기 ? '<b>시기</b> ' + esc(p.시기) : '', p.비고 ? '<b>비고</b> ' + esc(p.비고) : ''].filter(Boolean).join(' · ') + '</div>' +
+          (keys.length ? '<div class="pchips">' + prog + '</div>' : '') + '</div>' +
+          '<div class="acts"><button class="mini soft" data-in="' + p.id + '"><i class="ti ti-checkbox"></i>입력</button><button class="mini ghost" data-edit="' + p.id + '"><i class="ti ti-pencil"></i>수정</button>' +
+            '<button class="mini ghost" data-up="' + p.id + '" title="위로">▲</button><button class="mini ghost" data-down="' + p.id + '" title="아래로">▼</button><button class="mini danger" data-del="' + p.id + '"><i class="ti ti-trash"></i></button></div></div>';
+      });
+    }
+    html += '</div></div>';
+    P('Plans').innerHTML = html;
+    bindPick(renderPlans);
+    $('evBtnAdd').onclick = function () { editPlan(null); };
+    $('evBtnPaste').onclick = pastePlans;
+    $('evBtnCopy').onclick = copyPlans;
+    qa('[data-edit]').forEach(function (b) { b.onclick = function () { editPlan(planById(b.getAttribute('data-edit'))); }; });
+    qa('[data-in]').forEach(function (b) { b.onclick = function () { ST.평가 = b.getAttribute('data-in'); go('EVAL', 'input'); }; });
+    qa('[data-del]').forEach(function (b) { b.onclick = function () {
+      var p = planById(b.getAttribute('data-del'));
+      if (!confirm('"' + p.평가명 + '" 평가를 지웁니다.\n이 평가에 입력한 결과도 함께 지워지고 되돌릴 수 없습니다. 계속할까요?')) return;
+      api('eval_t_deletePlan', TOKEN, p.id).then(function (r) { D.계획 = r.계획; toast('지웠습니다' + (r.결과삭제 ? ' (결과 ' + r.결과삭제 + '건 포함)' : '') + '.'); renderPlans(); }).catch(handleErr);
+    }; });
+    function move(id, dir) {
+      var same = plansOf(ST.학년, planById(id).학기), ids = same.map(function (p) { return p.id; }), i = ids.indexOf(id), j = i + dir;
+      if (j < 0 || j >= ids.length) return;
+      ids.splice(i, 1); ids.splice(j, 0, id);
+      api('eval_t_reorderPlans', TOKEN, ids).then(function (r) { D.계획 = r.계획; renderPlans(); }).catch(handleErr);
+    }
+    qa('[data-up]').forEach(function (b) { b.onclick = function () { move(b.getAttribute('data-up'), -1); }; });
+    qa('[data-down]').forEach(function (b) { b.onclick = function () { move(b.getAttribute('data-down'), 1); }; });
+  }
+
+  function labelInputs(n, cur) {
+    return '<div class="chks" id="evLbl">' + cur.slice(0, n).map(function (v, i) { return '<input type="text" value="' + esc(v) + '" data-lv="' + i + '" style="width:110px" placeholder="' + (i + 1) + '단계">'; }).join('') + '</div>';
+  }
+  function editPlan(p) {
+    var isNew = !p, 자세히 = detail();
+    p = p || { 학기: ST.학기 || 1, 학년: ST.학년, 영역: '', 평가명: '', 성취기준: '', 평가요소: '', 방법: '', 단계수: 3, 라벨: D.설정.라벨3.slice(), 시기: '', 비고: '' };
+    var m = openModal({ title: isNew ? '평가 추가' : '평가 수정', icon: 'list-details', width: 640,
+      body: '<div class="grid g3" style="margin-bottom:12px">' +
+          '<div class="field"><label>학년</label><select id="evFG">' + opt(allGradesList(), p.학년, function (g) { return g + '학년'; }) + '</select></div>' +
+          '<div class="field"><label>학기</label><select id="evFS">' + opt([1, 2], p.학기, function (s) { return s + '학기'; }) + '</select></div>' +
+          (자세히 ? '<div class="field"><label>영역</label><input type="text" id="evFA" list="evAreaList" value="' + esc(p.영역) + '" placeholder="예: 운동"><datalist id="evAreaList">' + D.설정.영역.map(function (a) { return '<option value="' + esc(a) + '">'; }).join('') + '</datalist></div>' : '<div></div>') +
+        '</div>' +
+        '<div class="field" style="margin-bottom:12px"><label>평가명</label><input type="text" id="evFN" value="' + esc(p.평가명) + '" placeholder="예: 줄넘기 2단 뛰기" autofocus></div>' +
+        (자세히 ? '<div class="field" style="margin-bottom:12px"><label>성취기준</label><textarea id="evFC" rows="2" placeholder="예: [6체02-03] …">' + esc(p.성취기준) + '</textarea></div>' +
+                  '<div class="field" style="margin-bottom:12px"><label>평가 요소</label><input type="text" id="evFE" value="' + esc(p.평가요소) + '" placeholder="예: 2단 뛰기 연속 횟수, 자세"></div>' : '') +
+        '<div class="grid g2" style="margin-bottom:12px">' +
+          '<div class="field"><label>평가 방법</label><input type="text" id="evFM" value="' + esc(p.방법) + '" placeholder="예: 실기 · 관찰"></div>' +
+          '<div class="field"><label>평가 시기</label><input type="text" id="evFT" value="' + esc(p.시기) + '" placeholder="예: 5월 3주"></div>' +
+        '</div>' +
+        '<div class="field" style="margin-bottom:8px"><label>단계</label><div class="chks"><label class="chk sm' + (p.단계수 === 3 ? ' on' : '') + '"><input type="radio" name="evLv" value="3"' + (p.단계수 === 3 ? ' checked' : '') + '><span>3단계</span></label><label class="chk sm' + (p.단계수 === 4 ? ' on' : '') + '"><input type="radio" name="evLv" value="4"' + (p.단계수 === 4 ? ' checked' : '') + '><span>4단계</span></label><span class="unit">단계 이름은 잘한 순서로. 비우면 기본 이름</span></div></div>' +
+        '<div id="evLblBox" style="margin-bottom:12px">' + labelInputs(p.단계수, p.단계수 === 3 ? (p.라벨.length === 3 ? p.라벨 : D.설정.라벨3) : (p.라벨.length === 4 ? p.라벨 : D.설정.라벨4)) + '</div>' +
+        '<div class="field"><label>비고</label><input type="text" id="evFR" value="' + esc(p.비고) + '"></div>',
+      foot: '<span class="status"></span><div class="spacer"></div>' + (isNew ? '' : '<span class="unit">단계 수를 바꾸면 이미 찍은 결과 중 새 이름에 없는 것은 비어 보입니다</span>') + '<button id="evFSave"><i class="ti ti-device-floppy"></i>저장</button>' });
+    qa('input[name=evLv]', m).forEach(function (r) { r.onchange = function () {
+      var n = Number(r.value); $('evLblBox').innerHTML = labelInputs(n, n === 3 ? D.설정.라벨3 : D.설정.라벨4);
+      qa('label.chk', m).forEach(function (l) { var i = l.querySelector('input'); if (i && i.name === 'evLv') l.classList.toggle('on', i.checked); });
+    }; });
+    $('evFSave').onclick = function () {
+      var n = Number((m.querySelector('input[name=evLv]:checked') || {}).value) || 3;
+      var 라벨 = qa('#evLbl input', m).map(function (i) { return i.value.trim(); });
+      var plan = { id: p.id || '', 학년: Number($('evFG').value), 학기: Number($('evFS').value), 평가명: $('evFN').value.trim(), 방법: $('evFM').value.trim(), 시기: $('evFT').value.trim(), 비고: $('evFR').value.trim(), 단계수: n, 라벨: 라벨,
+                   영역: 자세히 ? $('evFA').value.trim() : p.영역, 성취기준: 자세히 ? $('evFC').value.trim() : p.성취기준, 평가요소: 자세히 ? $('evFE').value.trim() : p.평가요소 };
+      if (!plan.평가명) { mstatus(m, '평가명을 입력해 주세요.', 'err'); return; }
+      mstatus(m, '저장 중…');
+      api('eval_t_savePlan', TOKEN, plan).then(function (r) { D.계획 = r.계획; ST.학년 = plan.학년; closeModal(true); toast('저장했습니다.'); renderPlans(); }).catch(function (e) { mstatus(m, (e && e.message) || String(e), 'err'); });
+    };
+  }
+
+  function pastePlans() {
+    var 자세히 = detail();
+    var m = openModal({ title: '표 붙여넣기', icon: 'clipboard-text', width: 640,
+      body: '<div class="note"><i class="ti ti-info-circle"></i><div>학교 평가계획서(한글·엑셀)의 표에서 줄을 복사해 붙여 넣으세요. 한 줄이 평가 하나이고, 칸 순서는 <b>' + (자세히 ? '평가명 · 영역 · 성취기준 · 평가요소 · 방법 · 시기 · 비고' : '평가명 · 방법 · 시기 · 비고') + '</b>입니다. 평가명만 있어도 됩니다.</div></div>' +
+        '<div class="grid g3" style="margin:12px 0">' +
+          '<div class="field"><label>학년</label><select id="evPG">' + opt(allGradesList(), ST.학년, function (g) { return g + '학년'; }) + '</select></div>' +
+          '<div class="field"><label>학기</label><select id="evPS">' + opt([1, 2], ST.학기 || 1, function (s) { return s + '학기'; }) + '</select></div>' +
+          '<div class="field"><label>단계</label><select id="evPL"><option value="3">3단계</option><option value="4">4단계</option></select></div></div>' +
+        '<textarea id="evPT" rows="8" placeholder="' + (자세히 ? '줄넘기 2단 뛰기\t운동\t[6체02-03] …\t연속 횟수\t실기\t5월' : '줄넘기 2단 뛰기\t실기\t5월') + '"></textarea>',
+      foot: '<span class="status"></span><div class="spacer"></div><button id="evPGo"><i class="ti ti-plus"></i>추가</button>' });
+    $('evPGo').onclick = function () {
+      var t = $('evPT').value; if (!t.trim()) { mstatus(m, '붙여 넣은 내용이 없습니다.', 'err'); return; }
+      mstatus(m, '추가 중…');
+      api('eval_t_addPlans', TOKEN, Number($('evPG').value), Number($('evPS').value), t, Number($('evPL').value)).then(function (r) {
+        if (!r.ok) { mstatus(m, r.message, 'err'); return; }
+        D.계획 = r.계획; ST.학년 = Number($('evPG').value); closeModal(true); toast(r.추가 + '개 평가를 추가했습니다.'); renderPlans();
+      }).catch(function (e) { mstatus(m, (e && e.message) || String(e), 'err'); });
+    };
+  }
+
+  function copyPlans() {
+    var gs = allGradesList().filter(function (g) { return g !== ST.학년; });
+    var m = openModal({ title: '다른 학년에서 복제', icon: 'copy',
+      body: '<p style="margin:0 0 12px;color:var(--ink-2);font-size:13.5px">고른 학년의 평가 계획을 <b>' + ST.학년 + '학년</b>에 그대로 복제합니다. 결과는 복제되지 않습니다.</p>' +
+        '<div class="grid g2"><div class="field"><label>가져올 학년</label><select id="evCG">' + opt(gs, gs[0], function (g) { return g + '학년 (' + plansOf(g, 0).length + '개)'; }) + '</select></div>' +
+        '<div class="field"><label>학기</label><select id="evCS">' + opt([0, 1, 2], 0, function (s) { return s ? s + '학기만' : '전체'; }) + '</select></div></div>',
+      foot: '<span class="status"></span><div class="spacer"></div><button id="evCGo"><i class="ti ti-copy"></i>복제</button>' });
+    $('evCGo').onclick = function () {
+      mstatus(m, '복제 중…');
+      api('eval_t_copyPlans', TOKEN, Number($('evCG').value), ST.학년, Number($('evCS').value)).then(function (r) { D.계획 = r.계획; closeModal(true); toast(r.복제 + '개를 복제했습니다.'); renderPlans(); }).catch(function (e) { mstatus(m, (e && e.message) || String(e), 'err'); });
+    };
+  }
+
+  /* ================= 평가 입력 ================= */
+  function renderInput() {
+    var list = plansOf(ST.학년, 0);
+    if (ST.평가 && !list.some(function (p) { return p.id === ST.평가; })) ST.평가 = null;
+    if (!ST.평가 && list.length) ST.평가 = list[0].id;
+    var head = '<div class="page-head"><h2>평가 입력</h2><span class="sub">학년·반·평가를 고르고 학생마다 단계를 누릅니다. 특기사항은 필요한 학생만. 저장을 누르면 반 전체가 한 번에 저장됩니다.</span></div>' +
+      pickBar({ 반: true, extra: '<div class="field"><label>평가</label><select id="evPkE" style="min-width:200px">' + (list.length ? opt(list.map(function (p) { return p.id; }), ST.평가, function (id) { var p = planById(id); return p.학기 + '학기 · ' + p.평가명; }) : '<option value="">평가 없음</option>') + '</select></div>' +
+        '<div class="field"><label>평가일</label><input type="date" id="evPkD" value="' + (IN && IN.평가일 ? IN.평가일 : today()) + '"></div>' });
+    if (!list.length || !ST.반) {
+      P('Input').innerHTML = head + '<div class="panel"><div class="empty"><i class="ti ti-checkbox"></i><strong>' + (!list.length ? ST.학년 + '학년 평가 계획이 없습니다' : ST.학년 + '학년에 학생이 없습니다') + '</strong>' + (!list.length ? '평가 계획에서 먼저 평가를 만들어 주세요.<div style="margin-top:12px"><button class="mini soft" data-go="plans"><i class="ti ti-list-details"></i>평가 계획</button></div>' : '학생 명단에서 명렬을 등록해 주세요.') + '</div></div>';
+      bindPick(renderInput);
+      return;
+    }
+    P('Input').innerHTML = head + '<div class="panel"><div class="panel-body"><div class="empty"><i class="ti ti-loader"></i>불러오는 중…</div></div></div>';
+    bindPick(renderInput);
+    $('evPkE').onchange = function () { if (!confirmLeave()) { $('evPkE').value = ST.평가; return; } ST.평가 = $('evPkE').value; renderInput(); };
+    var pr = ST.반.split('-').map(Number);
+    api('eval_t_getClass', TOKEN, ST.평가, pr[0], pr[1]).then(function (r) {
+      var 날짜 = null;
+      Object.keys(r.결과).forEach(function (id) { if (r.결과[id] && r.결과[id].평가일 && !날짜) 날짜 = r.결과[id].평가일; });
+      IN = { 평가: r.평가, 학생: r.학생, 결과: r.결과, 평가일: 날짜 || today(), dirty: false };
+      $('evPkD').value = IN.평가일;
+      drawInputTable();
+    }).catch(handleErr);
+  }
+  function drawInputTable() {
+    var p = IN.평가, box = P('Input');
+    var old = box.querySelector('.panel'); if (old) old.remove();
+    var html = '<div class="panel"><div class="panel-head"><h3><i class="ti ti-checkbox"></i>' + esc(p.평가명) + '</h3>' +
+        '<span class="unit">' + classLabel(ST.반) + ' · ' + IN.학생.length + '명 · ' + p.단계수 + '단계' + (p.방법 ? ' · ' + esc(p.방법) : '') + '</span><div class="spacer"></div>' +
+        '<div class="chks"><span class="unit">전체를</span>' + p.라벨.map(function (l, i) { return '<button class="mini ghost" data-fill="' + esc(l) + '">' + esc(l) + '</button>'; }).join('') + '<button class="mini ghost" data-fill="">비우기</button></div></div>' +
+      (p.성취기준 ? '<div class="note" style="border-radius:0;border-left:0;border-right:0"><i class="ti ti-target"></i><div><b>성취기준</b> ' + esc(p.성취기준) + (p.평가요소 ? ' · <b>평가요소</b> ' + esc(p.평가요소) : '') + '</div></div>' : '') +
+      '<div class="scroll-x"><table class="in-table"><thead><tr><th>번호</th><th>이름</th><th>단계</th><th>특기사항</th></tr></thead><tbody>';
+    IN.학생.forEach(function (s) {
+      var r = IN.결과[s.학생ID] || { 단계: '', 특기사항: '' };
+      html += '<tr data-id="' + s.학생ID + '" class="' + (r.단계 ? '' : 'miss') + '"><td class="no">' + s.번호 + '</td><td class="nm">' + esc(s.이름) + '</td>' +
+        '<td><span class="lv">' + p.라벨.map(function (l, i) { return '<button class="lvb l' + (i + 1) + (r.단계 === l ? ' on' : '') + '" data-lv="' + esc(l) + '">' + esc(l) + '</button>'; }).join('') + '</span></td>' +
+        '<td><input type="text" class="memo" value="' + esc(r.특기사항) + '" placeholder="필요할 때만"></td></tr>';
+    });
+    html += '</tbody></table></div>' +
+      '<div class="savebar"><span class="status" id="evInStatus">' + summaryText() + '</span><div class="spacer"></div><button class="ghost" data-go="overview"><i class="ti ti-table"></i>결과 조회</button><button id="evInSave"><i class="ti ti-device-floppy"></i>저장</button></div></div>';
+    box.insertAdjacentHTML('beforeend', html);
+    qa('.lvb', box).forEach(function (b) { b.onclick = function () {
+      var tr = b.closest('tr'), on = b.classList.contains('on');
+      qa('.lvb', tr).forEach(function (x) { x.classList.remove('on'); });
+      if (!on) b.classList.add('on');
+      tr.classList.toggle('miss', on);
+      markDirty();
+    }; });
+    qa('input.memo', box).forEach(function (i) { i.addEventListener('input', markDirty); i.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var all = qa('input.memo', box), k = all.indexOf(i); if (all[k + 1]) all[k + 1].focus(); } }); });
+    qa('[data-fill]', box).forEach(function (b) { b.onclick = function () {
+      var v = b.getAttribute('data-fill');
+      qa('tbody tr', box).forEach(function (tr) { qa('.lvb', tr).forEach(function (x) { x.classList.toggle('on', !!v && x.getAttribute('data-lv') === v); }); tr.classList.toggle('miss', !v); });
+      markDirty();
+    }; });
+    $('evPkD').onchange = markDirty;
+    $('evInSave').onclick = saveInput;
+    UNSAVED.check = function () { return IN && IN.dirty ? '평가 입력' : ''; };
+  }
+  function summaryText() {
+    var n = 0, t = IN.학생.length;
+    IN.학생.forEach(function (s) { if (IN.결과[s.학생ID] && IN.결과[s.학생ID].단계) n++; });
+    return n ? '입력 ' + n + ' / ' + t + '명' + (n < t ? ' · 아직 ' + (t - n) + '명' : ' · 완료') : '아직 입력 전';
+  }
+  function markDirty() { if (!IN) return; IN.dirty = true; setStatus('evInStatus', '저장하지 않은 변경이 있습니다. 저장을 눌러 주세요.', 'err'); }
+  function saveInput() {
+    var box = P('Input'), rows = [];
+    qa('tbody tr', box).forEach(function (tr) {
+      var on = tr.querySelector('.lvb.on');
+      rows.push({ 학생ID: tr.getAttribute('data-id'), 단계: on ? on.getAttribute('data-lv') : '', 특기사항: tr.querySelector('input.memo').value.trim() });
+    });
+    var pr = ST.반.split('-').map(Number), d = $('evPkD').value || today();
+    $('evInSave').disabled = true; setStatus('evInStatus', '저장 중…');
+    api('eval_t_saveResults', TOKEN, IN.평가.id, pr[0], pr[1], d, rows).then(function (r) {
+      $('evInSave').disabled = false;
+      D.요약 = r.요약; IN.dirty = false; IN.평가일 = d;
+      rows.forEach(function (x) { IN.결과[x.학생ID] = (x.단계 || x.특기사항) ? { 단계: x.단계, 특기사항: x.특기사항, 평가일: d } : null; });
+      setStatus('evInStatus', '저장했습니다 · ' + summaryText(), 'ok'); toast('저장했습니다.');
+    }).catch(function (e) { $('evInSave').disabled = false; handleErr(e); });
+  }
+
+  /* ================= 결과 조회 ================= */
+  var MX = null;
+  function renderOverview() {
+    var head = '<div class="page-head"><h2>결과 조회</h2><span class="sub">한 반의 모든 평가 결과를 한 표로 봅니다. 표 복사로 엑셀·한글에 붙여 넣을 수 있습니다.</span></div>' +
+      pickBar({ 반: true, 학기: true, extra: '<div class="spacer"></div><button class="ghost" id="evOvCopy"><i class="ti ti-copy"></i>표 복사</button><button class="soft" data-go="print"><i class="ti ti-printer"></i>출력</button>' });
+    if (!ST.반) { P('Overview').innerHTML = head + '<div class="panel"><div class="empty"><i class="ti ti-users"></i><strong>' + ST.학년 + '학년에 학생이 없습니다</strong></div></div>'; bindPick(renderOverview); return; }
+    P('Overview').innerHTML = head + '<div class="panel"><div class="panel-body"><div class="empty"><i class="ti ti-loader"></i>불러오는 중…</div></div></div>';
+    bindPick(renderOverview);
+    var pr = ST.반.split('-').map(Number);
+    api('eval_t_getMatrix', TOKEN, pr[0], pr[1]).then(function (r) { MX = r; drawMatrix(); }).catch(handleErr);
+  }
+  function drawMatrix() {
+    var box = P('Overview'), old = box.querySelector('.panel'); if (old) old.remove();
+    var 평가 = MX.평가.filter(function (p) { return !ST.학기 || p.학기 === ST.학기; });
+    if (!평가.length) { box.insertAdjacentHTML('beforeend', '<div class="panel"><div class="empty"><i class="ti ti-list-details"></i><strong>평가 계획이 없습니다</strong></div></div>'); return; }
+    var html = '<div class="panel"><div class="scroll-x"><table class="mx"><thead><tr><th>번호</th><th>이름</th>' + 평가.map(function (p) { return '<th>' + esc(p.평가명) + '<br><span class="unit">' + p.학기 + '학기 · ' + p.단계수 + '단계</span></th>'; }).join('') + '</tr></thead><tbody>';
+    MX.학생.forEach(function (s) {
+      html += '<tr><td class="no">' + s.번호 + '</td><td class="nm">' + esc(s.이름) + '</td>' + 평가.map(function (p) {
+        var r = (MX.결과[s.학생ID] || {})[p.id];
+        return '<td>' + (r && r.단계 ? '<span class="c ' + lvClass(p, r.단계) + '">' + esc(r.단계) + '</span>' : '<span class="c none">–</span>') + (r && r.특기사항 ? '<span class="memo" title="' + esc(r.특기사항) + '">' + esc(r.특기사항) + '</span>' : '') + '</td>';
+      }).join('') + '</tr>';
+    });
+    html += '</tbody></table></div></div>' +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-chart-bar"></i>평가별 분포</h3></div><div class="panel-body"><table><tbody>' +
+      평가.map(function (p) {
+        var cnt = {}, tot = 0; p.라벨.forEach(function (l) { cnt[l] = 0; });
+        MX.학생.forEach(function (s) { var r = (MX.결과[s.학생ID] || {})[p.id]; if (r && r.단계 && cnt[r.단계] !== undefined) { cnt[r.단계]++; tot++; } });
+        return '<tr><td style="width:200px;font-weight:700">' + esc(p.평가명) + '</td><td><div class="dist">' + p.라벨.map(function (l, i) { return cnt[l] ? '<i class="l' + (i + 1) + '" style="width:' + (cnt[l] / tot * 100) + '%" title="' + esc(l) + ' ' + cnt[l] + '명"></i>' : ''; }).join('') + '</div></td>' +
+          '<td style="width:260px;font-size:12.5px;color:var(--ink-2);white-space:nowrap">' + p.라벨.map(function (l) { return esc(l) + ' ' + cnt[l]; }).join(' · ') + ' · 미입력 ' + (MX.학생.length - tot) + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+    box.insertAdjacentHTML('beforeend', html);
+    $('evOvCopy').onclick = function () {
+      var lines = [['번호', '이름'].concat(평가.map(function (p) { return p.평가명; })).join('\t')];
+      MX.학생.forEach(function (s) { lines.push([s.번호, s.이름].concat(평가.map(function (p) { var r = (MX.결과[s.학생ID] || {})[p.id]; return r && r.단계 ? r.단계 + (r.특기사항 ? ' (' + r.특기사항 + ')' : '') : ''; })).join('\t')); });
+      copyText(lines.join('\n')); toast('표를 복사했습니다. 엑셀·한글에 붙여 넣으세요.');
+    };
+  }
+
+  /* ================= 출력 ================= */
+  var PD = {};   // 반키 → getMatrix 응답 (출력용)
+  function renderPrint() {
+    var keys = classKeys();
+    if (!PO.classes) PO.classes = ST.반 ? [ST.반] : keys.slice(0, 1);
+    PO.classes = PO.classes.filter(function (k) { return keys.indexOf(k) > -1; });
+    var gs = grades();
+    var 평가옵션 = uniq(PO.classes.map(function (k) { return +k.split('-')[0]; })).length === 1 ? plansOf(+PO.classes[0].split('-')[0], 0) : [];
+    if (PO.종류 !== 'all' && 평가옵션.length && !평가옵션.some(function (p) { return p.id === PO.평가; })) PO.평가 = (ST.평가 && 평가옵션.some(function (p) { return p.id === ST.평가; })) ? ST.평가 : 평가옵션[0].id;
+    P('Print').innerHTML =
+      '<div class="page-head"><h2>출력</h2><span class="sub">양식을 고르고 인쇄를 누른 뒤, 프린터에서 "PDF로 저장"을 선택하면 PDF 파일로 받을 수 있습니다.</span></div>' +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-adjustments"></i>출력 옵션</h3></div><div class="panel-body">' +
+        '<div class="field" style="margin-bottom:12px"><label>양식</label><div class="chks">' +
+          [['sheet', '평가별 결과표', '한 평가 · 반 명렬 + 단계 + 특기사항'], ['all', '반별 종합표', '학생 × 모든 평가 (가로)'], ['blank', '빈 채점표', '단계 칸이 비어 있는 양식']].map(function (o) { return '<label class="chk sm' + (PO.종류 === o[0] ? ' on' : '') + '"><input type="radio" name="evPoK" value="' + o[0] + '"' + (PO.종류 === o[0] ? ' checked' : '') + '><span>' + o[1] + ' <small style="color:var(--ink-3)">' + o[2] + '</small></span></label>'; }).join('') + '</div></div>' +
+        '<div class="field" style="margin-bottom:12px"><label>학년·반 (여러 반을 고르면 반마다 한 장씩)</label><div class="chks">' +
+          keys.map(function (k) { var on = PO.classes.indexOf(k) > -1; return '<label class="chk sm' + (on ? ' on' : '') + '"><input type="checkbox" data-k="' + k + '"' + (on ? ' checked' : '') + '><span>' + esc(classLabel(k)) + '</span></label>'; }).join('') +
+          gs.map(function (g) { return '<button class="mini ghost" data-g="' + g + '">' + g + '학년 전체</button>'; }).join('') + '</div></div>' +
+        '<div class="bar" style="box-shadow:none;margin:0;background:var(--soft)">' +
+          (PO.종류 !== 'all' ? '<div class="field"><label>평가</label><select id="evPoE" style="min-width:200px">' + (평가옵션.length ? opt(평가옵션.map(function (p) { return p.id; }), PO.평가, function (id) { var p = planById(id); return p.학기 + '학기 · ' + p.평가명; }) : '<option value="">' + (PO.classes.length ? '한 학년의 반만 골라 주세요' : '반을 골라 주세요') + '</option>') + '</select></div>' :
+                              '<div class="field"><label>학기</label><select id="evPoS">' + opt([0, 1, 2], PO.학기 || 0, function (s) { return s ? s + '학기' : '전체'; }) + '</select></div>') +
+          '<div class="field"><label>날짜</label><select id="evPoD">' + opt(['auto', 'manual', 'none'], PO.날짜, function (v) { return { auto: PO.종류 === 'blank' ? '오늘 날짜' : '평가일 자동', manual: '직접 입력', none: '비워 두기' }[v]; }) + '</select></div>' +
+          (PO.날짜 === 'manual' ? '<div class="field"><label>날짜 입력</label><input type="date" id="evPoDv" value="' + esc(PO.직접 || today()) + '"></div>' : '') +
+          (PO.종류 !== 'all' ? '<label class="chk sm' + (PO.특기 ? ' on' : '') + '"><input type="checkbox" id="evPoMemo"' + (PO.특기 ? ' checked' : '') + '><span>특기사항 열</span></label>' : '') +
+          (detail() ? '<label class="chk sm' + (PO.성취 ? ' on' : '') + '"><input type="checkbox" id="evPoStd"' + (PO.성취 ? ' checked' : '') + '><span>성취기준</span></label>' : '') +
+          '<label class="chk sm' + (PO.사인 ? ' on' : '') + '"><input type="checkbox" id="evPoSign"' + (PO.사인 ? ' checked' : '') + '><span>서명란</span></label>' +
+        '</div></div>' +
+        '<div class="savebar"><span class="status" id="evPoStatus"></span><div class="spacer"></div><button id="evPoPrint"' + (PO.classes.length ? '' : ' disabled') + '><i class="ti ti-printer"></i>인쇄 / PDF (' + PO.classes.length + '장)</button></div></div>' +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-eye"></i>미리보기</h3><span class="unit" id="evPoMeta"></span></div><div class="paper-wrap ev-papers" id="evPoPreview"><div class="empty"><i class="ti ti-loader"></i>불러오는 중…</div></div></div>';
+    bindChk(P('Print'));
+    qa('input[name=evPoK]').forEach(function (r) { r.onchange = function () { PO.종류 = r.value; renderPrint(); }; });
+    qa('input[data-k]').forEach(function (c) { c.onchange = function () { var k = c.getAttribute('data-k'); if (c.checked) { if (PO.classes.indexOf(k) < 0) PO.classes.push(k); } else PO.classes = PO.classes.filter(function (x) { return x !== k; }); PO.classes = sortKeys(PO.classes); renderPrint(); }; });
+    qa('button[data-g]').forEach(function (b) { b.onclick = function () { PO.classes = classesOf(Number(b.getAttribute('data-g'))); renderPrint(); }; });
+    if ($('evPoE')) $('evPoE').onchange = function () { PO.평가 = $('evPoE').value; preview(); };
+    if ($('evPoS')) $('evPoS').onchange = function () { PO.학기 = Number($('evPoS').value); preview(); };
+    $('evPoD').onchange = function () { PO.날짜 = $('evPoD').value; renderPrint(); };
+    if ($('evPoDv')) $('evPoDv').onchange = function () { PO.직접 = $('evPoDv').value; preview(); };
+    if ($('evPoMemo')) $('evPoMemo').onchange = function () { PO.특기 = $('evPoMemo').checked; preview(); };
+    if ($('evPoStd')) $('evPoStd').onchange = function () { PO.성취 = $('evPoStd').checked; preview(); };
+    $('evPoSign').onchange = function () { PO.사인 = $('evPoSign').checked; preview(); };
+    $('evPoPrint').onclick = function () { buildPapers().then(function (html) { if (html) printPapers(html, PO.종류 === 'all' ? 'landscape' : 'portrait'); }); };
+    preview();
+  }
+  function loadClass(k) {
+    if (PD[k]) return Promise.resolve(PD[k]);
+    var pr = k.split('-').map(Number);
+    return api('eval_t_getMatrix', TOKEN, pr[0], pr[1]).then(function (r) { PD[k] = r; return r; });
+  }
+  function preview() {
+    var box = $('evPoPreview'); if (!box) return;
+    if (!PO.classes.length) { box.innerHTML = '<div class="empty"><i class="ti ti-printer"></i><strong>출력할 반을 골라 주세요</strong></div>'; $('evPoMeta').textContent = ''; return; }
+    buildPapers().then(function (html) { if ($('evPoPreview')) { $('evPoPreview').innerHTML = html || '<div class="empty"><i class="ti ti-printer"></i><strong>출력할 내용이 없습니다</strong>평가를 고르거나 한 학년의 반만 골라 주세요.</div>'; $('evPoMeta').textContent = PO.classes.length + '장'; } }).catch(handleErr);
+  }
+  function dateFor(rec) {
+    if (PO.날짜 === 'none') return '';
+    if (PO.날짜 === 'manual') return kdate(PO.직접 || today());
+    if (PO.종류 === 'blank') return kdate(today());
+    var d = null; Object.keys(rec || {}).forEach(function (id) { if (!d && rec[id] && rec[id].평가일) d = rec[id].평가일; });
+    return d ? kdate(d) : '';
+  }
+  function buildPapers() {
+    PD = {};   // 항상 최신 자료로
+    return Promise.all(PO.classes.map(loadClass)).then(function (list) {
+      var out = [];
+      list.forEach(function (r, i) {
+        var k = PO.classes[i];
+        if (PO.종류 === 'all') out.push(paperAll(k, r));
+        else { var p = r.평가.filter(function (x) { return x.id === PO.평가; })[0]; if (p) out.push(paperSheet(k, r, p, PO.종류 === 'blank')); }
+      });
+      return out.join('');
+    });
+  }
+  function infoTable(rows) {
+    var html = '<table class="info">';
+    for (var i = 0; i < rows.length; i += 2) {
+      html += '<tr><td class="k">' + rows[i][0] + '</td><td' + (rows[i + 1] ? '' : ' colspan="3"') + '>' + rows[i][1] + '</td>' + (rows[i + 1] ? '<td class="k">' + rows[i + 1][0] + '</td><td>' + rows[i + 1][1] + '</td>' : '') + '</tr>';
+    }
+    return html + '</table>';
+  }
+  function paperSheet(k, r, p, blank) {
+    var S = r.공통, pr = k.split('-'), 학생 = r.학생, rec = {};
+    학생.forEach(function (s) { rec[s.학생ID] = (r.결과[s.학생ID] || {})[p.id] || null; });
+    var 날짜 = dateFor(rec), 제목 = r.설정.출력제목 || '수행평가 결과표';
+    var info = [['학교', esc(S.학교명 || '')], ['학년 · 반', pr[0] + '학년 ' + pr[1] + '반'], ['평가명', esc(p.평가명) + (p.영역 ? ' (' + esc(p.영역) + ')' : '')], ['학기', esc(r.학년도) + '학년도 ' + p.학기 + '학기']];
+    if (detail() && PO.성취 && (p.성취기준 || p.평가요소)) info.push(['성취기준', esc(p.성취기준) + (p.평가요소 ? '<br><small>평가요소: ' + esc(p.평가요소) + '</small>' : '')], ['평가 방법', esc(p.방법 || '')]);
+    else info.push(['평가 방법', esc(p.방법 || '')], ['평가 시기', esc(p.시기 || '')]);
+    info.push(['평가일', 날짜], ['담당', esc(S.담당자 || '')]);
+    var memo = PO.특기, n = p.라벨.length;
+    var html = '<div class="paper"><h1>' + esc(제목) + (blank ? ' (채점표)' : '') + '</h1>' + infoTable(info) +
+      '<table class="rt"><colgroup><col style="width:11mm"><col style="width:22mm">' + new Array(n + 1).join('<col style="width:' + (memo ? (n === 4 ? 19 : 22) : 30) + 'mm">') + (memo ? '<col>' : '') + '</colgroup>' +
+      '<thead><tr><th>번호</th><th>이름</th>' + p.라벨.map(function (l) { return '<th>' + esc(l) + '</th>'; }).join('') + (memo ? '<th>특기사항</th>' : '') + '</tr></thead><tbody>';
+    학생.forEach(function (s) {
+      var x = rec[s.학생ID];
+      html += '<tr><td>' + s.번호 + '</td><td class="nm">' + esc(s.이름) + '</td>' + p.라벨.map(function (l) { return '<td class="mk">' + (!blank && x && x.단계 === l ? '○' : '') + '</td>'; }).join('') + (memo ? '<td class="memo">' + (!blank && x ? esc(x.특기사항 || '') : '') + '</td>' : '') + '</tr>';
+    });
+    html += '</tbody></table>';
+    if (PO.사인) html += '<div class="sig"><span>담당 교사: ' + esc(S.담당자 || '') + ' (인)</span></div>';
+    html += '<div class="foot"><span>' + esc(S.학교명 || '') + '</span><span>' + (blank ? '' : '단계: ' + esc(p.라벨.join(' · '))) + '</span></div></div>';
+    return html;
+  }
+  function paperAll(k, r) {
+    var S = r.공통, pr = k.split('-'), 평가 = r.평가.filter(function (p) { return !PO.학기 || p.학기 === PO.학기; });
+    var 날짜 = PO.날짜 === 'none' ? '' : PO.날짜 === 'manual' ? kdate(PO.직접 || today()) : kdate(today());
+    var html = '<div class="paper land"><h1>' + esc(r.학년도) + '학년도 ' + (PO.학기 ? PO.학기 + '학기 ' : '') + '수행평가 종합표</h1>' +
+      infoTable([['학교', esc(S.학교명 || '')], ['학년 · 반', pr[0] + '학년 ' + pr[1] + '반'], ['출력일', 날짜], ['담당', esc(S.담당자 || '')]]) +
+      '<table class="rt"><colgroup><col style="width:10mm"><col style="width:20mm">' + 평가.map(function () { return '<col>'; }).join('') + '</colgroup><thead><tr><th>번호</th><th>이름</th>' +
+      평가.map(function (p) { return '<th>' + esc(p.평가명) + '<br><small style="font-weight:400">' + p.학기 + '학기' + (p.영역 ? ' · ' + esc(p.영역) : '') + '</small></th>'; }).join('') + '</tr></thead><tbody>';
+    r.학생.forEach(function (s) {
+      html += '<tr><td>' + s.번호 + '</td><td class="nm">' + esc(s.이름) + '</td>' + 평가.map(function (p) { var x = (r.결과[s.학생ID] || {})[p.id]; return '<td>' + (x && x.단계 ? esc(x.단계) : '') + '</td>'; }).join('') + '</tr>';
+    });
+    html += '</tbody></table>';
+    if (PO.사인) html += '<div class="sig"><span>담당 교사: ' + esc(S.담당자 || '') + ' (인)</span></div>';
+    return html + '</div>';
+  }
+  /* 인쇄: body 에 .print-area 를 붙이고 body.printing 을 켜서 그것만 인쇄 (App.html 의 @media print 참고) */
+  function printPapers(html, mode) {
+    var area = document.getElementById('evPrintArea');
+    if (!area) { area = document.createElement('div'); area.id = 'evPrintArea'; area.className = 'print-area ev-papers'; document.body.appendChild(area); }
+    area.innerHTML = '<style>' + (mode === 'landscape' ? '@page{size:A4 landscape;margin:12mm 14mm;}' : '@page{size:A4 portrait;margin:15mm 18mm;}') + '</style>' + html;
+    document.body.classList.add('printing');
+    setTimeout(function () { window.print(); }, 60);
+  }
+  window.addEventListener('afterprint', function () { document.body.classList.remove('printing'); var a = document.getElementById('evPrintArea'); if (a) a.innerHTML = ''; });
+
+  /* ================= 설정 ================= */
+  function renderSettings() {
+    var S = D.설정;
+    P('Settings').innerHTML = '<div class="page-head"><h2>수행평가 설정</h2></div>' +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-adjustments"></i>계획 입력 방식 · 단계 이름</h3></div><div class="panel-body">' +
+        '<div class="field" style="margin-bottom:14px"><label>평가 계획 입력 방식</label><div class="chks">' +
+          '<label class="chk sm' + (S.계획방식 === '간단' ? ' on' : '') + '"><input type="radio" name="evSMode" value="간단"' + (S.계획방식 === '간단' ? ' checked' : '') + '><span>간단 — 평가명 · 방법 · 시기 · 비고</span></label>' +
+          '<label class="chk sm' + (S.계획방식 === '자세히' ? ' on' : '') + '"><input type="radio" name="evSMode" value="자세히"' + (S.계획방식 === '자세히' ? ' checked' : '') + '><span>자세히 — 영역 · 성취기준 · 평가요소까지</span></label></div>' +
+          '<div class="unit" style="margin-top:6px">자세히로 두면 평가 계획과 출력물에 영역·성취기준이 함께 나옵니다. 바꿔도 이미 넣은 내용은 지워지지 않습니다.</div></div>' +
+        '<div class="grid g2" style="margin-bottom:12px">' +
+          '<div class="field"><label>3단계 기본 이름 (잘한 순서, 쉼표)</label><input type="text" id="evSL3" value="' + esc(S.라벨3.join(', ')) + '"></div>' +
+          '<div class="field"><label>4단계 기본 이름</label><input type="text" id="evSL4" value="' + esc(S.라벨4.join(', ')) + '"></div>' +
+        '</div>' +
+        '<div class="field"><label>평가별 결과표 제목</label><input type="text" id="evSTitle" value="' + esc(S.출력제목) + '" style="max-width:320px"></div>' +
+        '<div class="note" style="margin-top:12px"><i class="ti ti-eye-off"></i><div>수행평가는 <b>선생님만</b> 봅니다. 학생 로그인 화면·학생 메뉴·프로필·배지 어디에도 나가지 않습니다.</div></div>' +
+      '</div><div class="savebar"><span class="status" id="evSStatus"></span><div class="spacer"></div><button id="evSSave"><i class="ti ti-device-floppy"></i>저장</button></div></div>' +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-database"></i>자료</h3><span class="unit">평가 ' + (D.계획 || []).length + '개</span></div><div class="panel-body">' +
+        '<div class="note"><i class="ti ti-info-circle"></i><div>평가 계획은 <b>평가_계획</b>, 결과는 <b>평가_결과</b> 시트에 있습니다. 결과에는 학년도가 붙어 학년 올리기를 해도 지난 학년도 결과가 남습니다.</div></div>' +
+        '<div class="chks"><button class="ghost" data-go="reset"><i class="ti ti-trash"></i>초기화 화면으로</button></div></div></div>';
+    bindChk(P('Settings'));
+    qa('input[name=evSMode]').forEach(function (r) { r.onchange = function () { qa('input[name=evSMode]').forEach(function (x) { x.parentNode.classList.toggle('on', x.checked); }); }; });
+    $('evSSave').onclick = function () {
+      var map = { 계획방식: (P('Settings').querySelector('input[name=evSMode]:checked') || {}).value || '간단', 라벨3: $('evSL3').value.split(',').map(function (x) { return x.trim(); }).filter(Boolean), 라벨4: $('evSL4').value.split(',').map(function (x) { return x.trim(); }).filter(Boolean), 출력제목: $('evSTitle').value.trim() };
+      if (map.라벨3.length !== 3) { setStatus('evSStatus', '3단계 이름은 3개여야 합니다.', 'err'); return; }
+      if (map.라벨4.length !== 4) { setStatus('evSStatus', '4단계 이름은 4개여야 합니다.', 'err'); return; }
+      setStatus('evSStatus', '저장 중…');
+      api('eval_t_saveSettings', TOKEN, map).then(function (r) { if (!r.ok) { setStatus('evSStatus', r.message, 'err'); return; } D.설정 = r.설정; setStatus('evSStatus', '저장했습니다.', 'ok'); toast('저장했습니다.'); }).catch(handleErr);
+    };
+  }
+
+  return { nav: nav, init: init, show: show, reset: reset };
+})();
+</script>

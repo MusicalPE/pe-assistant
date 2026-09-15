@@ -1,14 +1,14 @@
 {
-  "version": "1.1.0",
-  "libraryVersion": 2,
+  "version": "1.2.0",
+  "libraryVersion": 3,
   "date": "2026-09-15",
-  "notes": "중학교 지원 — 설정 > 학교급(초|중) 하나로 전환\nPAPS 기준표에 중1~3(팔굽혀펴기 포함) 추가, 학교급별 기본 종목·대상 학년\n중학교에서는 FMS 도전 모듈이 보이지 않음, 학년 올리기 졸업 학년 3학년\n수업 도우미·줄넘기 학년 선택이 학교급을 따름",
+  "notes": "수행평가 모듈 추가 — 평가 계획(3·4단계, 간단/자세히), 반별 단계 체크·특기사항, 결과 조회, 평가별 결과표·반별 종합표·빈 채점표 인쇄(날짜 자동/직접/비움). 교사 전용 — 학생 화면에 나오지 않음\n중학교 지원(v1.1) 포함",
   "files": [
     {
       "name": "App.html",
       "type": "HTML",
-      "sha256": "c676b688dfcfc465",
-      "bytes": 50837
+      "sha256": "06099e4897c1ed34",
+      "bytes": 51024
     },
     {
       "name": "Class_T.html",
@@ -25,8 +25,14 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "a70e149598467324",
-      "bytes": 50903
+      "sha256": "5d3263b07a826ef5",
+      "bytes": 51480
+    },
+    {
+      "name": "Eval_T.html",
+      "type": "HTML",
+      "sha256": "97febb97a05ac0a4",
+      "bytes": 55837
     },
     {
       "name": "FMS_Data.gs",
@@ -67,8 +73,8 @@
     {
       "name": "Home_T.html",
       "type": "HTML",
-      "sha256": "ddec5c02974e5506",
-      "bytes": 53597
+      "sha256": "4e8b2a740795fa94",
+      "bytes": 53598
     },
     {
       "name": "Lib.gs",
@@ -87,6 +93,12 @@
       "type": "SERVER_JS",
       "sha256": "3870b7e6b970a820",
       "bytes": 23393
+    },
+    {
+      "name": "Mod_Eval.gs",
+      "type": "SERVER_JS",
+      "sha256": "2b6abff6ef4d421e",
+      "bytes": 19887
     },
     {
       "name": "Mod_Fit.gs",

@@ -538,7 +538,7 @@ MODS.core.teacher = (function () {
       MODLIST = r.모듈목록.filter(function (m) { return m.사용; });
       var after = MODLIST.map(function (m) { return m.key; }).join(',');
       fillSelects();
-      if (r.학교급바뀜) { renderSettings(); setStatus('setStatus', r.설정.학교급이름 + '로 바꿨습니다. ' + (r.바뀐것 || []).join(' · ') + ' 로그아웃 후 다시 들어오면 메뉴에 반영됩니다.', 'ok'); toast(r.설정.학교급이름 + '로 바뀌었습니다. 로그아웃 후 다시 들어와 주세요.'); return; }
+      if (r.학교급바뀜) { renderSettings(); setStatus('setStatus', r.설정.학교급이름 + '로 바꿨습니다. ' + (r.바뀐것 || []).join(' · ') + '. 로그아웃 후 다시 들어오면 메뉴에 반영됩니다.', 'ok'); toast(r.설정.학교급이름 + '로 바뀌었습니다. 로그아웃 후 다시 들어와 주세요.'); return; }
       setStatus('setStatus', '저장했습니다' + (before !== after ? '. 모듈이 바뀌어 다시 로그인하면 메뉴에 반영됩니다.' : ''), 'ok');
       if (before !== after) toast('모듈 설정이 바뀌었습니다. 로그아웃 후 다시 들어오면 메뉴에 반영됩니다.');
     }).catch(function (e) { btn.disabled = false; setStatus('setStatus', ''); handleErr(e); });
