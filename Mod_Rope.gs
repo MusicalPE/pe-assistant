@@ -251,7 +251,7 @@ var ROPE_문구 = [
 ];
 function rope_응원문구_(현황) {
   var key = '';
-  try { key = PropertiesService.getScriptProperties().getProperty(ROPE_GEMINI_KEY) || ''; } catch (e) {}
+  try { key = 속성_(ROPE_GEMINI_KEY) || ''; } catch (e) {}
   if (key && 현황) {
     var cached = 캐시읽기_('rope_ai_' + 오늘_());
     if (cached) return cached;
@@ -397,13 +397,12 @@ function rope_t_saveSettings(token, map) {
   if (Object.keys(put).length) 설정저장_(put);
   if (map.geminiKey !== undefined) {
     var k = str_(map.geminiKey);
-    var props = PropertiesService.getScriptProperties();
-    if (k) props.setProperty(ROPE_GEMINI_KEY, k); else props.deleteProperty(ROPE_GEMINI_KEY);
+    속성저장_(ROPE_GEMINI_KEY, k || null);
     캐시지우기_('rope_ai_' + 오늘_());
   }
   return { ok: true, 설정: rope_설정_(), gemini: rope_gemini여부_() };
 }
-function rope_gemini여부_() { try { return !!PropertiesService.getScriptProperties().getProperty(ROPE_GEMINI_KEY); } catch (e) { return false; } }
+function rope_gemini여부_() { try { return !!속성_(ROPE_GEMINI_KEY); } catch (e) { return false; } }
 function rope_t_getSettings(token) { 교사확인_(token); return { 설정: rope_설정_(), gemini: rope_gemini여부_() }; }
 
 /* ================= 학생 API ================= */

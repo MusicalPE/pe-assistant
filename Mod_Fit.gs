@@ -761,13 +761,12 @@ function fit_t_saveSettings(token, 맵) {
 var FIT_FOLDER_KEY = 'FIT_PHOTO_FOLDER_ID';
 
 function fit_폴더_() {
-  var props = PropertiesService.getScriptProperties();
-  var id = props.getProperty(FIT_FOLDER_KEY);
+  var id = 속성_(FIT_FOLDER_KEY);
   if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
   var parent = null;
   try { var parents = DriveApp.getFileById(ss_().getId()).getParents(); if (parents.hasNext()) parent = parents.next(); } catch (e) {}
   var folder = (parent || DriveApp).createFolder('건강체력교실 사진·결과물');
-  props.setProperty(FIT_FOLDER_KEY, folder.getId());
+  속성저장_(FIT_FOLDER_KEY, folder.getId());
   return folder;
 }
 

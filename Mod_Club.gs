@@ -333,13 +333,12 @@ function club_t_saveBudget(token, clubId, 배정예산, rows) {
 /* ================= 사진 (드라이브) ================= */
 
 function club_폴더_() {
-  var props = PropertiesService.getScriptProperties();
-  var id = props.getProperty(CLUB_FOLDER_KEY);
+  var id = 속성_(CLUB_FOLDER_KEY);
   if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
   var parent = null;
   try { var parents = DriveApp.getFileById(ss_().getId()).getParents(); if (parents.hasNext()) parent = parents.next(); } catch (e) {}
   var folder = (parent || DriveApp).createFolder('스포츠클럽 사진·보고서');
-  props.setProperty(CLUB_FOLDER_KEY, folder.getId());
+  속성저장_(CLUB_FOLDER_KEY, folder.getId());
   return folder;
 }
 function club_휴지통_(파일ID들) {

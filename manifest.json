@@ -1,13 +1,14 @@
 {
-  "version": "0.9.2",
+  "version": "1.0.0",
+  "libraryVersion": 1,
   "date": "2026-09-15",
-  "notes": "GitHub 캐시로 manifest·파일 버전이 어긋나면 기다렸다 다시 받도록 수정\n권한승인 함수 추가\n업데이트 확인 오류는 5분만 기억",
+  "notes": "라이브러리 방식으로 전환 (껍데기 + 원본)\n학사일정·학기별 시간표·쉬는 날\n로딩 속도 개선",
   "files": [
     {
       "name": "App.html",
       "type": "HTML",
-      "sha256": "5d6d4380861534dc",
-      "bytes": 50465
+      "sha256": "71643c8ab19e3b5e",
+      "bytes": 50571
     },
     {
       "name": "Class_T.html",
@@ -24,8 +25,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "aa5a59b30a5b2e81",
-      "bytes": 46164
+      "sha256": "c5fb93e8fb943e28",
+      "bytes": 47525
     },
     {
       "name": "FMS_Data.gs",
@@ -66,14 +67,14 @@
     {
       "name": "Home_T.html",
       "type": "HTML",
-      "sha256": "a7851f378c82eb79",
-      "bytes": 52680
+      "sha256": "b01e586907672add",
+      "bytes": 51535
     },
     {
       "name": "Lib.gs",
       "type": "SERVER_JS",
-      "sha256": "f135ff08159ec266",
-      "bytes": 12242
+      "sha256": "ccbd910e11192a99",
+      "bytes": 14952
     },
     {
       "name": "Mod_Class.gs",
@@ -84,14 +85,14 @@
     {
       "name": "Mod_Club.gs",
       "type": "SERVER_JS",
-      "sha256": "afd54f739ba5cf40",
-      "bytes": 23462
+      "sha256": "3870b7e6b970a820",
+      "bytes": 23393
     },
     {
       "name": "Mod_Fit.gs",
       "type": "SERVER_JS",
-      "sha256": "356442bcddbb2fd2",
-      "bytes": 62862
+      "sha256": "6d47291f00d45575",
+      "bytes": 62793
     },
     {
       "name": "Mod_Fms.gs",
@@ -108,8 +109,8 @@
     {
       "name": "Mod_Rope.gs",
       "type": "SERVER_JS",
-      "sha256": "375a25b89db765cf",
-      "bytes": 28729
+      "sha256": "ae00b17bb637b5f3",
+      "bytes": 28537
     },
     {
       "name": "PAPS_Data.gs",
@@ -144,14 +145,14 @@
     {
       "name": "Updater.gs",
       "type": "SERVER_JS",
-      "sha256": "7c1b49dda991f7ed",
-      "bytes": 14628
+      "sha256": "7e190a2879548747",
+      "bytes": 4725
     },
     {
       "name": "appsscript.json",
       "type": "JSON",
-      "sha256": "e949f289bfc2cf3d",
-      "bytes": 597
+      "sha256": "60af2cdda9555aca",
+      "bytes": 407
     }
   ]
 }

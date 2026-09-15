@@ -23,7 +23,7 @@
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '0.9.2';
+var APP_VERSION = '1.0.0';
 var 기본프로그램이름 = '체육교사 보조 프로그램';
 var 기본학생용이름 = '체육 활동 기록장';   // 학생·학부모가 보는 이름
 
@@ -75,7 +75,13 @@ var 학생상태 = ['재학', '졸업', '전출'];
 
 /* ================= 진입점 ================= */
 
-function doGet(e) {
+/**
+ * 웹앱 입구. 껍데기(Shell.gs)가 라이브러리로 부를 때는 ctx = { url, legacyProps } 를 함께 줍니다.
+ * legacyProps: 옛 방식(스크립트 속성)으로 저장돼 있던 값 — 처음 한 번 '_속성' 시트로 옮깁니다.
+ */
+function doGet(e, ctx) {
+  ctx설정_(ctx);
+  속성이사_(ctx && ctx.legacyProps);
   var 준비결과 = 준비_();
   var 설정 = 설정_();
   var tpl = HtmlService.createTemplateFromFile('App');
@@ -87,6 +93,29 @@ function doGet(e) {
     .setTitle(tpl.title)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/** 옛 스크립트 속성 → '_속성' 시트로 (교사 비밀번호·사진 폴더·Gemini 키). 한 번만 */
+function 속성이사_(legacy) {
+  if (!legacy || 속성_(PW_KEY)) return;
+  var keys = [PW_KEY, 'PIN_SALT', 'CLUB_PHOTO_FOLDER_ID', 'FIT_PHOTO_FOLDER_ID', 'GEMINI_KEY', 'UPDATE_REPO'];
+  keys.forEach(function (k) { if (legacy[k]) 속성저장_(k, legacy[k]); });
+}
+
+/**
+ * 껍데기(Shell.gs)의 rpc(name, args) 가 부르는 서버 함수 분배기.
+ * 화면은 google.script.run.rpc('t_boot', [token]) 처럼 부르고, 여기서 실제 함수를 찾아 실행합니다.
+ * 끝이 _ 인 내부 함수와 입구 함수는 부를 수 없습니다.
+ */
+var RPC_허용 = ['getLoginInfo', 'loginTeacher', 'loginStudent', 'logout', 'changeTeacherPassword'];   // 그 밖엔 t_·s_·<모듈>_t_·<모듈>_s_·off_ 로 시작하는 것만
+function rpc(name, args, ctx) {
+  ctx설정_(ctx);
+  name = String(name || '');
+  var ok = /^[A-Za-z][A-Za-z0-9_]*$/.test(name) && !/_$/.test(name) && (RPC_허용.indexOf(name) >= 0 || /^(t_|s_|[a-z]+_(t|s)_|off_)/.test(name));
+  if (!ok) throw new Error('허용되지 않은 요청입니다: ' + name);
+  var f = 전역_()[name];
+  if (typeof f !== 'function') throw new Error('함수를 찾지 못했습니다: ' + name);
+  return f.apply(null, Array.isArray(args) ? args : []);
 }
 
 /** 다른 HTML 파일을 끼워 넣습니다. 없거나 비어 있으면 무엇이 빠졌는지 화면에 띄웁니다. */
@@ -102,7 +131,9 @@ function 경고배너_(제목, 설명) {
   return '<div style="background:#E5484D;color:#fff;padding:14px 18px;font:14px/1.5 sans-serif"><b>' + 제목 + '</b><br>' + 설명 + '</div>';
 }
 
-function onOpen() {
+function onOpen() { 메뉴만들기(); }
+/** 스프레드시트 메뉴. 껍데기의 onOpen 이 부릅니다 (메뉴 항목은 껍데기에 같은 이름의 함수가 있어야 함) */
+function 메뉴만들기() {
   SpreadsheetApp.getUi().createMenu('체육교사 보조')
     .addItem('상태 점검', '상태점검')
     .addItem('초기 설정 다시 확인', '초기설정')
@@ -111,7 +142,6 @@ function onOpen() {
     .addItem('캐시 비우기', '캐시비우기')
     .addSeparator()
     .addItem('업데이트 확인', '업데이트확인')
-    .addItem('이전 버전으로 되돌리기', '업데이트되돌리기')
     .addToUi();
 }
 
@@ -165,8 +195,7 @@ var 준비플래그_ = '준비됨_' + APP_VERSION;   // 시트 확인을 통과�
 function 준비_() {
   if (캐시읽기_(준비플래그_)) return [];
   var ss = ss_();
-  var props = PropertiesService.getScriptProperties();
-  var 빠짐 = !findSheet_(SHEET.설정) || !findSheet_(SHEET.학생) || !findSheet_(SHEET.안내) || !props.getProperty(PW_KEY);
+  var 빠짐 = !findSheet_(SHEET.설정) || !findSheet_(SHEET.학생) || !findSheet_(SHEET.안내) || !속성_(PW_KEY);
   var 모듈빠짐 = false;
   if (!빠짐) {
     MODULES.forEach(function (m) {
@@ -182,7 +211,7 @@ function 준비_() {
     만듦 = 만듦.concat(시트준비_(SHEET.학생, HEADERS.학생));
     설정보충_();
     if (!findSheet_(SHEET.안내)) { 안내시트_(); 만듦.push('안내 시트'); }
-    if (!props.getProperty(PW_KEY)) { props.setProperty(PW_KEY, hash_(기본교사비번)); 만듦.push('교사 비밀번호(' + 기본교사비번 + ')'); }
+    if (!속성_(PW_KEY)) { 속성저장_(PW_KEY, hash_(기본교사비번)); 만듦.push('교사 비밀번호(' + 기본교사비번 + ')'); }
     MODULES.forEach(function (m) {
       var h = 모듈훅_(m.key);
       if (h && typeof h.준비 === 'function') {
@@ -236,7 +265,7 @@ function 초기설정() {
 }
 
 function 교사비밀번호초기화() {
-  PropertiesService.getScriptProperties().setProperty(PW_KEY, hash_(기본교사비번));
+  속성저장_(PW_KEY, hash_(기본교사비번));
   알림_('교사 비밀번호를 ' + 기본교사비번 + ' 으로 되돌렸습니다.');
 }
 
@@ -253,7 +282,7 @@ function 상태점검() {
   var 줄 = ['버전 ' + APP_VERSION];
   줄.push('시트 설정: ' + (findSheet_(SHEET.설정) ? '있음' : '없음 ✗'));
   줄.push('시트 학생: ' + (findSheet_(SHEET.학생) ? 학생목록_(true).length + '명' : '없음 ✗'));
-  줄.push('교사 비밀번호: ' + (PropertiesService.getScriptProperties().getProperty(PW_KEY) ? '설정됨' : '설정 안 됨 ✗'));
+  줄.push('교사 비밀번호: ' + (속성_(PW_KEY) ? '설정됨' : '설정 안 됨 ✗'));
   var 상태 = 모듈상태_(), s = 설정_();
   MODULES.forEach(function (m) {
     줄.push('모듈 ' + m.이름 + ': ' + (모듈설치됨_(m.key) ? (상태[m.key] ? '켜짐' : '꺼짐(설정 모듈.' + m.key + '=' + str_(s['모듈.' + m.key]) + ')') : '파일 없음'));
@@ -314,11 +343,11 @@ function 공개설정_() {
 
 function 세션저장_(obj, 초) {
   var token = uuid_();
-  CacheService.getScriptCache().put('S_' + token, JSON.stringify(obj), 초 || 세션시간);
+  CacheService.getScriptCache().put('S_' + ck_(token), JSON.stringify(obj), 초 || 세션시간);
   return token;
 }
 function 세션_(token) {
-  var raw = token ? CacheService.getScriptCache().get('S_' + token) : null;
+  var raw = token ? CacheService.getScriptCache().get('S_' + ck_(token)) : null;
   if (!raw) throw new Error('로그인이 만료되었습니다. 다시 로그인해 주세요.');
   return JSON.parse(raw);
 }
@@ -334,7 +363,7 @@ function 학생확인_(token) {
   return s.학생;
 }
 function logout(token) {
-  if (token) CacheService.getScriptCache().remove('S_' + token);
+  if (token) CacheService.getScriptCache().remove('S_' + ck_(token));
   return true;
 }
 
@@ -367,7 +396,7 @@ function getLoginInfo() {
 
 function loginTeacher(비밀번호) {
   준비_();
-  var saved = PropertiesService.getScriptProperties().getProperty(PW_KEY);
+  var saved = 속성_(PW_KEY);
   if (hash_(비밀번호) !== saved) return { ok: false, message: '비밀번호가 맞지 않습니다.' };
   var 토큰 = 세션저장_({ 역할: '교사' });
   var res = { ok: true, 토큰: 토큰, 기본비번여부: hash_(기본교사비번) === saved };
@@ -377,12 +406,11 @@ function loginTeacher(비밀번호) {
 
 function changeTeacherPassword(token, 현재, 새것) {
   교사확인_(token);
-  var props = PropertiesService.getScriptProperties();
-  if (hash_(현재) !== props.getProperty(PW_KEY)) return { ok: false, message: '현재 비밀번호가 맞지 않습니다.' };
+  if (hash_(현재) !== 속성_(PW_KEY)) return { ok: false, message: '현재 비밀번호가 맞지 않습니다.' };
   새것 = str_(새것);
   if (새것.length < 4) return { ok: false, message: '새 비밀번호는 4자 이상으로 해 주세요.' };
   if (새것 === 기본교사비번) return { ok: false, message: '초기 비밀번호(1234)와 다른 비밀번호를 정해 주세요.' };
-  props.setProperty(PW_KEY, hash_(새것));
+  속성저장_(PW_KEY, hash_(새것));
   return { ok: true };
 }
 
@@ -397,7 +425,7 @@ function loginStudent(학년, 반, 번호, 비밀번호) {
   if (!hit) return { ok: false, message: '그 번호의 학생이 없어요. 학년·반·번호를 다시 골라요.' };
 
   var cache = CacheService.getScriptCache();
-  var failKey = 'F_' + hit.학생ID;
+  var failKey = 'F_' + ck_(hit.학생ID);
   var fails = Number(cache.get(failKey)) || 0;
   if (fails >= MAX_FAILS) return { ok: false, message: '여러 번 틀렸어요. 1분 뒤에 다시 해 봐요.' };
   if (hit.비번상태 === '없음') return { ok: false, message: '아직 비밀번호가 없어요. 선생님께 말씀드려요.' };
@@ -452,9 +480,8 @@ function 핀해시_(학생ID, pin) {
     핀솔트_() + '|' + 학생ID + '|' + pin, Utilities.Charset.UTF_8));
 }
 function 핀솔트_() {
-  var props = PropertiesService.getScriptProperties();
-  var salt = props.getProperty('PIN_SALT');
-  if (!salt) { salt = uuid_(); props.setProperty('PIN_SALT', salt); }
+  var salt = 속성_('PIN_SALT');
+  if (!salt) { salt = uuid_(); 속성저장_('PIN_SALT', salt); }
   return salt;
 }
 /** 0000, 1234 같은 쉬운 번호는 피해서 만듦 */
@@ -582,9 +609,8 @@ function 명단응답_() {
 /** 교사 화면 부팅: 설정·모듈·명단·주소 */
 function t_boot(token) {
   교사확인_(token);
-  var saved = PropertiesService.getScriptProperties().getProperty(PW_KEY);
-  var url = '';
-  try { url = ScriptApp.getService().getUrl() || ''; } catch (e) {}
+  var saved = 속성_(PW_KEY);
+  var url = 앱주소_();
   return {
     설정: 공개설정_(), 모듈: 모듈목록_(), 학생: 학생목록_(true).map(학생명단행_),
     오늘: 오늘_(), 앱URL: url, 시트URL: ss_().getUrl(), 기본비번여부: hash_(기본교사비번) === saved, 버전: APP_VERSION,
@@ -672,7 +698,7 @@ function t_resetPins(token, ids) {
       var s = 학생찾기_(str_(id));
       if (!s) return;
       setCells_(SHEET.학생, HEADERS.학생, s._row, { 초기비밀번호: 랜덤핀_(), 비밀번호해시: '', 수정일시: 지금_() });
-      cache.remove('F_' + s.학생ID);
+      cache.remove('F_' + ck_(s.학생ID));
       n++;
     });
     캐시지우기_('학생');
@@ -690,7 +716,7 @@ function t_setPin(token, 학생ID, pin) {
     var s = 학생찾기_(str_(학생ID));
     if (!s) return { ok: false, message: '학생을 찾을 수 없습니다.' };
     setCells_(SHEET.학생, HEADERS.학생, s._row, { 초기비밀번호: pin, 비밀번호해시: '', 수정일시: 지금_() });
-    CacheService.getScriptCache().remove('F_' + s.학생ID);
+    CacheService.getScriptCache().remove('F_' + ck_(s.학생ID));
     캐시지우기_('학생');
     var out = 명단응답_(); out.ok = true;
     return out;

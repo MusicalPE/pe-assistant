@@ -5,11 +5,22 @@
  *  - 시트 읽기·쓰기 helper (열은 1행 머리글 이름으로 찾음)
  *  - 서버 캐시 (CacheService, 실행을 넘어 살아 있음)
  *  - 잠금, ID, 날짜, 해시, 문자열·숫자 정리
+ *  - 라이브러리로 쓰일 때를 위한 설계: 캐시 키는 시트마다 다르게, 속성은 스크립트 속성 대신 숨김 시트 '_속성'에
+ *    (라이브러리에서는 CacheService·PropertiesService·LockService 가 쓰는 모든 시트에 공유되기 때문)
  *
  * 원칙
  *  - 서버 반환값은 문자열·숫자·불리언·null만 (Date 객체 반환 금지)
  *  - 시트 이름은 SHEET 상수로만 부르고, 열 순서에 기대지 않음
  *******************************************************/
+
+/* ================= 실행 맥락 (껍데기가 넘겨줌) ================= */
+
+var CTX_ = {};                              // { url: 웹앱 주소, legacyProps: 옛 스크립트 속성 }
+function ctx설정_(c) { CTX_ = c || {}; }
+function 앱주소_() {
+  if (CTX_.url) return CTX_.url;
+  try { return ScriptApp.getService().getUrl() || ''; } catch (e) { return ''; }
+}
 
 /* ================= 스프레드시트 ================= */
 
@@ -183,12 +194,22 @@ function 시트준비_(name, headers, opt) {
 }
 
 /* ================= 서버 캐시 ================= */
-/* CacheService 값 하나는 100KB까지. 큰 것은 조각으로 나눠 저장합니다. */
+/* CacheService 값 하나는 100KB까지. 큰 것은 조각으로 나눠 저장합니다.
+   키에는 시트 ID 꼬리를 붙여 라이브러리로 여러 시트가 쓸 때 서로 섞이지 않게 합니다. */
 
 var CACHE_TTL_ = 21600;   // 6시간
 var CACHE_CHUNK_ = 90000;
+var 시트키메모_ = null;
+function 시트키_() {
+  if (시트키메모_) return 시트키메모_;
+  try { 시트키메모_ = String(ss_().getId()).slice(-10); } catch (e) { 시트키메모_ = 'x'; }
+  return 시트키메모_;
+}
+/** 시트별로 구분되는 캐시 키 */
+function ck_(key) { return 시트키_() + ':' + key; }
 
 function 캐시쓰기_(key, obj, ttl) {
+  key = ck_(key);
   var cache = CacheService.getScriptCache();
   var s = JSON.stringify(obj);
   if (s.length <= CACHE_CHUNK_) {
@@ -204,6 +225,7 @@ function 캐시쓰기_(key, obj, ttl) {
 }
 
 function 캐시읽기_(key) {
+  key = ck_(key);
   var cache = CacheService.getScriptCache();
   var one = cache.get('c_' + key);
   if (one) { try { return JSON.parse(one); } catch (e) { return null; } }
@@ -220,6 +242,7 @@ function 캐시읽기_(key) {
 }
 
 function 캐시지우기_(key) {
+  key = ck_(key);
   var cache = CacheService.getScriptCache();
   var n = Number(cache.get('c_' + key + '_n')) || 0;
   var keys = ['c_' + key, 'c_' + key + '_n'];
@@ -235,6 +258,35 @@ function 캐시_(key, fn, ttl) {
   try { 캐시쓰기_(key, v, ttl); } catch (e) {}
   return v;
 }
+
+/* ================= 속성 (숨김 시트 '_속성') =================
+   스크립트 속성 대신 씁니다. 라이브러리로 쓰면 스크립트 속성이 모든 시트에 공유되어 교사 비밀번호까지 섞이기 때문입니다. */
+
+var 속성시트_ = '_속성';
+var 속성메모_ = null;
+function 속성표_() {
+  if (속성메모_) return 속성메모_;
+  속성메모_ = {};
+  var sh = findSheet_(속성시트_);
+  if (sh) {
+    var v = sh.getDataRange().getValues();
+    for (var i = 1; i < v.length; i++) { var k = String(v[i][0] || '').trim(); if (k) 속성메모_[k] = String(v[i][1] === undefined || v[i][1] === null ? '' : v[i][1]); }
+  }
+  return 속성메모_;
+}
+function 속성_(key) { var v = 속성표_()[key]; return (v === undefined || v === '') ? null : v; }
+function 속성저장_(key, val) {
+  var sh = findSheet_(속성시트_);
+  if (!sh) { sh = ss_().insertSheet(속성시트_); sh.getRange(1, 1, 1, 2).setValues([['키', '값']]); sh.getRange(1, 1, 2, 2).setNumberFormat('@'); try { sh.hideSheet(); } catch (e) {} }
+  var v = sh.getDataRange().getValues(), row = 0;
+  for (var i = 1; i < v.length; i++) if (String(v[i][0] || '').trim() === key) { row = i + 1; break; }
+  if (val === null || val === undefined || val === '') {
+    if (row) sh.deleteRow(row);
+  } else if (row) sh.getRange(row, 2).setValue(String(val));
+  else sh.getRange(sh.getLastRow() + 1, 1, 1, 2).setNumberFormat('@').setValues([[key, String(val)]]);
+  속성메모_ = null;
+}
+function 속성지우기_(key) { 속성저장_(key, null); }
 
 /* ================= 잠금 · ID ================= */
 

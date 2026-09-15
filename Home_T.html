@@ -36,7 +36,7 @@
   <div class="page" id="core_tp_dash">
     <div class="page-head"><h2>오늘 할 일</h2><span class="sub" id="dashSub"></span></div>
     <div id="dashPwNote" class="note sun hide"><i class="ti ti-key"></i><div>교사 비밀번호가 초기값(1234)입니다. <b>설정</b>에서 바꿔 주세요.</div></div>
-    <div id="dashUpdNote" class="note hide"><i class="ti ti-sparkles"></i><div>새 버전 <b id="dashUpdVer"></b>이 있어요. <b>설정 → 업데이트</b>에서 한 번에 받을 수 있습니다.</div></div>
+    <div id="dashUpdNote" class="note hide"><i class="ti ti-sparkles"></i><div>새 버전 <b id="dashUpdVer"></b>이 있어요. <b>설정 → 업데이트</b>에서 적용 순서를 확인하세요.</div></div>
     <div id="dashEmptyNote" class="note hide"><i class="ti ti-users"></i><div>아직 학생이 없습니다. <b>학생 명단</b>에서 명렬을 붙여 넣어 주세요. <button class="mini soft" id="dashGoStudents">학생 명단으로</button></div></div>
     <div id="dashUnassigned" class="note sun hide"><i class="ti ti-alert-triangle"></i><div><b><span id="dashUnassignedN">0</span>명</b>은 반·번호가 아직 없어 로그인할 수 없습니다. 학생 명단에서 명렬 붙여넣기(기존 학생 채우기)로 넣어 주세요.</div></div>
     <div class="kpis" id="dashKpis"></div>
@@ -492,36 +492,21 @@ MODS.core.teacher = (function () {
       renderUpdate(D.업데이트);
     }).catch(handleErr);
   }
-  /* ---------- 업데이트 ---------- */
+  /* ---------- 업데이트 (새 버전 알림) ---------- */
   function renderUpdate(u) {
     var box = $('setUpdate'); if (!box) return;
-    if (!u) { box.innerHTML = '<div class="unit">이 판에서는 자동 업데이트를 쓰지 않습니다.</div>'; return; }
+    if (!u) { box.innerHTML = '<div class="unit">이 판에서는 새 버전 알림을 쓰지 않습니다.</div>'; return; }
     var h = '<div class="unit" style="margin-bottom:8px">지금 버전 <b>v' + esc(u.현재) + '</b>' + (u.최신 ? ' · 저장소 최신 v' + esc(u.최신) : '') + (u.확인시각 ? ' · 확인 ' + esc(String(u.확인시각).slice(5, 16)) : '') + '</div>';
     if (u.오류) h += '<div class="note warn"><i class="ti ti-alert-triangle"></i><div>업데이트 정보를 읽지 못했습니다: ' + esc(u.오류) + '</div></div>';
-    else if (u.새버전) h += '<div class="note"><i class="ti ti-sparkles"></i><div><b>새 버전 v' + esc(u.최신) + '</b>' + (u.날짜 ? ' (' + esc(u.날짜) + ')' : '') + (u.메모 ? '<br>' + esc(u.메모).replace(/\n/g, '<br>') : '') + '<br><span class="unit">자료는 그대로 두고 프로그램 파일만 바꿉니다. 바꾸기 전 지금 코드를 드라이브에 백업합니다. 1분쯤 걸립니다.</span></div></div>';
+    else if (u.새버전) h += '<div class="note"><i class="ti ti-sparkles"></i><div><b>새 버전 v' + esc(u.최신) + '</b>' + (u.날짜 ? ' (' + esc(u.날짜) + ')' : '') + (u.라이브러리버전 ? ' · 라이브러리 버전 ' + esc(u.라이브러리버전) : '') + (u.메모 ? '<br>' + esc(u.메모).replace(/\n/g, '<br>') : '') + '</div></div>' +
+      '<div class="note sun"><i class="ti ti-list-numbers"></i><div><b>적용 순서 (2분)</b><br>1. 스프레드시트 → 확장 프로그램 → <b>Apps Script</b><br>2. 왼쪽 "라이브러리" 아래 <b>PE</b> 를 눌러 버전을 <b>' + (u.라이브러리버전 ? esc(u.라이브러리버전) : '가장 큰 숫자') + '</b> 로 바꾸고 저장<br>3. 오른쪽 위 <b>배포 → 배포 관리</b> → 연필 → 버전 "새 버전" → 배포<br><span class="unit">자료도 주소도 그대로입니다. 끝나면 이 화면을 새로 고치세요.</span></div></div>';
     else h += '<div class="note ok"><i class="ti ti-circle-check"></i><div>최신 버전입니다.</div></div>';
-    h += '<div class="chks" style="margin-top:8px"><button class="ghost mini" id="btnUpdCheck"><i class="ti ti-refresh"></i>새 버전 확인</button>' +
-      (u.새버전 ? '<button class="mini" id="btnUpdRun"><i class="ti ti-download"></i>지금 업데이트</button>' : '') +
-      '<button class="ghost mini" id="btnUpdBack"><i class="ti ti-arrow-back-up"></i>이전 버전으로 되돌리기</button><span class="status" id="updStatus"></span></div>' +
-      '<div class="unit" style="margin-top:8px">처음 한 번은 구글 계정 설정에서 <a href="https://script.google.com/home/usersettings" target="_blank" rel="noopener">Google Apps Script API</a> 를 켜 두어야 합니다. 스프레드시트 메뉴 <b>체육교사 보조 → 업데이트 확인</b>에서도 같은 일을 할 수 있습니다.</div>';
+    h += '<div class="chks" style="margin-top:8px"><button class="ghost mini" id="btnUpdCheck"><i class="ti ti-refresh"></i>새 버전 확인</button><span class="status" id="updStatus"></span></div>' +
+      '<div class="unit" style="margin-top:8px">스프레드시트 메뉴 <b>체육교사 보조 → 업데이트 확인</b>에서도 같은 안내를 볼 수 있습니다.</div>';
     box.innerHTML = h;
     $('btnUpdCheck').onclick = function () {
       setStatus('updStatus', '확인 중…');
       api('t_updateCheck', TOKEN, true).then(function (r) { D.업데이트 = r; renderUpdate(r); }).catch(function (e) { setStatus('updStatus', (e && e.message) || String(e), 'err'); });
-    };
-    if ($('btnUpdRun')) $('btnUpdRun').onclick = function () {
-      if (!confirm('v' + u.현재 + ' → v' + u.최신 + ' 으로 업데이트할까요?\n끝나면 화면을 새로 고칩니다.')) return;
-      var b = this; b.disabled = true; setStatus('updStatus', '업데이트 중… (1분쯤 걸립니다. 창을 닫지 마세요)');
-      api('t_updateRun', TOKEN).then(function (r) {
-        setStatus('updStatus', r.메시지, 'ok'); toast('업데이트 완료! 화면을 새로 고칩니다.');
-        setTimeout(function () { location.reload(); }, 2500);
-      }).catch(function (e) { b.disabled = false; setStatus('updStatus', (e && e.message) || String(e), 'err'); });
-    };
-    $('btnUpdBack').onclick = function () {
-      if (!confirm('마지막 업데이트 직전 코드로 되돌릴까요? 자료는 그대로입니다.')) return;
-      var b = this; b.disabled = true; setStatus('updStatus', '되돌리는 중…');
-      api('t_updateRollback', TOKEN).then(function (r) { setStatus('updStatus', r.메시지, 'ok'); setTimeout(function () { location.reload(); }, 2500); })
-        .catch(function (e) { b.disabled = false; setStatus('updStatus', (e && e.message) || String(e), 'err'); });
     };
   }
   $('btnSetSave').onclick = function () {
