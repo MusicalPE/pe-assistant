@@ -1,7 +1,7 @@
 {
-  "version": "0.9.1",
+  "version": "0.9.2",
   "date": "2026-09-15",
-  "notes": "권한승인 함수 추가 (편집기에서 실행하면 승인창)\n업데이트 확인 오류는 5분만 기억\n자동 업데이트 첫 실전 테스트 판",
+  "notes": "GitHub 캐시로 manifest·파일 버전이 어긋나면 기다렸다 다시 받도록 수정\n권한승인 함수 추가\n업데이트 확인 오류는 5분만 기억",
   "files": [
     {
       "name": "App.html",
@@ -24,7 +24,7 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "8366e9db2744abd9",
+      "sha256": "aa5a59b30a5b2e81",
       "bytes": 46164
     },
     {
@@ -144,8 +144,8 @@
     {
       "name": "Updater.gs",
       "type": "SERVER_JS",
-      "sha256": "bdd807daf42bdd9e",
-      "bytes": 13901
+      "sha256": "7c1b49dda991f7ed",
+      "bytes": 14628
     },
     {
       "name": "appsscript.json",

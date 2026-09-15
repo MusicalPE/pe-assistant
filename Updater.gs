@@ -19,6 +19,7 @@
 var 업데이트_저장소 = 'MusicalPE/pe-assistant';   // GitHub "아이디/저장소" — 스크립트 속성 UPDATE_REPO 가 있으면 그것을 씀
 var 업데이트_경로 = 'main';                       // 브랜치 (파일은 저장소 맨 위에)
 var 업데이트_백업키 = 'UPDATE_BACKUP_FILE_ID';
+var 업데이트_마지막manifest_ = null;
 
 function 업데이트주소_() {
   var p = '';
@@ -46,6 +47,7 @@ function 업데이트_확인_(force) {
     var m = JSON.parse(res.getContentText());
     if (!m.version || !Array.isArray(m.files)) throw new Error('manifest.json 형식이 잘못되었습니다.');
     out = { 현재: APP_VERSION, 최신: String(m.version), 날짜: m.date || '', 메모: m.notes || '', 새버전: 버전비교_(APP_VERSION, m.version) < 0, 파일수: m.files.length, 확인시각: 지금_() };
+    업데이트_마지막manifest_ = m;   // 실행 때 같은 manifest 를 씀 (GitHub 캐시가 어긋나 두 번 읽은 값이 달라지는 일 방지)
   } catch (e) {
     out = { 현재: APP_VERSION, 최신: '', 새버전: false, 오류: e.message, 확인시각: 지금_() };
   }
@@ -97,24 +99,31 @@ function 업데이트_실행_() {
   var base = 업데이트주소_();
   var info = 업데이트_확인_(true);
   if (info.오류) throw new Error(info.오류);
-  var mres = UrlFetchApp.fetch(base + 'manifest.json?t=' + Date.now(), { muteHttpExceptions: true });
-  var manifest = JSON.parse(mres.getContentText());
+  var manifest = 업데이트_마지막manifest_;
+  if (!manifest) throw new Error('업데이트 정보를 다시 읽지 못했습니다. 잠시 뒤 다시 해 주세요.');
   var 새버전 = String(manifest.version);
+  if (버전비교_(APP_VERSION, 새버전) >= 0) throw new Error('이미 v' + APP_VERSION + ' 입니다 (저장소 v' + 새버전 + ').');
   var files = manifest.files.filter(function (f) { return f && f.name && 업데이트_파일형식_(f.name); });
   if (!files.length) throw new Error('manifest.json 에 파일 목록이 없습니다.');
 
-  // 1) 새 파일 내려받기 (한 번에)
-  var reqs = files.map(function (f) { return { url: base + encodeURIComponent(f.name) + '?v=' + encodeURIComponent(새버전), muteHttpExceptions: true }; });
-  var ress = UrlFetchApp.fetchAll(reqs);
-  var 새파일 = {};
-  ress.forEach(function (r, i) {
-    if (r.getResponseCode() !== 200) throw new Error(files[i].name + ' 을(를) 내려받지 못했습니다 (' + r.getResponseCode() + ')');
-    var src = r.getContentText();
-    if (!src || src.length < 20) throw new Error(files[i].name + ' 내용이 비어 있습니다.');
-    새파일[files[i].name] = src;
-  });
-  if (!새파일['Code.gs'] || 새파일['Code.gs'].indexOf("APP_VERSION = '" + 새버전 + "'") < 0) {
-    throw new Error('내려받은 Code.gs 의 버전(' + (새파일['Code.gs'] || '').match(/APP_VERSION = '([^']*)'/) + ')이 manifest(' + 새버전 + ')와 다릅니다. 저장소를 확인해 주세요.');
+  // 1) 새 파일 내려받기 (한 번에). GitHub 캐시가 아직 옛 파일을 주면 잠깐 기다렸다 최대 4번 다시 받음
+  var 새파일 = {}, 받은버전 = '';
+  for (var 시도 = 1; 시도 <= 4; 시도++) {
+    var reqs = files.map(function (f) { return { url: base + encodeURIComponent(f.name) + '?v=' + encodeURIComponent(새버전) + '&t=' + Date.now(), muteHttpExceptions: true }; });
+    var ress = UrlFetchApp.fetchAll(reqs);
+    새파일 = {};
+    ress.forEach(function (r, i) {
+      if (r.getResponseCode() !== 200) throw new Error(files[i].name + ' 을(를) 내려받지 못했습니다 (' + r.getResponseCode() + ')');
+      var src = r.getContentText();
+      if (!src || src.length < 20) throw new Error(files[i].name + ' 내용이 비어 있습니다.');
+      새파일[files[i].name] = src;
+    });
+    받은버전 = ((새파일['Code.gs'] || '').match(/APP_VERSION = '([^']*)'/) || [])[1] || '';
+    if (받은버전 === 새버전) break;
+    if (시도 < 4) Utilities.sleep(8000);
+  }
+  if (받은버전 !== 새버전) {
+    throw new Error('저장소 파일이 아직 새 버전으로 갱신되지 않았습니다 (Code.gs v' + 받은버전 + ', manifest v' + 새버전 + '). GitHub 반영에 몇 분 걸릴 수 있으니 5분 뒤 다시 눌러 주세요.');
   }
 
   // 2) 지금 코드 읽고 백업
