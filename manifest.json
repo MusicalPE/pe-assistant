@@ -1,20 +1,20 @@
 {
-  "version": "1.0.0",
-  "libraryVersion": 1,
+  "version": "1.1.0",
+  "libraryVersion": 2,
   "date": "2026-09-15",
-  "notes": "라이브러리 방식으로 전환 (껍데기 + 원본)\n학사일정·학기별 시간표·쉬는 날\n로딩 속도 개선",
+  "notes": "중학교 지원 — 설정 > 학교급(초|중) 하나로 전환\nPAPS 기준표에 중1~3(팔굽혀펴기 포함) 추가, 학교급별 기본 종목·대상 학년\n중학교에서는 FMS 도전 모듈이 보이지 않음, 학년 올리기 졸업 학년 3학년\n수업 도우미·줄넘기 학년 선택이 학교급을 따름",
   "files": [
     {
       "name": "App.html",
       "type": "HTML",
-      "sha256": "71643c8ab19e3b5e",
-      "bytes": 50571
+      "sha256": "c676b688dfcfc465",
+      "bytes": 50837
     },
     {
       "name": "Class_T.html",
       "type": "HTML",
-      "sha256": "016c51ad60b5f3fe",
-      "bytes": 95747
+      "sha256": "222c3d6adb86b08d",
+      "bytes": 95719
     },
     {
       "name": "Club_T.html",
@@ -25,8 +25,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "c5fb93e8fb943e28",
-      "bytes": 47525
+      "sha256": "a70e149598467324",
+      "bytes": 50903
     },
     {
       "name": "FMS_Data.gs",
@@ -67,8 +67,8 @@
     {
       "name": "Home_T.html",
       "type": "HTML",
-      "sha256": "b01e586907672add",
-      "bytes": 51535
+      "sha256": "ddec5c02974e5506",
+      "bytes": 53597
     },
     {
       "name": "Lib.gs",
@@ -103,20 +103,20 @@
     {
       "name": "Mod_Paps.gs",
       "type": "SERVER_JS",
-      "sha256": "ddff0df895df489b",
-      "bytes": 43353
+      "sha256": "229edc126ff356c0",
+      "bytes": 47493
     },
     {
       "name": "Mod_Rope.gs",
       "type": "SERVER_JS",
-      "sha256": "ae00b17bb637b5f3",
-      "bytes": 28537
+      "sha256": "05ac11c834537919",
+      "bytes": 28915
     },
     {
       "name": "PAPS_Data.gs",
       "type": "SERVER_JS",
-      "sha256": "0b4d5fe3cafc5756",
-      "bytes": 17007
+      "sha256": "ae71b660dc01cdd3",
+      "bytes": 35898
     },
     {
       "name": "PAPS_S.html",
@@ -139,8 +139,8 @@
     {
       "name": "Rope_T.html",
       "type": "HTML",
-      "sha256": "178e8c46576b8cb0",
-      "bytes": 27515
+      "sha256": "965099d065f5455d",
+      "bytes": 27508
     },
     {
       "name": "Updater.gs",

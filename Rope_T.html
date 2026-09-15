@@ -328,7 +328,7 @@ MODS.ROPE.teacher = (function () {
       var s = r.설정;
       $('rpSetGoal').value = s.하루목표; $('rpSetClassGoal').value = s.학급목표; $('rpSetMaxIn').value = s.하루최대입력; $('rpSetMaxCnt').value = s.한번최대횟수; $('rpSetAuto').checked = s.자동확인;
       $('rpSetAuto').parentNode.classList.toggle('on', s.자동확인);
-      $('rpSetGrades').innerHTML = [1, 2, 3, 4, 5, 6].map(function (g) { var on = s.대상학년.indexOf(g) > -1; return '<label class="chk sm' + (on ? ' on' : '') + '"><input type="checkbox" value="' + g + '"' + (on ? ' checked' : '') + '><span>' + g + '학년</span></label>'; }).join('');
+      $('rpSetGrades').innerHTML = allGrades().map(function (g) { var on = s.대상학년.indexOf(g) > -1; return '<label class="chk sm' + (on ? ' on' : '') + '"><input type="checkbox" value="' + g + '"' + (on ? ' checked' : '') + '><span>' + g + '학년</span></label>'; }).join('');
       $('rpSetGemini').value = ''; $('rpSetGemini').placeholder = r.gemini ? '(등록됨 · 바꾸려면 새 키 입력, 지우려면 "삭제")' : 'AIza…';
       $('rpSetGeminiHint').textContent = r.gemini ? 'Gemini 키가 등록되어 있어 응원 문구를 AI가 씁니다.' : '키가 없으면 기본 문구 6개를 돌아가며 보여 줍니다.';
       setStatus('rpSetStatus', '');

@@ -17,15 +17,29 @@
  *   안내 : 설명
  *
  * 모듈이 공통에 끼워 넣는 방법
- *   Mod_XXX.gs 에 function xxx_hooks_() { return { 준비, 초기화정보, 초기화, 교사대시보드, 학생프로필, 학생배지, 학생참여, 명단삭제후 } }
+ *   Mod_XXX.gs 에 function xxx_hooks_() { return { 준비, 초기화정보, 초기화, 교사대시보드, 학생프로필, 학생배지, 학생참여, 명단삭제후, 학교급변경 } }
  *   를 두면 이 파일이 알아서 찾아 부릅니다. (MODULES 의 hooks 이름 참고)
+ *
+ * 학교급 (초등학교 / 중학교)
+ *   설정 '학교급'(초|중) 하나로 같은 코드가 초등·중등 어느 쪽으로도 동작합니다. 학교급_() 가 학년 범위·졸업 학년을 돌려주고,
+ *   MODULES 의 학교급 속성이 있는 모듈(FMS 는 초등만)은 다른 학교급에서 아예 보이지 않습니다.
  *******************************************************/
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '1.0.0';
+var APP_VERSION = '1.1.0';
 var 기본프로그램이름 = '체육교사 보조 프로그램';
 var 기본학생용이름 = '체육 활동 기록장';   // 학생·학부모가 보는 이름
+
+/* 학교급. 설정 시트의 '학교급' 값(초 | 중)으로 고르며, 학년 범위·졸업 학년·PAPS 기준표·쓸 수 있는 모듈이 달라집니다. */
+var 학교급표 = {
+  '초': { 급: '초', 이름: '초등학교', 학생: '초등학생', 최대학년: 6, 학년들: [1, 2, 3, 4, 5, 6], 기본학년범위: '1,2,3,4,5,6' },
+  '중': { 급: '중', 이름: '중학교',   학생: '중학생',   최대학년: 3, 학년들: [1, 2, 3],          기본학년범위: '1,2,3' }
+};
+function 학교급_(급) {
+  var k = str_(급 === undefined ? 설정_().학교급 : 급);
+  return 학교급표[k] || 학교급표['초'];
+}
 
 var SHEET = { 설정: '설정', 학생: '학생', 안내: '안내' };
 
@@ -40,7 +54,7 @@ var MODULES = [
   { key: 'PAPS', 이름: 'PAPS',        설명: '학생건강체력평가 기록·등급·나이스 내보내기',   아이콘: 'stopwatch',  색: 'sky',   학생화면: true,  hooks: 'paps_hooks_' },
   { key: 'FIT',  이름: '건강체력교실', 설명: '참가 학생의 운동 기록·출석·포인트·배지',       아이콘: 'heartbeat',  색: 'mint',  학생화면: true,  hooks: 'fit_hooks_'  },
   { key: 'ROPE', 이름: '줄넘기',       설명: '줄넘기 횟수 누적·승인·학급 공동 목표',          아이콘: 'jump-rope',  색: 'coral', 학생화면: true,  hooks: 'rope_hooks_' },
-  { key: 'FMS',  이름: 'FMS 도전',     설명: '기본 움직임 기술 관찰평가·단계 도전·배지',      아이콘: 'run',        색: 'blue',  학생화면: true,  hooks: 'fms_hooks_'  },
+  { key: 'FMS',  이름: 'FMS 도전',     설명: '기본 움직임 기술 관찰평가·단계 도전·배지',      아이콘: 'run',        색: 'blue',  학생화면: true,  hooks: 'fms_hooks_', 학교급: ['초'] },
   { key: 'CLUB', 이름: '스포츠클럽',   설명: '클럽 활동 일지·출석·대회·예산·정산보고서',      아이콘: 'ball-volleyball', 색: 'sun', 학생화면: false, hooks: 'club_hooks_' }
 ];
 
@@ -54,8 +68,9 @@ function 기본설정_() {
     ['담당자',       '',              '보고서용 담당 교사 이름'],
     ['전화',         '',              '보고서용'],
     ['이메일',       '',              '보고서용'],
+    ['학교급',       '초',            '초 | 중 — 초등학교 / 중학교. 학년 범위·졸업 학년·PAPS 기준표·쓸 수 있는 모듈이 달라집니다'],
     ['학년도',       String(y),       '올해 학년도'],
-    ['학년범위',     '1,2,3,4,5,6',   '학생 등록 화면에서 고를 수 있는 학년'],
+    ['학년범위',     '1,2,3,4,5,6',   '학생 등록 화면에서 고를 수 있는 학년 (중학교는 1,2,3)'],
     ['반범위',       '15',            '반은 1부터 이 숫자까지'],
     ['자동나가기분', '3',             '학생이 이 시간(분) 동안 화면을 만지지 않으면 로그인 화면으로'],
     ['학생로그인',   '숫자판',        '숫자판 | 입력칸 — 학생 비밀번호를 넣는 방식']
@@ -166,19 +181,23 @@ function 모듈정의_(key) {
 
 function 모듈설치됨_(key) { return 모듈훅_(key) !== null; }
 
-/** { PAPS: true/false, ... } — 설정에서 켜져 있고 파일도 있는 모듈만 true */
+/** 이 학교급에서 쓸 수 있는 모듈인지 (FMS 는 초등만). 지원하지 않는 모듈은 화면·설정·준비 어디에도 나타나지 않습니다 */
+function 모듈지원_(m) { return !m.학교급 || m.학교급.indexOf(학교급_().급) >= 0; }
+function 지원모듈_() { return MODULES.filter(모듈지원_); }
+
+/** { PAPS: true/false, ... } — 이 학교급에서 지원하고, 설정에서 켜져 있고, 파일도 있는 모듈만 true */
 function 모듈상태_() {
   var s = 설정_(), out = {};
   MODULES.forEach(function (m) {
-    out[m.key] = str_(s['모듈.' + m.key]).toUpperCase() !== 'N' && 모듈설치됨_(m.key);
+    out[m.key] = 모듈지원_(m) && str_(s['모듈.' + m.key]).toUpperCase() !== 'N' && 모듈설치됨_(m.key);
   });
   return out;
 }
 
-/** 화면용 모듈 목록 */
+/** 화면용 모듈 목록 (이 학교급에서 지원하는 모듈만) */
 function 모듈목록_() {
   var 상태 = 모듈상태_(), s = 설정_();
-  return MODULES.map(function (m) {
+  return 지원모듈_().map(function (m) {
     return { key: m.key, 이름: m.이름, 설명: m.설명, 아이콘: m.아이콘, 색: m.색, 학생화면: m.학생화면,
              설치: 모듈설치됨_(m.key), 켜짐: str_(s['모듈.' + m.key]).toUpperCase() !== 'N', 사용: 상태[m.key] };
   });
@@ -198,7 +217,7 @@ function 준비_() {
   var 빠짐 = !findSheet_(SHEET.설정) || !findSheet_(SHEET.학생) || !findSheet_(SHEET.안내) || !속성_(PW_KEY);
   var 모듈빠짐 = false;
   if (!빠짐) {
-    MODULES.forEach(function (m) {
+    지원모듈_().forEach(function (m) {
       var h = 모듈훅_(m.key);
       if (h && typeof h.준비확인 === 'function') { try { if (!h.준비확인()) 모듈빠짐 = true; } catch (e) { 모듈빠짐 = true; } }
     });
@@ -212,7 +231,7 @@ function 준비_() {
     설정보충_();
     if (!findSheet_(SHEET.안내)) { 안내시트_(); 만듦.push('안내 시트'); }
     if (!속성_(PW_KEY)) { 속성저장_(PW_KEY, hash_(기본교사비번)); 만듦.push('교사 비밀번호(' + 기본교사비번 + ')'); }
-    MODULES.forEach(function (m) {
+    지원모듈_().forEach(function (m) {
       var h = 모듈훅_(m.key);
       if (h && typeof h.준비 === 'function') {
         try { 만듦 = 만듦.concat(h.준비() || []); } catch (e) { 만듦.push(m.이름 + ' 준비 실패: ' + e.message); }
@@ -279,13 +298,13 @@ function 캐시비우기() {
 }
 
 function 상태점검() {
-  var 줄 = ['버전 ' + APP_VERSION];
+  var 줄 = ['버전 ' + APP_VERSION, '학교급: ' + 학교급_().이름];
   줄.push('시트 설정: ' + (findSheet_(SHEET.설정) ? '있음' : '없음 ✗'));
   줄.push('시트 학생: ' + (findSheet_(SHEET.학생) ? 학생목록_(true).length + '명' : '없음 ✗'));
   줄.push('교사 비밀번호: ' + (속성_(PW_KEY) ? '설정됨' : '설정 안 됨 ✗'));
   var 상태 = 모듈상태_(), s = 설정_();
   MODULES.forEach(function (m) {
-    줄.push('모듈 ' + m.이름 + ': ' + (모듈설치됨_(m.key) ? (상태[m.key] ? '켜짐' : '꺼짐(설정 모듈.' + m.key + '=' + str_(s['모듈.' + m.key]) + ')') : '파일 없음'));
+    줄.push('모듈 ' + m.이름 + ': ' + (!모듈지원_(m) ? '해당 없음(' + 학교급_().이름 + ')' : 모듈설치됨_(m.key) ? (상태[m.key] ? '켜짐' : '꺼짐(설정 모듈.' + m.key + '=' + str_(s['모듈.' + m.key]) + ')') : '파일 없음'));
   });
   var 결과 = 줄.join('\n');
   알림_(결과);
@@ -326,13 +345,15 @@ function 설정저장_(map) {
 
 /** 화면에 내려보낼 설정 */
 function 공개설정_() {
-  var s = 설정_();
+  var s = 설정_(), 급 = 학교급_();
+  var 학년범위 = 목록_(s.학년범위).map(Number).filter(function (g) { return g >= 1 && g <= 급.최대학년; });
   return {
     프로그램이름: str_(s.프로그램이름) || 기본프로그램이름,
     학생용이름: str_(s.학생용이름) || 기본학생용이름,
     학교명: str_(s.학교명), 학교장: str_(s.학교장), 담당자: str_(s.담당자), 전화: str_(s.전화), 이메일: str_(s.이메일),
     학년도: str_(s.학년도),
-    학년범위: 목록_(s.학년범위).map(Number).filter(function (g) { return g >= 1 && g <= 6; }),
+    학교급: 급.급, 학교급이름: 급.이름, 최대학년: 급.최대학년, 학년들: 급.학년들.slice(),   // 학년들: 이 학교급의 모든 학년 (화면의 학년 고르기용)
+    학년범위: 학년범위.length ? 학년범위 : 급.학년들.slice(),
     반범위: Math.max(1, Math.min(30, num_(s.반범위) || 15)),
     자동나가기분: Math.max(1, Math.min(60, num_(s.자동나가기분) || 3)),
     학생로그인: str_(s.학생로그인) === '입력칸' ? '입력칸' : '숫자판'
@@ -743,16 +764,17 @@ function t_setStatus(token, ids, 상태) {
 
 /**
  * 학년 올리기. 선택한 재학생의 학년을 +1 하고 반·번호를 비웁니다(새 학기에 명렬 붙여넣기 > 기존 학생 매칭으로 채움).
- * 6학년은 졸업 처리. 기록은 학생ID로 연결되어 그대로 남습니다.
+ * 마지막 학년(초등 6 · 중등 3)은 졸업 처리. 기록은 학생ID로 연결되어 그대로 남습니다.
  */
 function t_promote(token, ids) {
   교사확인_(token);
+  var 최대학년 = 학교급_().최대학년;
   return withLock_(function () {
     var 올림 = 0, 졸업 = 0;
     (ids || []).forEach(function (id) {
       var s = 학생찾기_(str_(id));
       if (!s || s.상태 !== '재학') return;
-      if (s.학년 >= 6) { setCells_(SHEET.학생, HEADERS.학생, s._row, { 상태: '졸업', 수정일시: 지금_() }); 졸업++; }
+      if (s.학년 >= 최대학년) { setCells_(SHEET.학생, HEADERS.학생, s._row, { 상태: '졸업', 수정일시: 지금_() }); 졸업++; }
       else { setCells_(SHEET.학생, HEADERS.학생, s._row, { 학년: s.학년 + 1, 반: '', 번호: '', 수정일시: 지금_() }); 올림++; }
     });
     캐시지우기_('학생');
@@ -770,7 +792,7 @@ function t_getSettings(token) {
   return { 설정: 공개설정_(), 모듈: 모듈, 모듈목록: 모듈목록_() };
 }
 
-/** map = { 프로그램이름, 학교명, ..., 학년범위:[..], 반범위, 자동나가기분, 학생로그인, 모듈:{PAPS:true,...} } */
+/** map = { 프로그램이름, 학교명, ..., 학교급:'초'|'중', 학년범위:[..], 반범위, 자동나가기분, 학생로그인, 모듈:{PAPS:true,...} } */
 function t_saveSettings(token, map) {
   교사확인_(token);
   map = map || {};
@@ -780,8 +802,17 @@ function t_saveSettings(token, map) {
   });
   if (!put.프로그램이름 && map.프로그램이름 !== undefined) put.프로그램이름 = 기본프로그램이름;
   if (!put.학생용이름 && map.학생용이름 !== undefined) put.학생용이름 = 기본학생용이름;
-  if (map.학년범위 !== undefined) {
-    var g = (map.학년범위 || []).map(Number).filter(function (x) { return x >= 1 && x <= 6; });
+
+  // 학교급이 바뀌면 학년 범위와 모듈별 대상 학년을 그 학교급의 기본값으로 되돌리고, 모듈에 알립니다 (PAPS 종목·기준표 등)
+  var 급바뀜 = false, 새급 = 학교급_();
+  if (map.학교급 !== undefined) {
+    if (!학교급표[str_(map.학교급)]) return { ok: false, message: '학교급은 초 또는 중입니다.' };
+    if (str_(map.학교급) !== 학교급_().급) { 급바뀜 = true; 새급 = 학교급_(map.학교급); put.학교급 = 새급.급; }
+  }
+  if (급바뀜) {
+    put.학년범위 = 새급.기본학년범위;
+  } else if (map.학년범위 !== undefined) {
+    var g = (map.학년범위 || []).map(Number).filter(function (x) { return x >= 1 && x <= 새급.최대학년; });
     if (!g.length) return { ok: false, message: '학년을 하나 이상 골라 주세요.' };
     put.학년범위 = g.sort(function (a, b) { return a - b; }).join(',');
   }
@@ -797,7 +828,20 @@ function t_saveSettings(token, map) {
   }
   if (map.모듈) MODULES.forEach(function (m) { if (map.모듈[m.key] !== undefined) put['모듈.' + m.key] = map.모듈[m.key] ? 'Y' : 'N'; });
   설정저장_(put);
-  return { ok: true, 설정: 공개설정_(), 모듈목록: 모듈목록_() };
+  var 바뀐것 = [];
+  if (급바뀜) {
+    바뀐것 = withLock_(function () {
+      var out = [];
+      MODULES.forEach(function (m) {
+        var h = 모듈훅_(m.key);
+        if (h && typeof h.학교급변경 === 'function') { try { out = out.concat(h.학교급변경(새급) || []); } catch (e) { out.push(m.이름 + ': ' + e.message); } }
+      });
+      return out;
+    }, 60000);
+    캐시지우기_(준비플래그_);   // 새 학교급에서 쓰는 모듈 시트를 다음 접속 때 확인
+    준비_();
+  }
+  return { ok: true, 설정: 공개설정_(), 모듈목록: 모듈목록_(), 학교급바뀜: 급바뀜, 바뀐것: 바뀐것 };
 }
 
 /* ================= 통합 배지 ================= */

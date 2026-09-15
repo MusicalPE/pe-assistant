@@ -686,7 +686,7 @@ MODS.CLASS.teacher = (function () {
       title: sem + '학기 · ' + 요일[x[0]] + '요일 ' + x[1] + '교시 <span class="unit" style="font-weight:600">' + per.시작 + '~' + per.끝 + '</span>', icon: 'calendar-plus', width: 460,
       body:
         (keys.length ? '<div class="field" style="margin-bottom:12px"><label>등록된 반에서 고르기</label><div class="chks">' + keys.map(function (k) { return '<button class="pill' + (v && v.반 === k ? ' on' : '') + '" data-k="' + k + '">' + esc(classLabel(k)) + '</button>'; }).join('') + '</div></div>' : '') +
-        '<div class="grid g2" style="margin-bottom:12px"><div class="field"><label>학년</label><select id="clCG">' + [1, 2, 3, 4, 5, 6].map(function (n) { return '<option' + (+g0 === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></div>' +
+        '<div class="grid g2" style="margin-bottom:12px"><div class="field"><label>학년</label><select id="clCG">' + allGrades().map(function (n) { return '<option' + (+g0 === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></div>' +
         '<div class="field"><label>반</label><input type="number" id="clCC" min="1" max="30" value="' + c0 + '"></div></div>' +
         '<div class="field"><label>장소</label><input type="text" id="clCP" value="' + esc(v ? v.장소 : (D.설정.장소[0] || '')) + '">' +
         '<div class="chks">' + D.설정.장소.map(function (p) { return '<button class="pill" data-pl="' + esc(p) + '">' + esc(p) + '</button>'; }).join('') + '</div></div>',
@@ -718,7 +718,7 @@ MODS.CLASS.teacher = (function () {
     P('Plans').innerHTML =
       '<div class="page-head"><h2>수업 계획</h2><span class="sub">날짜를 비워 두면 반마다 진도에 맞춰 차시 순서대로 연결됩니다. 날짜를 넣은 계획은 그날 수업에 먼저 연결됩니다.</span></div>' +
       '<div class="bar">' +
-        '<div class="field"><label>학년</label><select id="clPlG">' + [1, 2, 3, 4, 5, 6].map(function (n) { var c = D.계획.filter(function (p) { return p.학년 === n; }).length; return '<option value="' + n + '"' + (n === g ? ' selected' : '') + '>' + n + '학년' + (c ? ' (' + c + '차시)' : '') + '</option>'; }).join('') + '</select></div>' +
+        '<div class="field"><label>학년</label><select id="clPlG">' + allGrades().map(function (n) { var c = D.계획.filter(function (p) { return p.학년 === n; }).length; return '<option value="' + n + '"' + (n === g ? ' selected' : '') + '>' + n + '학년' + (c ? ' (' + c + '차시)' : '') + '</option>'; }).join('') + '</select></div>' +
         '<button id="clBtnPlPaste"><i class="ti ti-clipboard-text"></i>진도표 붙여넣기</button>' +
         '<button class="ghost" id="clBtnPlAdd"><i class="ti ti-plus"></i>직접 추가</button>' +
         '<div class="spacer"></div><span class="unit">' + g + '학년 ' + plans.length + '차시</span>' +
@@ -759,7 +759,7 @@ MODS.CLASS.teacher = (function () {
     var m = openModal({
       title: p ? '수업 계획 수정' : '수업 계획 추가', icon: 'notebook', width: 640,
       body:
-        '<div class="grid g3" style="margin-bottom:10px"><div class="field"><label>학년</label><select id="clQG">' + [1, 2, 3, 4, 5, 6].map(function (n) { return '<option' + (n === g ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></div>' +
+        '<div class="grid g3" style="margin-bottom:10px"><div class="field"><label>학년</label><select id="clQG">' + allGrades().map(function (n) { return '<option' + (n === g ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></div>' +
         '<div class="field"><label>차시</label><input type="number" id="clQO" min="1" value="' + (p ? p.차시 : nextNo) + '"></div>' +
         '<div class="field"><label>단원</label><input type="text" id="clQU" value="' + esc(p ? p.단원 : '') + '" placeholder="예: 도전 - 거리 도전"></div></div>' +
         '<div class="field" style="margin-bottom:10px"><label>학습 주제</label><input type="text" id="clQT" value="' + esc(p ? p.주제 : '') + '" autofocus></div>' +
@@ -791,7 +791,7 @@ MODS.CLASS.teacher = (function () {
       title: '진도표 붙여넣기', icon: 'clipboard-text', width: 640,
       body:
         '<div class="bar" style="margin-bottom:10px;box-shadow:none">' +
-          '<div class="field"><label>학년</label><select id="clRG">' + [1, 2, 3, 4, 5, 6].map(function (n) { return '<option' + (n === planGrade ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></div>' +
+          '<div class="field"><label>학년</label><select id="clRG">' + allGrades().map(function (n) { return '<option' + (n === planGrade ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></div>' +
           '<span class="unit" style="flex:1;min-width:220px">엑셀 진도표에서 <b>차시 · 단원 · 학습 주제 · 활동 내용 · 준비물</b> 순서로 열을 복사해 붙여넣으세요. 첫 열에 차시 번호가 없으면 순서대로 붙입니다. 2026-09-14 같은 날짜 칸이 있으면 날짜 지정으로 등록됩니다.</span>' +
         '</div>' +
         '<textarea id="clRT" autofocus style="min-height:220px" placeholder="1&#9;도전-거리 도전&#9;거리 도전의 의미 알기&#9;멀리 던지기·뛰기 체험&#9;콩주머니, 줄자"></textarea>' +

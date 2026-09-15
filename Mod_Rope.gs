@@ -117,6 +117,12 @@ function rope_hooks_() {
       var n = 행지우기_(ROPE.기록, function (o) { return set[str_(o.학생ID)] === true; });
       rope_캐시지우기_();
       return { 기록: n };
+    },
+    /** 학교급이 바뀌면 대상 학년을 비워 전체 학년으로 (지난 학교급의 학년 번호가 남지 않게) */
+    학교급변경: function (급) {
+      설정저장_({ '줄넘기.대상학년': '' });
+      rope_캐시지우기_();
+      return ['줄넘기 대상 학년 → 전체'];
     }
   };
 }
@@ -128,7 +134,7 @@ function rope_설정_() {
   rope_기본설정_().forEach(function (r) { var v = all['줄넘기.' + r[0]]; out[r[0]] = (v === undefined || v === null || v === '') ? r[1] : String(v); });
   return {
     하루목표: Math.max(1, num_(out.하루목표) || 100),
-    대상학년: 목록_(out.대상학년).map(Number).filter(function (g) { return g >= 1 && g <= 6; }),
+    대상학년: 목록_(out.대상학년).map(Number).filter(function (g) { return g >= 1 && g <= 학교급_().최대학년; }),
     자동확인: str_(out.자동확인).toUpperCase() === 'Y',
     하루최대입력: Math.max(1, num_(out.하루최대입력) || 10),
     한번최대횟수: Math.max(1, num_(out.한번최대횟수) || 3000),
@@ -256,7 +262,7 @@ function rope_응원문구_(현황) {
     var cached = 캐시읽기_('rope_ai_' + 오늘_());
     if (cached) return cached;
     try {
-      var prompt = '너는 초등학생들의 줄넘기 운동을 지도하는 체육 선생님이다.\n현재 ' + 현황.학생.length + '명의 학생이 참여했고 누적 줄넘기 총 횟수는 ' + 현황.총 + '회, 오늘은 ' + 현황.오늘기록인원 + '명이 ' + 현황.오늘총 + '회를 뛰었다.\n' +
+      var prompt = '너는 ' + 학교급_().학생 + '들의 줄넘기 운동을 지도하는 체육 선생님이다.\n현재 ' + 현황.학생.length + '명의 학생이 참여했고 누적 줄넘기 총 횟수는 ' + 현황.총 + '회, 오늘은 ' + 현황.오늘기록인원 + '명이 ' + 현황.오늘총 + '회를 뛰었다.\n' +
         (현황.왕.누적 ? '누적 1위는 ' + 현황.왕.누적.이름 + ' 학생(' + 현황.왕.누적.값 + '회)이다.\n' : '') +
         '학생들을 격려하고 꾸준한 운동 습관을 만들어 주는 한 문장짜리 응원 문구를 한국어 존댓말(~해요)로 작성해줘. 따옴표나 설명 없이 문장 하나만 출력해.';
       var res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + key,
@@ -389,7 +395,7 @@ function rope_t_saveSettings(token, map) {
   map = map || {};
   var put = {};
   if (map.하루목표 !== undefined) put['줄넘기.하루목표'] = String(Math.max(1, Math.min(100000, num_(map.하루목표) || 100)));
-  if (map.대상학년 !== undefined) put['줄넘기.대상학년'] = (Array.isArray(map.대상학년) ? map.대상학년 : 목록_(map.대상학년)).map(Number).filter(function (g) { return g >= 1 && g <= 6; }).join(',');
+  if (map.대상학년 !== undefined) put['줄넘기.대상학년'] = (Array.isArray(map.대상학년) ? map.대상학년 : 목록_(map.대상학년)).map(Number).filter(function (g) { return g >= 1 && g <= 학교급_().최대학년; }).join(',');
   if (map.자동확인 !== undefined) put['줄넘기.자동확인'] = map.자동확인 ? 'Y' : 'N';
   if (map.하루최대입력 !== undefined) put['줄넘기.하루최대입력'] = String(Math.max(1, Math.min(50, num_(map.하루최대입력) || 10)));
   if (map.한번최대횟수 !== undefined) put['줄넘기.한번최대횟수'] = String(Math.max(1, Math.min(100000, num_(map.한번최대횟수) || 3000)));

@@ -6,10 +6,12 @@
  *  - 시트 이름은 PAPS_ 접두어, 설정은 공통 설정 시트의 PAPS.* 항목, 서버 함수는 paps_t_ / paps_s_ 접두어.
  *  - 기준표 데이터는 PAPS_Data.gs 의 PAPS_기준 배열에서 옵니다 (그 파일이 없으면 기준표가 비어 등급이 안 나옵니다).
  *  - 기록에는 학년도가 함께 저장됩니다. 학년 올리기를 해도 지난해 기록은 지난해 것으로 남습니다.
+ *  - 학교급(초|중)은 공통 설정을 따릅니다. 기준표는 학교급·학년·성별·종목으로 찾고, 기본 종목·대상 학년도 학교급마다 다릅니다.
+ *    (기준표 시트에 학교급 열이 없는 옛 시트는 '초' 로 읽습니다)
  *
  * 시트
  *   PAPS_종목   : 요인, 종목명, 단위, 소수자리, 방식, 사용
- *   PAPS_기준표 : 학년, 성별, 종목, 등급, 하한, 상한
+ *   PAPS_기준표 : 학교급, 학년, 성별, 종목, 등급, 하한, 상한
  *   PAPS_기록   : 기록ID, 입력일시, 학년도, 학생ID, 학년, 반, 번호, 이름, 성별, 회차, 요인, 종목, 측정값, 등급, 참고1, 참고2, 입력자
  *   PAPS_목표   : 학생ID, 학년도, 회차, 종목, 목표값, 수정일시
  *   PAPS_영상   : 순서, 종목, 제목, URL, 출처
@@ -20,14 +22,15 @@
 var PAPS = { 종목: 'PAPS_종목', 기준표: 'PAPS_기준표', 기록: 'PAPS_기록', 목표: 'PAPS_목표', 영상: 'PAPS_영상', 도전: 'PAPS_도전', 내보내기: 'PAPS_내보내기' };
 var PAPS_H = {
   종목:   ['요인', '종목명', '단위', '소수자리', '방식', '사용'],
-  기준표: ['학년', '성별', '종목', '등급', '하한', '상한'],
+  기준표: ['학교급', '학년', '성별', '종목', '등급', '하한', '상한'],
   기록:   ['기록ID', '입력일시', '학년도', '학생ID', '학년', '반', '번호', '이름', '성별', '회차', '요인', '종목', '측정값', '등급', '참고1', '참고2', '입력자'],
   목표:   ['학생ID', '학년도', '회차', '종목', '목표값', '수정일시'],
   영상:   ['순서', '종목', '제목', 'URL', '출처'],
   도전:   ['도전ID', '학생ID', '날짜', '종목', '측정값', '등급', '입력시각']
 };
 
-var PAPS_기본종목 = [
+/* 학교급별 기본 종목. [요인, 종목명, 단위, 소수자리, 방식, 사용(기본 체크)] — 사용 여부는 학교마다 측정 종목 화면에서 바꿉니다 */
+var PAPS_기본종목_초 = [
   ['심폐지구력',    '왕복오래달리기',       '회',  0, '일반', true ],
   ['심폐지구력',    '오래달리기-걷기',      '초',  0, '일반', false],
   ['심폐지구력',    '스텝검사',             'PEI', 1, '일반', false],
@@ -39,13 +42,28 @@ var PAPS_기본종목 = [
   ['순발력',        '제자리멀리뛰기',       'cm',  1, '일반', false],
   ['비만',          '체질량지수',           '',    1, 'BMI',  true ]
 ];
+var PAPS_기본종목_중 = [
+  ['심폐지구력',    '왕복오래달리기',       '회',  0, '일반', true ],
+  ['심폐지구력',    '오래달리기-걷기',      '초',  0, '일반', false],
+  ['심폐지구력',    '스텝검사',             'PEI', 1, '일반', false],
+  ['유연성',        '앉아윗몸앞으로굽히기', 'cm',  1, '일반', true ],
+  ['유연성',        '종합유연성검사',       '점',  0, '일반', false],
+  ['근력·근지구력', '팔굽혀펴기',           '회',  0, '일반', true ],   // 여학생은 무릎대고팔굽혀펴기 기준으로 채점
+  ['근력·근지구력', '윗몸말아올리기',       '회',  0, '일반', false],
+  ['근력·근지구력', '악력',                 'kg',  1, '일반', false],
+  ['순발력',        '50m달리기',            '초',  2, '일반', true ],
+  ['순발력',        '제자리멀리뛰기',       'cm',  1, '일반', false],
+  ['비만',          '체질량지수',           '',    1, 'BMI',  true ]
+];
+function paps_기본종목_(급) { return (급 || 학교급_().급) === '중' ? PAPS_기본종목_중 : PAPS_기본종목_초; }
+function paps_기본대상학년_(급) { return (급 || 학교급_().급) === '중' ? '1,2,3' : '3,4,5,6'; }
 var PAPS_요인순서 = ['심폐지구력', '유연성', '근력·근지구력', '순발력', '비만'];
 var PAPS_판정색 = { '정상': 1, '과체중': 3, '마름': 4, '경도비만': 4, '고도비만': 5 };
 
 function paps_기본설정_() {
   return [
     ['회차',     '1차,2차',  'PAPS 측정 회차 이름 (쉼표로 구분)'],
-    ['대상학년', '3,4,5,6',  'PAPS를 실시하는 학년 — 이 학년 학생에게만 PAPS 메뉴가 보입니다'],
+    ['대상학년', paps_기본대상학년_(), 'PAPS를 실시하는 학년 — 이 학년 학생에게만 PAPS 메뉴가 보입니다 (초등 3~6 · 중등 1~3)'],
     ['도전기록', 'Y',        'Y | N — 학생이 스스로 연습 기록(내 도전)을 남길 수 있게'],
     ['목표입력', 'Y',        'Y | N — 학생이 회차별 목표를 정할 수 있게']
   ];
@@ -58,21 +76,21 @@ function paps_hooks_() {
     준비확인: function () {
       var 다있음 = ['종목', '기준표', '기록', '목표', '영상', '도전'].every(function (k) { return !!findSheet_(PAPS[k]); });
       if (!다있음) return false;
-      // 기준표가 비어 있는데 PAPS_Data.gs 가 (나중에라도) 들어왔으면 다음 접속 때 채웁니다
-      if (paps_기준데이터_() && sheet_(PAPS.기준표).getLastRow() < 2) return false;
+      // 기준표가 비어 있거나 이 학교급 줄이 없는데 PAPS_Data.gs 가 (나중에라도) 들어왔으면 다음 접속 때 채웁니다
+      if (paps_기준데이터_() && !paps_기준표급있음_()) return false;
       return true;
     },
     준비: function () {
       var 만듦 = [], 색 = '#E6F1FF';
-      만듦 = 만듦.concat(시트준비_(PAPS.종목, PAPS_H.종목, { 색: 색, 기본행: PAPS_기본종목, 체크박스열: ['사용'] }));
+      만듦 = 만듦.concat(시트준비_(PAPS.종목, PAPS_H.종목, { 색: 색, 기본행: paps_기본종목_(), 체크박스열: ['사용'] }));
       만듦 = 만듦.concat(시트준비_(PAPS.기준표, PAPS_H.기준표, { 색: 색 }));
       만듦 = 만듦.concat(시트준비_(PAPS.기록, PAPS_H.기록, { 색: 색 }));
       만듦 = 만듦.concat(시트준비_(PAPS.목표, PAPS_H.목표, { 색: 색 }));
       만듦 = 만듦.concat(시트준비_(PAPS.영상, PAPS_H.영상, { 색: 색 }));
       만듦 = 만듦.concat(시트준비_(PAPS.도전, PAPS_H.도전, { 색: 색 }));
-      if (sheet_(PAPS.기준표).getLastRow() < 2) {
+      if (!paps_기준표급있음_()) {
         var n = paps_기준표채우기_();
-        만듦.push(n ? 'PAPS 기준표 ' + n + '개 구간' : 'PAPS 기준표 비어 있음 (PAPS_Data.gs 파일을 넣어 주세요)');
+        만듦.push(n ? 'PAPS 기준표 ' + n + '개 구간 (' + 학교급_().이름 + ')' : 'PAPS 기준표 비어 있음 (PAPS_Data.gs 파일을 넣어 주세요)');
       }
       var put = {}, 있음 = {};
       rows_(SHEET.설정).forEach(function (r) { 있음[str_(r.항목)] = true; });
@@ -139,12 +157,7 @@ function paps_hooks_() {
       if (opts.기록) { res.기록 = 행지우기_(PAPS.기록, 전부); res.목표 = 행지우기_(PAPS.목표, 전부); }
       if (opts.도전) res.도전 = 행지우기_(PAPS.도전, 전부);
       if (opts.영상) res.영상 = 행지우기_(PAPS.영상, 전부);
-      if (opts.종목) {
-        시트비우기_(PAPS.종목);
-        appendRows_(PAPS.종목, PAPS_H.종목, PAPS_기본종목.map(function (r) { var o = {}; PAPS_H.종목.forEach(function (h, i) { o[h] = r[i]; }); return o; }));
-        try { sheet_(PAPS.종목).getRange(2, 6, PAPS_기본종목.length, 1).insertCheckboxes(); } catch (e) {}
-        res.종목 = true;
-      }
+      if (opts.종목) { paps_종목기본으로_(); res.종목 = true; }
       if (opts.기준표) res.기준표 = paps_기준표채우기_();
       paps_캐시지우기_();
       return res;
@@ -154,8 +167,28 @@ function paps_hooks_() {
       (ids || []).forEach(function (id) { set[String(id)] = true; });
       var 맞나 = function (o) { return set[str_(o.학생ID)] === true; };
       return { 기록: 행지우기_(PAPS.기록, 맞나), 목표: 행지우기_(PAPS.목표, 맞나), 도전: 행지우기_(PAPS.도전, 맞나) };
+    },
+    /** 공통 설정에서 학교급이 바뀌었을 때: 대상 학년·측정 종목을 그 학교급 기본으로, 기준표에 그 학교급 줄이 없으면 채움. 기록은 건드리지 않음 */
+    학교급변경: function (급) {
+      var out = [];
+      설정저장_({ 'PAPS.대상학년': paps_기본대상학년_(급.급) });
+      out.push('PAPS 대상 학년 ' + paps_기본대상학년_(급.급).replace(/,/g, '·'));
+      paps_종목기본으로_(급.급);
+      out.push('PAPS 측정 종목을 ' + 급.이름 + ' 기본 구성으로');
+      if (paps_기준데이터_() && !paps_기준표급있음_(급.급)) { var n = paps_기준표채우기_(); out.push('PAPS 기준표 ' + n + '개 구간'); }
+      paps_캐시지우기_();
+      return out;
     }
   };
+}
+
+/** 종목 시트를 학교급 기본 구성으로 되돌립니다 (기록은 그대로) */
+function paps_종목기본으로_(급) {
+  var 기본 = paps_기본종목_(급);
+  시트비우기_(PAPS.종목);
+  appendRows_(PAPS.종목, PAPS_H.종목, 기본.map(function (r) { var o = {}; PAPS_H.종목.forEach(function (h, i) { o[h] = r[i]; }); return o; }));
+  try { var c = ensureColumns_(PAPS.종목, PAPS_H.종목).indexOf('사용') + 1; sheet_(PAPS.종목).getRange(2, c, 기본.length, 1).insertCheckboxes(); } catch (e) {}
+  paps_캐시지우기_();
 }
 
 /* ================= 설정 · 종목 · 기준표 ================= */
@@ -164,8 +197,9 @@ function paps_설정_() {
   var s = 설정_();
   var 회차 = 목록_(s['PAPS.회차']);
   if (!회차.length) 회차 = ['1차', '2차'];
-  var 대상학년 = 목록_(s['PAPS.대상학년']).map(Number).filter(function (g) { return g >= 1 && g <= 6; });
-  if (!대상학년.length) 대상학년 = [3, 4, 5, 6];
+  var 급 = 학교급_();
+  var 대상학년 = 목록_(s['PAPS.대상학년']).map(Number).filter(function (g) { return g >= 1 && g <= 급.최대학년; });
+  if (!대상학년.length) 대상학년 = 목록_(paps_기본대상학년_(급.급)).map(Number);
   return {
     회차: 회차, 대상학년: 대상학년,
     학년도: str_(s.학년도) || String(new Date().getFullYear()),
@@ -195,13 +229,14 @@ function paps_영상맵_() {
   return out;
 }
 
-/** 기준표 전체를 { '학년|성별|종목': [{라벨,하한,상한}] } 로 (캐시). 비어 있으면 캐시에 남기지 않아 시트를 채운 직후 바로 반영됩니다 */
+/** 기준표 전체를 { '학교급|학년|성별|종목': [{라벨,하한,상한}] } 로 (캐시). 학교급 열이 비어 있으면 '초'. 비어 있으면 캐시에 남기지 않아 시트를 채운 직후 바로 반영됩니다 */
+function paps_기준키_(학년, 성별, 종목) { return [학교급_().급, Number(학년), String(성별), String(종목)].join('|'); }
 function paps_기준맵_() {
   var v = 캐시읽기_('paps_scale');
   if (v && Object.keys(v).length) return v;
   var map = {};
   rows_(PAPS.기준표).forEach(function (r) {
-    var key = [num_(r.학년), str_(r.성별), str_(r.종목)].join('|');
+    var key = [str_(r.학교급) || '초', num_(r.학년), str_(r.성별), str_(r.종목)].join('|');
     if (!map[key]) map[key] = [];
     map[key].push({ 라벨: (r.등급 === '' || r.등급 === null) ? '' : (isNaN(Number(r.등급)) ? str_(r.등급) : Number(r.등급)),
                     하한: (r.하한 === '' || r.하한 === null) ? null : Number(r.하한),
@@ -236,10 +271,10 @@ function paps_방향_(구간) {
 
 /** 화면용 기준표: { 남: { 종목: { 클수록, 구간:[{라벨,하한,상한,색}] } }, 여: {...} } */
 function paps_기준_(학년) {
-  var map = paps_기준맵_(), out = { 남: {}, 여: {} };
+  var map = paps_기준맵_(), out = { 남: {}, 여: {} }, 급 = 학교급_().급;
   Object.keys(map).forEach(function (key) {
     var p = key.split('|');
-    if (Number(p[0]) !== Number(학년) || !out[p[1]]) return;
+    if (p[0] !== 급 || Number(p[1]) !== Number(학년) || !out[p[2]]) return;
     var 구간 = map[key].map(function (b) { return { 라벨: b.라벨, 하한: b.하한, 상한: b.상한, 색: paps_등급색_(b.라벨) }; });
     구간.sort(function (a, b) {
       var an = Number(a.라벨), bn = Number(b.라벨);
@@ -247,14 +282,14 @@ function paps_기준_(학년) {
       var al = (a.하한 === null) ? -Infinity : a.하한, bl = (b.하한 === null) ? -Infinity : b.하한;
       return al - bl;
     });
-    out[p[1]][p[2]] = { 클수록: paps_방향_(구간), 구간: 구간 };
+    out[p[2]][p[3]] = { 클수록: paps_방향_(구간), 구간: 구간 };
   });
   return out;
 }
 
 function paps_등급구하기_(학년, 성별, 종목, 값) {
   if (값 === '' || 값 === null || isNaN(Number(값))) return '';
-  var list = paps_기준맵_()[[Number(학년), String(성별), String(종목)].join('|')];
+  var list = paps_기준맵_()[paps_기준키_(학년, 성별, 종목)];
   if (!list || !list.length) return '';
   var v = Number(값);
   for (var i = 0; i < list.length; i++) {
@@ -280,16 +315,31 @@ function paps_기준데이터_() {
   try { return (typeof PAPS_기준 !== 'undefined' && PAPS_기준 && PAPS_기준.length) ? PAPS_기준 : null; } catch (e) { return null; }
 }
 
-/** PAPS_Data.gs 의 PAPS_기준 배열로 기준표 시트를 채웁니다. 파일이 없으면 0 */
+/** 기준표 시트에 이 학교급의 줄이 있는지 (학교급 열이 없는 옛 시트는 '초' 로 봄) */
+function paps_기준표급있음_(급) {
+  급 = 급 || 학교급_().급;
+  var rows = rows_(PAPS.기준표);
+  for (var i = 0; i < rows.length; i++) if ((str_(rows[i].학교급) || '초') === 급) return true;
+  return false;
+}
+
+/** PAPS_Data.gs 의 PAPS_기준 배열(초·중 전부)로 기준표 시트를 다시 채웁니다. 파일이 없으면 0 */
 function paps_기준표채우기_() {
   var data = paps_기준데이터_();
   if (!data) return 0;
-  var sh = sheet_(PAPS.기준표);
   시트비우기_(PAPS.기준표);
-  sh.getRange(2, 1, data.length, 6).setValues(data);
-  sh.getRange(2, 5, data.length, 2).setNumberFormat('0.##');
+  var have = ensureColumns_(PAPS.기준표, PAPS_H.기준표);
+  var rows = data.map(function (r) {
+    // 옛 PAPS_Data.gs(6열, 학교급 없음)도 받아 줍니다
+    var o = r.length >= 7 ? { 학교급: r[0], 학년: r[1], 성별: r[2], 종목: r[3], 등급: r[4], 하한: r[5], 상한: r[6] }
+                          : { 학교급: '초', 학년: r[0], 성별: r[1], 종목: r[2], 등급: r[3], 하한: r[4], 상한: r[5] };
+    return have.map(function (h) { return o[h] === undefined ? '' : o[h]; });
+  });
+  var sh = sheet_(PAPS.기준표);
+  sh.getRange(2, 1, rows.length, have.length).setValues(rows);
+  [have.indexOf('하한'), have.indexOf('상한')].forEach(function (c) { if (c >= 0) sh.getRange(2, c + 1, rows.length, 1).setNumberFormat('0.##'); });
   캐시지우기_('paps_scale');
-  return data.length;
+  return rows.length;
 }
 
 /* ================= 기록 읽기 ================= */
@@ -381,7 +431,7 @@ function paps_t_boot(token) {
   교사확인_(token);
   var 설정 = paps_설정_();
   return { 종목: paps_종목목록_(), 학급: paps_학급목록_(), 회차: 설정.회차, 학년범위: 설정.대상학년, 학년도: 설정.학년도,
-           기준있음: rows_(PAPS.기준표).length > 0, 기준파일: !!paps_기준데이터_(), 설정: 설정 };
+           기준있음: paps_기준표급있음_(), 기준파일: !!paps_기준데이터_(), 설정: 설정 };
 }
 
 /** 한 학급 화면에 필요한 것을 한 번에: 명단, 기록, 목표, 도전 수, 기준표 */
