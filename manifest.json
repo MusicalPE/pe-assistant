@@ -1,7 +1,7 @@
 {
-  "version": "0.9.0",
+  "version": "0.9.1",
   "date": "2026-09-15",
-  "notes": "학사일정·학기별 시간표·쉬는 날\n자동 업데이트 기능 (설정 → 업데이트)\n로딩 속도 개선 (로그인 왕복 줄임)",
+  "notes": "권한승인 함수 추가 (편집기에서 실행하면 승인창)\n업데이트 확인 오류는 5분만 기억\n자동 업데이트 첫 실전 테스트 판",
   "files": [
     {
       "name": "App.html",
@@ -24,7 +24,7 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "6b76de580cdca9fd",
+      "sha256": "8366e9db2744abd9",
       "bytes": 46164
     },
     {
@@ -144,8 +144,8 @@
     {
       "name": "Updater.gs",
       "type": "SERVER_JS",
-      "sha256": "171945a905b6a578",
-      "bytes": 13193
+      "sha256": "bdd807daf42bdd9e",
+      "bytes": 13901
     },
     {
       "name": "appsscript.json",

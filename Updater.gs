@@ -8,6 +8,8 @@
  *  - 바꾸기 전 지금 코드를 드라이브에 JSON 으로 백업하고, "이전 버전으로 되돌리기"로 복구할 수 있습니다.
  *  - 조건: 구글 계정 설정에서 "Google Apps Script API" 를 켜야 합니다 (https://script.google.com/home/usersettings)
  *          appsscript.json 의 oauthScopes 에 script.projects · script.deployments 가 있어야 합니다.
+ *          권한이 늘어난 뒤 승인창이 안 뜨면: 편집기에서 권한승인() 실행 → 그래도 안 되면 myaccount.google.com/permissions 에서
+ *          이 프로젝트의 액세스를 삭제하고 다시 실행하면 승인창이 새로 뜹니다.
  *
  * 저장소 구조 (raw.githubusercontent.com 으로 읽습니다)
  *   MusicalPE/pe-assistant/main/manifest.json   { version, date, notes, files:[{ name:'Code.gs', type:'SERVER_JS' }, …] }
@@ -47,8 +49,15 @@ function 업데이트_확인_(force) {
   } catch (e) {
     out = { 현재: APP_VERSION, 최신: '', 새버전: false, 오류: e.message, 확인시각: 지금_() };
   }
-  try { 캐시쓰기_('update_check', out, 21600); } catch (e2) {}
+  try { 캐시쓰기_('update_check', out, out.오류 ? 300 : 21600); } catch (e2) {}   // 오류는 5분만 기억
   return out;
+}
+
+/** 편집기에서 ▶ 실행하면 권한 승인창이 뜹니다 (처음 설치·권한이 늘어난 뒤에 한 번). 로그에 최신 버전 정보가 찍히면 성공 */
+function 권한승인() {
+  var r = 업데이트_확인_(true);
+  Logger.log(r.오류 ? '아직 안 됨: ' + r.오류 : '성공 — 저장소 최신 v' + r.최신 + ' (지금 v' + r.현재 + ')');
+  return r;
 }
 
 /* ---------- Apps Script API ---------- */
