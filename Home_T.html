@@ -272,7 +272,7 @@ MODS.core.teacher = (function () {
     $('stuGrade').innerHTML = '<option value="">전체</option>' + options(gs, cur, function (g) { return g + '학년'; });
   }
   function modInfo(key) { return findOne(D.모듈, function (m) { return m.key === key; }) || { 이름: key, 색: 'mint', 아이콘: 'box' }; }
-  function colorVar(c) { return { mint: 'var(--brand)', sky: 'var(--sky)', coral: 'var(--coral)', blue: 'var(--blue)', sun: 'var(--sun)', violet: 'var(--violet)' }[c] || 'var(--brand)'; }
+  function colorVar(c) { return { mint: 'var(--brand)', sky: 'var(--sky)', coral: 'var(--coral)', blue: 'var(--blue)', sun: 'var(--sun)', violet: 'var(--violet)', plum: '#B4489C' }[c] || 'var(--brand)'; }
   Array.prototype.forEach.call(document.querySelectorAll('#mdStudent [data-close], #mdBulk [data-close], #mdCards [data-close]'), function (b) {
     b.onclick = function () { $(b.getAttribute('data-close')).classList.add('hide'); };
   });

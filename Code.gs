@@ -51,7 +51,7 @@ var HEADERS = {
 /* 모듈 목록. 순서가 사이드바 순서입니다. */
 var MODULES = [
   { key: 'CLASS', 이름: '수업 도우미',  설명: '지금 수업·출석·특이사항·시간표·수업 계획·명렬표 출력 (교사 전용)', 아이콘: 'clock-play', 색: 'violet', 학생화면: false, hooks: 'class_hooks_' },
-  { key: 'EVAL',  이름: '수행평가',     설명: '평가 계획·단계별 체크·특기사항·결과표 출력 (교사 전용, 학생에게 보이지 않음)', 아이콘: 'checkbox', 색: 'plum', 학생화면: false, 로그인표시: false, hooks: 'eval_hooks_' },
+  { key: 'EVAL',  이름: '수행평가',     설명: '평가 계획·단계별 체크·특기사항·결과표 출력 (교사 전용, 학생에게 보이지 않음)', 아이콘: 'checkbox', 색: 'plum', 학생화면: false, hooks: 'eval_hooks_' },
   { key: 'PAPS', 이름: 'PAPS',        설명: '학생건강체력평가 기록·등급·나이스 내보내기',   아이콘: 'stopwatch',  색: 'sky',   학생화면: true,  hooks: 'paps_hooks_' },
   { key: 'FIT',  이름: '건강체력교실', 설명: '참가 학생의 운동 기록·출석·포인트·배지',       아이콘: 'heartbeat',  색: 'mint',  학생화면: true,  hooks: 'fit_hooks_'  },
   { key: 'ROPE', 이름: '줄넘기',       설명: '줄넘기 횟수 누적·승인·학급 공동 목표',          아이콘: 'jump-rope',  색: 'coral', 학생화면: true,  hooks: 'rope_hooks_' },
@@ -199,7 +199,7 @@ function 모듈상태_() {
 function 모듈목록_() {
   var 상태 = 모듈상태_(), s = 설정_();
   return 지원모듈_().map(function (m) {
-    return { key: m.key, 이름: m.이름, 설명: m.설명, 아이콘: m.아이콘, 색: m.색, 학생화면: m.학생화면, 로그인표시: m.로그인표시 !== false,
+    return { key: m.key, 이름: m.이름, 설명: m.설명, 아이콘: m.아이콘, 색: m.색, 학생화면: m.학생화면,
              설치: 모듈설치됨_(m.key), 켜짐: str_(s['모듈.' + m.key]).toUpperCase() !== 'N', 사용: 상태[m.key] };
   });
 }
@@ -408,7 +408,7 @@ function getLoginInfo() {
   return {
     제목: 공개.프로그램이름, 학생용이름: 공개.학생용이름, 학교명: 공개.학교명, 버전: APP_VERSION,
     학생로그인: 공개.학생로그인, 자동나가기분: 공개.자동나가기분,
-    모듈: 모듈목록_().filter(function (m) { return m.사용 && m.로그인표시; }).map(function (m) { return { key: m.key, 이름: m.이름, 아이콘: m.아이콘, 색: m.색 }; }),   // 로그인표시 false 인 모듈(수행평가)은 로그인 화면에도 안 보임
+    모듈: 모듈목록_().filter(function (m) { return m.사용; }).map(function (m) { return { key: m.key, 이름: m.이름, 아이콘: m.아이콘, 색: m.색, 학생화면: m.학생화면 }; }),   // 로그인 화면: 학생 탭엔 학생화면 모듈만, 선생님 탭엔 전부
     학급: Object.keys(표).sort(숫자순).map(function (g) {
       return { 학년: Number(g), 반들: Object.keys(표[g]).sort(숫자순).map(function (c) {
         return { 반: Number(c), 번호: 표[g][c].sort(숫자순) }; }) };

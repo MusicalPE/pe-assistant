@@ -701,6 +701,9 @@ function paintLoginHead(teacher) {
   $('lgTitle').textContent = teacher ? LOGIN.제목 : LOGIN.학생용이름;
   $('lgSub').textContent = teacher ? '학생 명단 한 번, 로그인 한 번으로 체육 활동을 한곳에서' : '내가 한 체육 활동을 기록하고 차곡차곡 모아요';
   document.title = teacher ? LOGIN.제목 : LOGIN.학생용이름;
+  // 모듈 표시: 학생 탭에는 학생이 쓰는 모듈만, 선생님 탭에는 켜진 모듈 전부
+  $('lgMods').innerHTML = (LOGIN.모듈 || []).filter(function (m) { return teacher || m.학생화면 !== false; })
+    .map(function (m) { return '<span><i class="ti ti-' + m.아이콘 + '"></i>' + esc(m.이름) + '</span>'; }).join('');
 }
 var loginPad = makePinPad($('lgPin'), function (pin) { submitStudent(pin); });
 function msg(t) { $('lgMsg').textContent = t || ''; }
@@ -713,7 +716,6 @@ function loadLoginInfo() {
     paintLoginHead($('roleTeacher').getAttribute('aria-selected') === 'true');
     $('lgSchool').classList.toggle('hide', !info.학교명);
     $('lgSchool').querySelector('span').textContent = info.학교명;
-    $('lgMods').innerHTML = (info.모듈 || []).map(function (m) { return '<span><i class="ti ti-' + m.아이콘 + '"></i>' + esc(m.이름) + '</span>'; }).join('');
     $('lgPinWrap').classList.toggle('hide', info.학생로그인 !== '숫자판');
     $('lgPwWrap').classList.toggle('hide', info.학생로그인 === '숫자판');
     $('lgGrade').innerHTML = info.학급.map(function (c) { return '<option value="' + c.학년 + '">' + c.학년 + '학년</option>'; }).join('');
