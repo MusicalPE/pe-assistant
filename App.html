@@ -329,9 +329,14 @@ var $ = function (id) { return document.getElementById(id); };
 
 /* 서버 호출: 껍데기의 rpc(이름, 인자들) 를 거쳐 라이브러리의 실제 함수로 갑니다 */
 function api(fn) {
-  var args = Array.prototype.slice.call(arguments, 1);
+  var args = Array.prototype.slice.call(arguments, 1), at = TOKEN;   // 부를 때의 세션
   return new Promise(function (resolve, reject) {
-    google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).rpc(fn, args);
+    // 응답이 오기 전에 로그아웃(자동 나가기 포함)했으면 화면이 이미 바뀌었으므로 결과를 버립니다 (null 오류 방지)
+    var stale = function () { return at && TOKEN !== at; };
+    google.script.run
+      .withSuccessHandler(function (r) { if (!stale()) resolve(r); })
+      .withFailureHandler(function (e) { if (!stale()) reject(e); })
+      .rpc(fn, args);
   });
 }
 function esc(s) {

@@ -150,7 +150,7 @@ MODS.core.student = (function () {
   /* ================= 내 배지 ================= */
   function loadBadges() {
     if (BADGES) { renderBadges(); return; }
-    api('s_badges', TOKEN).then(function (b) { BADGES = b; D.배지수 = b.총달성; D.배지전체 = b.총전체; setNavCount('core', 'badges', b.총달성); renderBadges(); }).catch(handleErr);
+    api('s_badges', TOKEN).then(function (b) { if (!D) return; BADGES = b; D.배지수 = b.총달성; D.배지전체 = b.총전체; setNavCount('core', 'badges', b.총달성); renderBadges(); }).catch(handleErr);
   }
   function renderBadges() {
     var b = BADGES, 최근 = [];
