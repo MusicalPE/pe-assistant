@@ -1,7 +1,7 @@
 <!-- 건강체력교실 · 학생 화면 (모듈 FIT, 역할 S) -->
 <style>
 /* 학생 화면 전용 — 모두 #fit_S 아래에만 적용 */
-#fit_S .s-hero{background:linear-gradient(135deg,#14A085 0%,#3CC4A5 55%,#8FE3CD 100%);color:#fff;border-radius:20px;padding:22px 24px;margin-bottom:18px;
+#fit_S .s-hero{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 55%,var(--brand-3) 100%);color:#fff;border-radius:20px;padding:22px 24px;margin-bottom:18px;
   display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden;box-shadow:0 16px 40px -18px rgba(20,160,133,.6);}
 #fit_S .s-hero::before{content:'';position:absolute;right:-30px;top:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.14);}
 #fit_S .s-hero h2{margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.04em;position:relative;}
@@ -63,7 +63,7 @@
 #fit_S .chart-wrap{display:flex;gap:6px;align-items:flex-end;height:150px;padding:8px 0 0;}
 #fit_S .chart-wrap .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;}
 #fit_S .chart-wrap .colbar{width:100%;max-width:34px;border-radius:8px 8px 3px 3px;background:var(--line);position:relative;transition:height .5s ease;}
-#fit_S .chart-wrap .colbar.on{background:linear-gradient(180deg,#3CC4A5,var(--accent));}
+#fit_S .chart-wrap .colbar.on{background:linear-gradient(180deg,var(--brand-2),var(--accent));}
 #fit_S .chart-wrap .colbar.now{outline:2px dashed var(--accent);outline-offset:2px;}
 #fit_S .chart-wrap .goal{position:absolute;left:-4px;right:-4px;border-top:2px dashed var(--coral);}
 #fit_S .chart-wrap .lbl{font-size:10.5px;color:var(--ink-3);}
@@ -350,8 +350,8 @@ MODS.FIT.student = (function () {
     if (!f) return;
     toast('사진 준비 중…');
     Promise.all([shrinkImage(f, 1200, 0.82), shrinkImage(f, 320, 0.7)]).then(function (arr) {
-      PHOTO = { 본문: arr[0].split(',')[1], 썸네일: arr[1].split(',')[1] };
-      $('fsPhotoImg').src = arr[1]; $('fsPhotoPreview').classList.remove('hide');
+      PHOTO = { 본문: arr[0], 썸네일: arr[1] };   // shrinkImage 는 data: 접두어 없는 base64 를 돌려줍니다
+      $('fsPhotoImg').src = 'data:image/jpeg;base64,' + arr[1]; $('fsPhotoPreview').classList.remove('hide');
     }).catch(function (e) { PHOTO = null; toast(e.message, 'err'); });
   }
   $('fsPhotoCam').onchange = function () { takePhoto(this); };

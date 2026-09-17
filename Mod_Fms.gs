@@ -14,7 +14,13 @@
  *   FMS_학년군조정 : 학생ID, 기술ID('전체' 또는 기술ID), 적용 학년군, 사유, 설정일
  *   FMS_피드백문구 : 문구ID, 반려·격려 문구
  *   FMS_평가기록 : 기록ID, 일시, 학생ID, 기술ID, 적용 학년군, 준거 결과(준거ID:1/0), 충족 준거 수, 평가자 유형, 평가자ID, 메모
- *   FMS_배지기록 : 신청ID, 신청 일시, 학생ID, 단계ID, 기록값, 확인 동료ID, 동료 확인 일시, 상태, 처리 일시, 피드백 문구ID, 미충족 준거ID, 동료 체크(준거ID:1/0)
+ *   FMS_배지기록 : 신청ID, 신청 일시, 학생ID, 단계ID, 기록값, 확인 동료ID, 동료 확인 일시, 상태, 처리 일시, 피드백 문구ID, 미충족 준거ID, 동료 체크(준거ID:1/0),
+ *                  인증파일ID, 인증종류(사진|영상), 인증썸네일ID, 인증파일명   ← 짝이 찍어 올린 인증 사진·영상 (드라이브 폴더 'FMS 도전 인증')
+ *
+ * 설정 (공통 설정 시트에 'FMS.항목')
+ *   FMS.인증자료 : 없음 | 사진 | 사진+영상 — 짝이 확인할 때 올릴 수 있는 것
+ *   FMS.인증필수 : Y/N — 통과를 보내려면 꼭 올려야 하는지
+ *   FMS.인증보관 : 유지 | 승인후삭제 — 선생님이 승인한 뒤 파일을 어떻게 할지 (반려한 것은 학생이 볼 수 있게 남김)
  *******************************************************/
 
 var FMS = { 기술: 'FMS_기술목록', 준거: 'FMS_준거', 단계: 'FMS_도전단계', 조정: 'FMS_학년군조정', 피드백: 'FMS_피드백문구', 평가: 'FMS_평가기록', 배지: 'FMS_배지기록' };
@@ -25,8 +31,28 @@ var FMS_H = {
   조정:   ['학생ID', '기술ID', '적용 학년군', '사유', '설정일'],
   피드백: ['문구ID', '반려·격려 문구'],
   평가:   ['기록ID', '일시', '학생ID', '기술ID', '적용 학년군', '준거 결과(준거ID:1/0)', '충족 준거 수', '평가자 유형', '평가자ID', '메모'],
-  배지:   ['신청ID', '신청 일시', '학생ID', '단계ID', '기록값', '확인 동료ID', '동료 확인 일시', '상태', '처리 일시', '피드백 문구ID', '미충족 준거ID', '동료 체크(준거ID:1/0)']
+  배지:   ['신청ID', '신청 일시', '학생ID', '단계ID', '기록값', '확인 동료ID', '동료 확인 일시', '상태', '처리 일시', '피드백 문구ID', '미충족 준거ID', '동료 체크(준거ID:1/0)',
+           '인증파일ID', '인증종류', '인증썸네일ID', '인증파일명']
 };
+var FMS_MEDIA_MAX = 25 * 1024 * 1024;   // 영상 최대 25MB (base64 로 오가므로 이보다 크면 화면에서 막습니다)
+var FMS_FOLDER_KEY = 'FMS_MEDIA_FOLDER_ID';
+
+/* 공통 설정 시트에 'FMS.항목' 으로 저장됩니다 */
+function fms_기본설정_() {
+  return [
+    ['인증자료', '사진+영상', '없음 | 사진 | 사진+영상 — 짝이 확인할 때 올릴 수 있는 인증 자료'],
+    ['인증필수', 'N',         'Y/N — 통과를 보내려면 인증 자료를 꼭 올려야 하는지'],
+    ['인증보관', '유지',      '유지 | 승인후삭제 — 승인한 뒤 인증 파일을 드라이브에 그대로 둘지, 휴지통으로 보낼지']
+  ];
+}
+function fms_설정_() {
+  var s = 설정_(), out = {};
+  fms_기본설정_().forEach(function (r) { var v = str_(s['FMS.' + r[0]]); out[r[0]] = v === '' ? r[1] : v; });
+  if (['없음', '사진', '사진+영상'].indexOf(out.인증자료) < 0) out.인증자료 = '사진+영상';
+  out.인증필수 = out.인증자료 !== '없음' && out.인증필수.toUpperCase() === 'Y';
+  out.인증보관 = out.인증보관 === '승인후삭제' ? '승인후삭제' : '유지';
+  return out;
+}
 var FMS_STATUS = { PEER: '동료확인대기', PEER_NO: '동료반려', PENDING: '교사승인대기', OK: '승인', NO: '반려', CANCEL: '취소' };
 var FMS_BANDS = ['저', '중', '고'];
 var FMS_전체 = '전체';
@@ -62,6 +88,10 @@ function fms_hooks_() {
       만듦 = 만듦.concat(시트준비_(FMS.피드백, FMS_H.피드백, { 색: 색, 기본행: d.피드백 }));
       만듦 = 만듦.concat(시트준비_(FMS.평가, FMS_H.평가, { 색: 색 }));
       만듦 = 만듦.concat(시트준비_(FMS.배지, FMS_H.배지, { 색: 색 }));
+      ensureColumns_(FMS.배지, FMS_H.배지);   // 예전 판 시트에 인증 열 보충
+      var st = 설정_(), put = {};
+      fms_기본설정_().forEach(function (r) { if (st['FMS.' + r[0]] === undefined || st['FMS.' + r[0]] === '') put['FMS.' + r[0]] = r[1]; });
+      if (Object.keys(put).length) { 설정저장_(put); 만듦.push('FMS 설정 ' + Object.keys(put).length + '항목'); }
       // 파일이 나중에 들어온 경우: 비어 있는 기준표 시트를 채움
       if (d.기술.length && sheet_(FMS.기술).getLastRow() < 2) { appendRows_(FMS.기술, FMS_H.기술, d.기술.map(fms_행객체_(FMS_H.기술))); 만듦.push('FMS 기술 ' + d.기술.length + '개'); }
       if (d.준거.length && sheet_(FMS.준거).getLastRow() < 2) appendRows_(FMS.준거, FMS_H.준거, d.준거.map(fms_행객체_(FMS_H.준거)));
@@ -123,7 +153,7 @@ function fms_hooks_() {
     },
     초기화정보: function () {
       return [
-        { key: '기록', 이름: '평가기록·배지기록', 수: rows_(FMS.평가).length + rows_(FMS.배지).length },
+        { key: '기록', 이름: '평가기록·배지기록 (짝 인증 사진·영상 파일도 휴지통으로)', 수: rows_(FMS.평가).length + rows_(FMS.배지).length },
         { key: '조정', 이름: '학년군 지정·기술별 조정', 수: rows_(FMS.조정).length },
         { key: '기준표', 이름: '기술·준거·단계·피드백 문구 → 기본값으로 (FMS_Data.gs)', 수: rows_(FMS.기술).length + rows_(FMS.준거).length + rows_(FMS.단계).length }
       ];
@@ -131,7 +161,7 @@ function fms_hooks_() {
     초기화: function (opts) {
       opts = opts || {};
       var 전부 = function () { return true; }, res = {};
-      if (opts.기록) { res.평가 = 행지우기_(FMS.평가, 전부); res.배지 = 행지우기_(FMS.배지, 전부); }
+      if (opts.기록) { fms_휴지통_(fms_인증파일들_(function () { return true; })); res.평가 = 행지우기_(FMS.평가, 전부); res.배지 = 행지우기_(FMS.배지, 전부); }
       if (opts.조정) res.조정 = 행지우기_(FMS.조정, 전부);
       if (opts.기준표) {
         var d = fms_기본데이터_();
@@ -151,6 +181,7 @@ function fms_hooks_() {
       var set = {};
       (ids || []).forEach(function (id) { set[String(id)] = true; });
       var 맞나 = function (o) { return set[str_(o.학생ID)] === true; };
+      fms_휴지통_(fms_인증파일들_(맞나));
       return { 평가: 행지우기_(FMS.평가, 맞나), 배지: 행지우기_(FMS.배지, 맞나), 조정: 행지우기_(FMS.조정, 맞나) };
     }
   };
@@ -170,7 +201,8 @@ function fms_appData_() {
       skills: all.skills.filter(function (k) { return k.use; }),
       criteria: all.criteria.filter(function (c) { return c.use; }),
       levels: all.levels.filter(function (l) { return l.use; }),
-      feedback: all.feedback
+      feedback: all.feedback,
+      settings: fms_설정_()
     };
   });
 }
@@ -246,7 +278,8 @@ function fms_기술조정_(조정) {
 function fms_배지객체_(r) {
   return { id: str_(r.신청ID), at: 시각문자_(r['신청 일시']), studentId: str_(r.학생ID), levelId: str_(r.단계ID), record: str_(r.기록값),
     peerId: str_(r['확인 동료ID']), peerAt: 시각문자_(r['동료 확인 일시']), status: str_(r.상태), decidedAt: 시각문자_(r['처리 일시']),
-    feedbackId: str_(r['피드백 문구ID']), unmet: fms_ids_(r['미충족 준거ID']), peerResults: fms_결과맵_(r['동료 체크(준거ID:1/0)']) };
+    feedbackId: str_(r['피드백 문구ID']), unmet: fms_ids_(r['미충족 준거ID']), peerResults: fms_결과맵_(r['동료 체크(준거ID:1/0)']),
+    mediaId: str_(r.인증파일ID), mediaType: str_(r.인증종류), thumbId: str_(r.인증썸네일ID) };
 }
 function fms_ids_(v) { return str_(v).split(',').map(function (x) { return x.trim(); }).filter(function (x) { return x; }); }
 function fms_결과맵_(v) {
@@ -329,8 +362,14 @@ function fms_t_decide(token, p) {
     if (str_(row.상태) !== FMS_STATUS.PENDING) throw new Error('이미 처리된 신청입니다.');
     var f = { 상태: approve ? FMS_STATUS.OK : FMS_STATUS.NO, '처리 일시': 지금_(), '피드백 문구ID': approve ? '' : str_(p.feedbackId) };
     if (!approve) f['미충족 준거ID'] = (p.unmet || []).map(str_).filter(function (x) { return x; }).join(', ');
+    // 인증 파일: 승인 후 처리 설정(또는 이번 요청의 지정)에 따라 휴지통으로
+    var 처리 = str_(p.media) || (approve ? fms_설정_().인증보관 : '유지'), 지운파일 = 0;
+    if (처리 === '승인후삭제' || 처리 === '삭제') {
+      지운파일 = fms_휴지통_([str_(row.인증파일ID), str_(row.인증썸네일ID)]);
+      f.인증파일ID = ''; f.인증종류 = ''; f.인증썸네일ID = ''; f.인증파일명 = '';
+    }
     setCells_(FMS.배지, FMS_H.배지, row._row, f);
-    return { ok: true };
+    return { ok: true, 지운파일: 지운파일 };
   });
 }
 
@@ -523,11 +562,13 @@ function fms_s_submit(token, levelId, peerId) {
   });
 }
 
-/** 짝의 답. p = { appId, confirm, record, results:[{id,met}], comment } */
+/** 짝의 답. p = { appId, confirm, record, results:[{id,met}], comment, media:{ 종류:'사진'|'영상', 타입, 본문(base64), 썸네일(base64 jpeg), 파일명 } } */
 function fms_s_peerRespond(token, p) {
   var me = 학생확인_(token);
   p = p || {};
   var appId = str_(p.appId), confirm = !!p.confirm, record = (p.record === null || p.record === undefined) ? '' : str_(p.record), results = fms_결과정리_(p.results);
+  var 설정 = fms_설정_(), media = fms_인증검사_(p.media, 설정);
+  if (confirm && 설정.인증필수 && !media) throw new Error('통과를 보내려면 ' + (설정.인증자료 === '사진' ? '사진을' : '사진이나 영상을') + ' 함께 올려야 해요.');
   return withLock_(function () {
     var row = null;
     rows_(FMS.배지).forEach(function (r) { if (!row && str_(r.신청ID) === appId) row = r; });
@@ -543,9 +584,15 @@ function fms_s_peerRespond(token, p) {
       appendRow_(FMS.평가, FMS_H.평가, { 기록ID: makeId_('E'), 일시: now, 학생ID: str_(row.학생ID), 기술ID: level.skillId, '적용 학년군': level.band,
         '준거 결과(준거ID:1/0)': fms_결과문자_(results), '충족 준거 수': results.filter(function (x) { return x.met; }).length, '평가자 유형': '동료', 평가자ID: me.학생ID, 메모: str_(p.comment) });
     }
-    setCells_(FMS.배지, FMS_H.배지, row._row, { 상태: confirm ? FMS_STATUS.PENDING : FMS_STATUS.PEER_NO, '동료 확인 일시': now, 기록값: record === '' ? '' : Number(record),
-      '동료 체크(준거ID:1/0)': fms_결과문자_(results), '미충족 준거ID': results.filter(function (x) { return !x.met; }).map(function (x) { return x.id; }).join(', ') });
-    return { ok: true, status: confirm ? FMS_STATUS.PENDING : FMS_STATUS.PEER_NO };
+    var f = { 상태: confirm ? FMS_STATUS.PENDING : FMS_STATUS.PEER_NO, '동료 확인 일시': now, 기록값: record === '' ? '' : Number(record),
+      '동료 체크(준거ID:1/0)': fms_결과문자_(results), '미충족 준거ID': results.filter(function (x) { return !x.met; }).map(function (x) { return x.id; }).join(', ') };
+    if (media) {
+      var who = 학생찾기_(str_(row.학생ID)) || {};
+      try { var saved = fms_인증저장_(who, level, me, media); f.인증파일ID = saved.파일ID; f.인증종류 = media.종류; f.인증썸네일ID = saved.썸네일ID; f.인증파일명 = saved.파일명; }
+      catch (e) { throw new Error((media.종류 === '영상' ? '영상' : '사진') + '을 저장하지 못했어요. 다시 시도해 주세요. (' + e.message + ')'); }
+    }
+    setCells_(FMS.배지, FMS_H.배지, row._row, f);
+    return { ok: true, status: confirm ? FMS_STATUS.PENDING : FMS_STATUS.PEER_NO, media: !!media };
   });
 }
 
@@ -561,4 +608,114 @@ function fms_s_cancel(token, appId) {
     setCells_(FMS.배지, FMS_H.배지, row._row, { 상태: FMS_STATUS.CANCEL });
     return { ok: true };
   });
+}
+
+/* ================= 짝 인증 사진·영상 ================= */
+
+/** 화면에서 온 media 객체 검사. 설정상 못 올리면 null */
+function fms_인증검사_(m, 설정) {
+  if (!m || !m.본문) return null;
+  if (설정.인증자료 === '없음') return null;
+  var 종류 = str_(m.종류) === '영상' ? '영상' : '사진';
+  if (종류 === '영상' && 설정.인증자료 !== '사진+영상') throw new Error('영상은 올릴 수 없어요. 사진으로 올려 주세요.');
+  var 타입 = str_(m.타입) || (종류 === '영상' ? 'video/mp4' : 'image/jpeg');
+  if (종류 === '영상' && !/^video\//.test(타입)) throw new Error('영상 파일이 아니에요.');
+  if (종류 === '사진' && !/^image\//.test(타입)) throw new Error('사진 파일이 아니에요.');
+  var bytes = Math.round(String(m.본문).length * 0.75);
+  if (bytes > FMS_MEDIA_MAX) throw new Error('파일이 너무 커요 (' + Math.round(bytes / 1048576) + 'MB). 영상은 15초 안으로 짧게 찍어 주세요.');
+  return { 종류: 종류, 타입: 타입, 본문: m.본문, 썸네일: str_(m.썸네일), 파일명: str_(m.파일명) };
+}
+
+function fms_폴더_() {
+  var id = 속성_(FMS_FOLDER_KEY);
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
+  var parent = null;
+  try { var parents = DriveApp.getFileById(ss_().getId()).getParents(); if (parents.hasNext()) parent = parents.next(); } catch (e) {}
+  var folder = (parent || DriveApp).createFolder('FMS 도전 인증 사진·영상');
+  속성저장_(FMS_FOLDER_KEY, folder.getId());
+  return folder;
+}
+
+/** 드라이브에 저장. who = 도전한 학생, level = 단계, peer = 찍어 준 짝 */
+function fms_인증저장_(who, level, peer, media) {
+  var folder = fms_폴더_();
+  var ext = media.종류 === '영상' ? (/webm/.test(media.타입) ? '.webm' : /quicktime|mov/.test(media.타입) ? '.mov' : '.mp4') : '.jpg';
+  var 이름 = 오늘_() + '_' + (who.학년 || '') + '-' + (who.반 || '') + '-' + (who.번호 || '') + '_' + str_(who.이름 || who.학생ID) + '_' + str_(level.skillId) + '_' + level.step + '단계' + ext;
+  이름 = 이름.replace(/[\\\/:*?"<>|]/g, '_');
+  var file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(media.본문), media.타입, 이름));
+  try { file.setDescription('도전 ' + str_(who.이름) + ' · 확인 ' + str_(peer.이름) + ' · ' + 지금_()); } catch (e) {}
+  var thumb = media.썸네일 ? folder.createFile(Utilities.newBlob(Utilities.base64Decode(media.썸네일), 'image/jpeg', 'thumb_' + 이름.replace(/\.\w+$/, '') + '.jpg')) : null;
+  return { 파일ID: file.getId(), 썸네일ID: thumb ? thumb.getId() : '', 파일명: 이름 };
+}
+
+function fms_휴지통_(파일ID들) {
+  var n = 0;
+  (파일ID들 || []).forEach(function (id) { if (!id) return; try { DriveApp.getFileById(String(id)).setTrashed(true); n++; } catch (e) {} });
+  return n;
+}
+/** 조건에 맞는 배지 행의 인증 파일 ID 전부 */
+function fms_인증파일들_(맞나) {
+  var out = [];
+  rows_(FMS.배지).forEach(function (r) { if (!맞나(r)) return; if (r.인증파일ID) out.push(str_(r.인증파일ID)); if (r.인증썸네일ID) out.push(str_(r.인증썸네일ID)); });
+  return out;
+}
+
+/** 파일 → data: URL. 허용 = { 파일ID: true } (null 이면 전부) */
+function fms_파일데이터_(파일ID목록, 허용) {
+  var out = {};
+  (파일ID목록 || []).slice(0, 60).forEach(function (id) {
+    id = String(id);
+    if (허용 && !허용[id]) { out[id] = ''; return; }
+    try { var blob = DriveApp.getFileById(id).getBlob(); out[id] = 'data:' + blob.getContentType() + ';base64,' + Utilities.base64Encode(blob.getBytes()); }
+    catch (e) { out[id] = ''; }
+  });
+  return out;
+}
+/** 이 학생이 볼 수 있는 인증 파일: 자기가 도전한 것 + 자기가 찍어 준 것 */
+function fms_학생허용파일_(학생ID) {
+  var 허용 = {};
+  rows_(FMS.배지).forEach(function (r) {
+    if (str_(r.학생ID) !== 학생ID && str_(r['확인 동료ID']) !== 학생ID) return;
+    if (r.인증파일ID) 허용[str_(r.인증파일ID)] = true;
+    if (r.인증썸네일ID) 허용[str_(r.인증썸네일ID)] = true;
+  });
+  return 허용;
+}
+/** 썸네일·원본 불러오기 (교사: 전부, 학생: 자기 관련만) */
+function fms_t_getMedia(token, 파일ID목록) { 교사확인_(token); return fms_파일데이터_(파일ID목록, null); }
+function fms_s_getMedia(token, 파일ID목록) { var me = 학생확인_(token); return fms_파일데이터_(파일ID목록, fms_학생허용파일_(me.학생ID)); }
+
+/** 교사: 인증 파일만 지우기 (배지 기록은 그대로) */
+function fms_t_deleteMedia(token, appId) {
+  교사확인_(token);
+  appId = str_(appId);
+  return withLock_(function () {
+    var row = null;
+    rows_(FMS.배지).forEach(function (r) { if (!row && str_(r.신청ID) === appId) row = r; });
+    if (!row) throw new Error('신청 내역을 찾을 수 없습니다.');
+    var n = fms_휴지통_([str_(row.인증파일ID), str_(row.인증썸네일ID)]);
+    setCells_(FMS.배지, FMS_H.배지, row._row, { 인증파일ID: '', 인증종류: '', 인증썸네일ID: '', 인증파일명: '' });
+    return { ok: true, 지운파일: n };
+  });
+}
+
+/** 교사: 인증 자료 설정 저장. m = { 인증자료, 인증필수(bool), 인증보관 } */
+function fms_t_saveSettings(token, m) {
+  교사확인_(token);
+  m = m || {};
+  var put = {};
+  if (m.인증자료 !== undefined) { if (['없음', '사진', '사진+영상'].indexOf(str_(m.인증자료)) < 0) return { ok: false, message: '인증 자료는 없음·사진·사진+영상 중 하나입니다.' }; put['FMS.인증자료'] = str_(m.인증자료); }
+  if (m.인증필수 !== undefined) put['FMS.인증필수'] = m.인증필수 ? 'Y' : 'N';
+  if (m.인증보관 !== undefined) put['FMS.인증보관'] = str_(m.인증보관) === '승인후삭제' ? '승인후삭제' : '유지';
+  설정저장_(put);
+  fms_캐시지우기_();
+  return { ok: true, settings: fms_설정_() };
+}
+
+/** 교사: 인증 파일 현황 (드라이브 폴더 주소, 파일 수) */
+function fms_t_mediaInfo(token) {
+  교사확인_(token);
+  var n = 0; rows_(FMS.배지).forEach(function (r) { if (r.인증파일ID) n++; });
+  var url = ''; try { url = fms_폴더_().getUrl(); } catch (e) {}
+  return { 파일수: n, 폴더URL: url, settings: fms_설정_() };
 }

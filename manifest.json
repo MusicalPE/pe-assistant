@@ -1,14 +1,14 @@
 {
-  "version": "1.2.0",
-  "libraryVersion": 3,
-  "date": "2026-09-15",
-  "notes": "수행평가 모듈 추가 — 평가 계획(3·4단계, 간단/자세히), 반별 단계 체크·특기사항, 결과 조회, 평가별 결과표·반별 종합표·빈 채점표 인쇄(날짜 자동/직접/비움). 교사 전용 — 학생 화면에 나오지 않음\n로그인 화면: 학생 탭에는 학생용 모듈만, 선생님 탭에는 전체 표시\n중학교 지원(v1.1) 포함",
+  "version": "1.3.0",
+  "libraryVersion": 5,
+  "date": "2026-09-17",
+  "notes": "v1.3.0\n- 설정 → 화면 색상 테마 8종 (로그인·메인 화면)\n- FMS 도전: 짝이 확인할 때 인증 사진·영상 올리기 (교사 승인 화면에서 보기, 도전한 학생도 보기, 설정으로 없음/사진/사진+영상·필수 여부·승인 후 보관 선택)\n- 건강체력교실 학생 가정운동 사진 올리기 오류 수정",
   "files": [
     {
       "name": "App.html",
       "type": "HTML",
-      "sha256": "3513c6dc399c899d",
-      "bytes": 51203
+      "sha256": "3e11883aab8ef643",
+      "bytes": 57729
     },
     {
       "name": "Class_T.html",
@@ -25,8 +25,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "5f9b5e2c53560097",
-      "bytes": 51415
+      "sha256": "ad1314bb45868e0b",
+      "bytes": 52173
     },
     {
       "name": "Eval_T.html",
@@ -43,20 +43,20 @@
     {
       "name": "FMS_S.html",
       "type": "HTML",
-      "sha256": "851e2c58dc07b8fa",
-      "bytes": 36691
+      "sha256": "ba2e5db1ae45b24a",
+      "bytes": 46237
     },
     {
       "name": "FMS_T.html",
       "type": "HTML",
-      "sha256": "283d0bae8c28e974",
-      "bytes": 53420
+      "sha256": "62ba637a1058c0c6",
+      "bytes": 60246
     },
     {
       "name": "Fit_S.html",
       "type": "HTML",
-      "sha256": "3e6ba4e9ea881deb",
-      "bytes": 34397
+      "sha256": "a3888bbc0747c6bb",
+      "bytes": 34494
     },
     {
       "name": "Fit_T.html",
@@ -73,8 +73,8 @@
     {
       "name": "Home_T.html",
       "type": "HTML",
-      "sha256": "3b19b02b7b996fbf",
-      "bytes": 53615
+      "sha256": "4f4f5452ba8e2fd6",
+      "bytes": 55639
     },
     {
       "name": "Lib.gs",
@@ -109,8 +109,8 @@
     {
       "name": "Mod_Fms.gs",
       "type": "SERVER_JS",
-      "sha256": "31f37a684ffa68e0",
-      "bytes": 35565
+      "sha256": "c4caf77672aab3a5",
+      "bytes": 45832
     },
     {
       "name": "Mod_Paps.gs",

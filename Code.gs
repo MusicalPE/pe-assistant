@@ -27,7 +27,7 @@
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '1.2.0';
+var APP_VERSION = '1.3.0';
 var 기본프로그램이름 = '체육교사 보조 프로그램';
 var 기본학생용이름 = '체육 활동 기록장';   // 학생·학부모가 보는 이름
 
@@ -59,6 +59,10 @@ var MODULES = [
   { key: 'CLUB', 이름: '스포츠클럽',   설명: '클럽 활동 일지·출석·대회·예산·정산보고서',      아이콘: 'ball-volleyball', 색: 'sun', 학생화면: false, hooks: 'club_hooks_' }
 ];
 
+/** 화면 색상 테마 (App.html 의 THEMES 와 같은 이름·순서) */
+var 테마들 = ['민트', '바다', '코랄', '라벤더', '숲', '자정', '로즈', '그래파이트'];
+function 테마_(v) { v = str_(v); return 테마들.indexOf(v) >= 0 ? v : 테마들[0]; }
+
 function 기본설정_() {
   var y = new Date().getFullYear();
   var rows = [
@@ -74,7 +78,8 @@ function 기본설정_() {
     ['학년범위',     '1,2,3,4,5,6',   '학생 등록 화면에서 고를 수 있는 학년 (중학교는 1,2,3)'],
     ['반범위',       '15',            '반은 1부터 이 숫자까지'],
     ['자동나가기분', '3',             '학생이 이 시간(분) 동안 화면을 만지지 않으면 로그인 화면으로'],
-    ['학생로그인',   '숫자판',        '숫자판 | 입력칸 — 학생 비밀번호를 넣는 방식']
+    ['학생로그인',   '숫자판',        '숫자판 | 입력칸 — 학생 비밀번호를 넣는 방식'],
+    ['테마',         '민트',          '로그인·메인 화면 색상 테마: ' + 테마들.join(' | ')]
   ];
   MODULES.forEach(function (m) {
     rows.push(['모듈.' + m.key, 'Y', m.이름 + ' 모듈 사용 (Y/N)']);
@@ -105,6 +110,7 @@ function doGet(e, ctx) {
   tpl.page = (e && e.parameter && e.parameter.page) || '';
   tpl.title = tpl.page === 'teacher' ? (str_(설정.프로그램이름) || 기본프로그램이름) : (str_(설정.학생용이름) || 기본학생용이름);
   tpl.teacherTitle = str_(설정.프로그램이름) || 기본프로그램이름;
+  tpl.theme = 테마_(설정.테마);      // 첫 화면부터 테마 색으로 (깜빡임 방지)
   return tpl.evaluate()
     .setTitle(tpl.title)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
@@ -358,7 +364,8 @@ function 공개설정_() {
     학년범위: 학년범위.length ? 학년범위 : 급.학년들.slice(),
     반범위: Math.max(1, Math.min(30, num_(s.반범위) || 15)),
     자동나가기분: Math.max(1, Math.min(60, num_(s.자동나가기분) || 3)),
-    학생로그인: str_(s.학생로그인) === '입력칸' ? '입력칸' : '숫자판'
+    학생로그인: str_(s.학생로그인) === '입력칸' ? '입력칸' : '숫자판',
+    테마: 테마_(s.테마), 테마목록: 테마들.slice()
   };
 }
 
@@ -407,7 +414,7 @@ function getLoginInfo() {
   var 공개 = 공개설정_();
   return {
     제목: 공개.프로그램이름, 학생용이름: 공개.학생용이름, 학교명: 공개.학교명, 버전: APP_VERSION,
-    학생로그인: 공개.학생로그인, 자동나가기분: 공개.자동나가기분,
+    학생로그인: 공개.학생로그인, 자동나가기분: 공개.자동나가기분, 테마: 공개.테마,
     모듈: 모듈목록_().filter(function (m) { return m.사용; }).map(function (m) { return { key: m.key, 이름: m.이름, 아이콘: m.아이콘, 색: m.색, 학생화면: m.학생화면 }; }),   // 로그인 화면: 학생 탭엔 학생화면 모듈만, 선생님 탭엔 전부
     학급: Object.keys(표).sort(숫자순).map(function (g) {
       return { 학년: Number(g), 반들: Object.keys(표[g]).sort(숫자순).map(function (c) {
@@ -804,6 +811,10 @@ function t_saveSettings(token, map) {
   });
   if (!put.프로그램이름 && map.프로그램이름 !== undefined) put.프로그램이름 = 기본프로그램이름;
   if (!put.학생용이름 && map.학생용이름 !== undefined) put.학생용이름 = 기본학생용이름;
+  if (map.테마 !== undefined) {
+    if (테마들.indexOf(str_(map.테마)) < 0) return { ok: false, message: '없는 색상 테마입니다.' };
+    put.테마 = str_(map.테마);
+  }
 
   // 학교급이 바뀌면 학년 범위와 모듈별 대상 학년을 그 학교급의 기본값으로 되돌리고, 모듈에 알립니다 (PAPS 종목·기준표 등)
   var 급바뀜 = false, 새급 = 학교급_();

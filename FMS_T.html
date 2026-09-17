@@ -21,6 +21,14 @@
 #fms_T .plist li.y{color:var(--ink);} #fms_T .plist li i{font-size:16px;}
 #fms_T .plist li.y i{color:var(--green);} #fms_T .plist li.n i{color:var(--coral);}
 #fms_T .reject-box{border-top:1px dashed var(--line);margin-top:10px;padding:12px 0 4px;}
+#fms_T .pc-media{display:flex;align-items:center;gap:12px;margin:10px 0 4px;padding:10px 12px;background:var(--soft);border-radius:12px;}
+#fms_T .pc-media .th{width:120px;height:84px;border-radius:9px;overflow:hidden;background:#111;position:relative;cursor:zoom-in;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;}
+#fms_T .pc-media .th img{width:100%;height:100%;object-fit:cover;}
+#fms_T .pc-media .th i{position:absolute;font-size:30px;text-shadow:0 1px 6px rgba(0,0,0,.6);}
+#fms_T .pc-media .info{flex:1;min-width:0;font-size:13.5px;color:var(--ink-2);}
+#fms_T .pc-media .info b{display:block;color:var(--ink);}
+#fms_T .media-set{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;}
+#fms_T .media-set .field{margin:0;min-width:180px;}
 #fms_T .stat-row{display:grid;grid-template-columns:1fr 180px 52px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line-2);font-size:14px;}
 #fms_T .stat-row .v{text-align:right;font-weight:800;}
 #fms_T .stat-row.low .v{color:var(--coral);}
@@ -87,7 +95,19 @@
 
   <!-- ===== 승인 대기 ===== -->
   <div class="page hide" id="fms_tp_pending">
-    <div class="page-head"><h2>승인 대기</h2><span class="sub">짝이 확인한 도전을 승인하면 학생에게 배지가 생깁니다.</span></div>
+    <div class="page-head"><h2>승인 대기</h2><span class="sub">짝이 확인한 도전을 승인하면 학생에게 배지가 생깁니다.</span><div class="spacer"></div><button class="ghost mini" id="fmMediaSetToggle"><i class="ti ti-camera-cog"></i>인증 사진·영상 설정</button></div>
+    <div class="panel hide" id="fmMediaSet">
+      <div class="panel-head"><h3><i class="ti ti-camera"></i>짝 인증 사진·영상</h3><span class="unit">짝이 확인할 때 도전하는 모습을 찍어 올립니다. 선생님과 도전한 학생만 볼 수 있습니다.</span></div>
+      <div class="panel-body">
+        <div class="media-set">
+          <div class="field"><label for="fmMsKind">올릴 수 있는 것</label><select id="fmMsKind"><option value="사진+영상">사진 + 영상</option><option value="사진">사진만</option><option value="없음">없음 (안 씀)</option></select></div>
+          <div class="field"><label for="fmMsReq">통과를 보내려면</label><select id="fmMsReq"><option value="N">올리지 않아도 됨</option><option value="Y">꼭 올려야 함</option></select></div>
+          <div class="field"><label for="fmMsKeep">승인한 뒤 파일은</label><select id="fmMsKeep"><option value="유지">그대로 두기 (학생이 다시 볼 수 있음)</option><option value="승인후삭제">휴지통으로 (용량 절약)</option></select></div>
+          <button id="fmMsSave"><i class="ti ti-device-floppy"></i>저장</button><span class="status" id="fmMsStatus"></span>
+        </div>
+        <div class="unit" id="fmMsInfo" style="margin-top:10px"></div>
+      </div>
+    </div>
     <div id="fmPendList"></div>
     <div class="panel hide" id="fmPendEmpty"><div class="empty"><i class="ti ti-circle-check"></i><strong>확인할 도전이 없습니다</strong>학생이 짝에게 확인받고 보내면 여기에 쌓입니다.</div></div>
   </div>
@@ -234,6 +254,7 @@ var FMSX = {
 MODS.FMS = MODS.FMS || {};
 MODS.FMS.teacher = (function () {
   var D = null, dirty = false, marks = {}, rejecting = null, SD = null, sdDirty = false;
+  var THUMB = {};   // 인증 썸네일 파일ID → data URL
   var ev = { grade: null, studentId: null, skillId: null }, ov = { skillId: null, band: null }, sd = { skillId: null, band: '저' };
   var pages = ['dash', 'eval', 'pending', 'overview', 'bands', 'standards'];
   var nav = [
@@ -365,6 +386,8 @@ MODS.FMS.teacher = (function () {
     $('fmPendEmpty').classList.toggle('hide', D.pending.length > 0);
     $('fmPendList').innerHTML = D.pending.map(pendCard).join('');
     var box = $('fmPendList');
+    bindMedia(box);
+    fillMediaSettings();
     Array.prototype.forEach.call(box.querySelectorAll('[data-approve]'), function (b) { b.onclick = function () { decide(b.getAttribute('data-approve'), true); }; });
     Array.prototype.forEach.call(box.querySelectorAll('[data-reject]'), function (b) { b.onclick = function () { rejecting = b.getAttribute('data-reject'); renderPending(); }; });
     Array.prototype.forEach.call(box.querySelectorAll('[data-cancel]'), function (b) { b.onclick = function () { rejecting = null; renderPending(); }; });
@@ -377,6 +400,64 @@ MODS.FMS.teacher = (function () {
       };
     });
   }
+  /* ---------- 짝 인증 사진·영상 ---------- */
+  function mediaBlock(a, s) {
+    if (!a.mediaId) return '';
+    var isV = a.mediaType === '영상', th = THUMB[a.thumbId || ''] || '';
+    return '<div class="pc-media"><div class="th" data-media="' + esc(a.id) + '">' + (th ? '<img src="' + th + '">' : '') + '<i class="ti ti-' + (isV ? 'player-play-filled' : 'zoom-in') + '"></i></div>' +
+      '<div class="info"><b>짝이 찍은 ' + (isV ? '영상' : '사진') + '</b>누르면 크게 봅니다' + (isV ? ' · 소리는 꺼져 있을 수 있어요' : '') + '</div>' +
+      '<button class="ghost mini" data-media="' + esc(a.id) + '"><i class="ti ti-' + (isV ? 'player-play' : 'photo') + '"></i>보기</button>' +
+      '<button class="ghost mini" data-mdel="' + esc(a.id) + '" title="파일만 지웁니다 (도전 기록은 그대로)"><i class="ti ti-trash"></i></button></div>';
+  }
+  function bindMedia(root) {
+    var need = [];
+    Array.prototype.forEach.call(root.querySelectorAll('[data-media]'), function (el) {
+      var a = findOne(D.pending, function (x) { return x.id === el.getAttribute('data-media'); });
+      if (!a) return;
+      if (a.thumbId && THUMB[a.thumbId] === undefined) { THUMB[a.thumbId] = ''; need.push(a.thumbId); }
+      el.onclick = function () {
+        var st = studentById(a.studentId);
+        openMedia((st ? st.name : '') + ' · 짝이 찍은 ' + (a.mediaType === '영상' ? '영상' : '사진'), a.mediaType, function () {
+          return api('fms_t_getMedia', TOKEN, [a.mediaId]).then(function (m) { return m[a.mediaId] || ''; });
+        });
+      };
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-mdel]'), function (b) {
+      b.onclick = function () {
+        var id = b.getAttribute('data-mdel'), a = findOne(D.pending, function (x) { return x.id === id; });
+        if (!a || !confirm('이 인증 파일을 드라이브 휴지통으로 보낼까요? 도전 기록은 그대로 남습니다.')) return;
+        api('fms_t_deleteMedia', TOKEN, id).then(function () { a.mediaId = ''; a.thumbId = ''; a.mediaType = ''; toast('파일을 지웠습니다'); renderPending(); }).catch(handleErr);
+      };
+    });
+    if (need.length) api('fms_t_getMedia', TOKEN, need).then(function (m) {
+      Object.keys(m).forEach(function (id) { THUMB[id] = m[id]; });
+      Array.prototype.forEach.call(root.querySelectorAll('.th[data-media]'), function (el) {
+        var a = findOne(D.pending, function (x) { return x.id === el.getAttribute('data-media'); });
+        if (a && THUMB[a.thumbId]) el.innerHTML = '<img src="' + THUMB[a.thumbId] + '"><i class="ti ti-' + (a.mediaType === '영상' ? 'player-play-filled' : 'zoom-in') + '"></i>';
+      });
+    }).catch(function () {});
+  }
+  $('fmMediaSetToggle').onclick = function () { $('fmMediaSet').classList.toggle('hide'); if (!$('fmMediaSet').classList.contains('hide')) loadMediaInfo(); };
+  function fillMediaSettings() {
+    var st = (FMSX.app && FMSX.app.settings) || {};
+    $('fmMsKind').value = st.인증자료 || '사진+영상'; $('fmMsReq').value = st.인증필수 ? 'Y' : 'N'; $('fmMsKeep').value = st.인증보관 || '유지';
+  }
+  function loadMediaInfo() {
+    $('fmMsInfo').textContent = '불러오는 중…';
+    api('fms_t_mediaInfo', TOKEN).then(function (r) {
+      $('fmMsInfo').innerHTML = '지금 남아 있는 인증 파일 <b>' + r.파일수 + '개</b>' + (r.폴더URL ? ' · <a href="' + esc(r.폴더URL) + '" target="_blank" rel="noopener">드라이브 폴더 열기</a>' : ' · 파일은 오프라인 데이터 폴더(사진)에 저장됩니다') +
+        '<br>영상은 25MB(약 15초)까지 올릴 수 있습니다. 파일이 많아지면 <b>설정 → 초기화</b>에서 FMS 기록을 지울 때 함께 정리됩니다.';
+    }).catch(function () { $('fmMsInfo').textContent = ''; });
+  }
+  $('fmMsSave').onclick = function () {
+    var btn = this; btn.disabled = true; setStatus('fmMsStatus', '저장 중…');
+    api('fms_t_saveSettings', TOKEN, { 인증자료: $('fmMsKind').value, 인증필수: $('fmMsReq').value === 'Y', 인증보관: $('fmMsKeep').value }).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { setStatus('fmMsStatus', r.message, 'err'); return; }
+      FMSX.app.settings = r.settings; setStatus('fmMsStatus', '저장했습니다', 'ok');
+    }).catch(function (e) { btn.disabled = false; setStatus('fmMsStatus', ''); handleErr(e); });
+  };
+
   function pendCard(a) {
     var s = studentById(a.studentId), l = FMSX.level(a.levelId), k = l ? FMSX.skill(l.skillId) : null;
     var peer = findOne(D.students, function (x) { return x.id === a.peerId; });
@@ -401,6 +482,7 @@ MODS.FMS.teacher = (function () {
           body += '<ul class="plist">' + crit.map(function (c) { var v = a.peerResults[c.id]; return '<li class="' + (v === 1 ? 'y' : v === 0 ? 'n' : '') + '"><i class="ti ti-' + (v === 1 ? 'circle-check' : v === 0 ? 'circle-x' : 'minus') + '"></i>' + esc(c.teacher) + '</li>'; }).join('') + '</ul>';
         } else body += '<p class="unit" style="margin:8px 0 0">짝이 동작 체크 없이 확인했습니다(저학년). 동작은 직접 봐 주세요.</p>';
       }
+      body += mediaBlock(a, s);
       if (rejecting === a.id) {
         var unmet = {}; a.unmet.forEach(function (id) { unmet[id] = true; });
         body += '<div class="reject-box"><div class="field"><label>학생에게 보낼 말</label></div>' +

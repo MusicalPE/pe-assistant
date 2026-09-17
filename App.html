@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="<?!= theme ?>">
 <head>
 <base target="_top">
 <meta charset="utf-8">
@@ -8,13 +8,16 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
 
 /* ================= 디자인 토큰 =================
-   셸(로그인·톱바·사이드바)은 민트 한 가지.
+   셸(로그인·톱바·사이드바·대시보드)은 --brand 계열 한 가지 = 설정의 '테마'.  <html data-theme="…"> 로 바뀝니다 (아래 테마 표).
    모듈 화면은 .main 에 mod-* 클래스가 붙으면 --accent 계열이 그 모듈 색으로 바뀝니다. */
 :root{
   --ink:#16232E; --ink-2:#4F6272; --ink-3:#8797A6;
   --bg:#F3F7FA; --card:#FFFFFF; --soft:#F7FAFC;
   --line:#E2EAF0; --line-2:#EEF3F7;
   --brand:#14A085; --brand-dk:#0E7D68; --brand-soft:#E4F6F1; --brand-ink:#0B5C4D;
+  --brand-2:#3CC4A5; --brand-3:#8FE3CD;            /* 로그인 머리·로고 그라데이션 */
+  --tint-1:#DDF5EE; --tint-2:#FFE9E1;              /* 로그인 배경 은은한 빛 */
+  --mint:#14A085;
   --coral:#FF7A59; --coral-soft:#FFEDE7;
   --sun:#F5B301; --sun-soft:#FFF6D6;
   --violet:#6C63FF; --violet-soft:#ECEAFF;
@@ -38,6 +41,15 @@
 .mod-violet{--accent:#6C63FF;--accent-dk:#4B43C9;--accent-soft:#ECEAFF;--accent-ink:#3A33A6;}
 .mod-plum  {--accent:#B4489C;--accent-dk:#8E3079;--accent-soft:#F8E6F3;--accent-ink:#6E245E;}
 
+/* ----- 화면 색상 테마 (설정 → 프로그램·학교 → 화면 색상 테마). 값은 Code.gs 의 테마들 과 같아야 합니다 ----- */
+html[data-theme="바다"]    {--brand:#2A7DE1;--brand-dk:#1F5FB0;--brand-soft:#E6F0FD;--brand-ink:#163F7A;--brand-2:#4F9CF0;--brand-3:#9CC8F8;--tint-1:#E0EEFD;--tint-2:#FFF1E0;}
+html[data-theme="코랄"]    {--brand:#F0664A;--brand-dk:#C94C33;--brand-soft:#FFEBE5;--brand-ink:#8A3320;--brand-2:#FF8A6C;--brand-3:#FFC2B2;--tint-1:#FFE6DF;--tint-2:#E3F4FF;}
+html[data-theme="라벤더"]  {--brand:#7A6BF0;--brand-dk:#5B4DC7;--brand-soft:#EEEBFF;--brand-ink:#3E3492;--brand-2:#9A8EFF;--brand-3:#C9C2FF;--tint-1:#ECE9FF;--tint-2:#FFE9F3;}
+html[data-theme="숲"]      {--brand:#3F8F3A;--brand-dk:#2F6E2B;--brand-soft:#E8F5E6;--brand-ink:#1F4F1C;--brand-2:#63B15C;--brand-3:#A8D9A3;--tint-1:#E4F3E1;--tint-2:#FFF3DC;}
+html[data-theme="자정"]    {--brand:#2C4A9E;--brand-dk:#1F3777;--brand-soft:#E8ECF9;--brand-ink:#162859;--brand-2:#4A6BC8;--brand-3:#9AAEE8;--tint-1:#E4E9F8;--tint-2:#FFEDE0;}
+html[data-theme="로즈"]    {--brand:#D64577;--brand-dk:#AD335E;--brand-soft:#FCE7EF;--brand-ink:#7A2345;--brand-2:#E96B97;--brand-3:#F5AFC8;--tint-1:#FCE4EC;--tint-2:#E6F5F9;}
+html[data-theme="그래파이트"]{--brand:#455468;--brand-dk:#313D4D;--brand-soft:#EAEEF3;--brand-ink:#1F2833;--brand-2:#67788E;--brand-3:#AAB6C6;--tint-1:#E6EBF1;--tint-2:#F5EEE3;}
+
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;height:100%;}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;
@@ -49,11 +61,11 @@ a{color:var(--brand-dk);}
 
 /* ================= 로그인 ================= */
 .login-shell{flex:1;display:flex;align-items:center;justify-content:center;padding:30px 16px;overflow:auto;
-  background:radial-gradient(1200px 600px at 10% -10%,#DDF5EE 0,transparent 60%),
-             radial-gradient(900px 500px at 110% 110%,#FFE9E1 0,transparent 55%),var(--bg);}
+  background:radial-gradient(1200px 600px at 10% -10%,var(--tint-1) 0,transparent 60%),
+             radial-gradient(900px 500px at 110% 110%,var(--tint-2) 0,transparent 55%),var(--bg);}
 .login{width:100%;max-width:440px;background:var(--card);border-radius:22px;overflow:hidden;
   box-shadow:0 20px 60px -20px rgba(22,35,46,.25),0 2px 6px rgba(22,35,46,.06);}
-.login-head{background:linear-gradient(135deg,var(--brand) 0%,#3CC4A5 60%,#8FE3CD 100%);color:#fff;padding:26px 28px 22px;position:relative;overflow:hidden;}
+.login-head{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 60%,var(--brand-3) 100%);color:#fff;padding:26px 28px 22px;position:relative;overflow:hidden;}
 .login-head::before{content:'';position:absolute;right:-40px;top:-50px;width:170px;height:170px;border-radius:50%;background:rgba(255,255,255,.16);}
 .login-head::after{content:'';position:absolute;right:40px;bottom:-70px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.12);}
 .login-head .school{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.22);padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.02em;margin-bottom:12px;position:relative;}
@@ -78,7 +90,7 @@ a{color:var(--brand-dk);}
 .topbar .title{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.035em;font-size:17px;white-space:nowrap;
   cursor:pointer;border-radius:10px;padding:6px 10px;margin-left:-10px;transition:background .12s;}
 .topbar .title:hover{background:var(--soft);}
-.topbar .title .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),#4ED0B0);display:flex;align-items:center;justify-content:center;color:#fff;}
+.topbar .title .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:flex;align-items:center;justify-content:center;color:#fff;}
 .topbar .title .logo i{font-size:18px;}
 .app-date{font-size:13.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;padding-left:4px;border-left:1px solid var(--line);margin-left:2px;}
 .user-chip{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);background:var(--soft);padding:6px 12px;border-radius:99px;white-space:nowrap;font-weight:600;}
@@ -192,7 +204,7 @@ td input[type=checkbox],th input[type=checkbox]{width:auto;min-width:0;}
 .tag.f3{background:var(--green-soft);color:#177A4E;} .tag.f4{background:var(--sun-soft);color:#946C00;}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;}
 .dot.f1{background:var(--f1);} .dot.f2{background:var(--f2);} .dot.f3{background:var(--f3);} .dot.f4{background:var(--f4);}
-.dot.sky{background:var(--sky);} .dot.mint{background:var(--brand);} .dot.coral{background:var(--coral);} .dot.blue{background:var(--blue);} .dot.sun{background:var(--sun);} .dot.violet{background:var(--violet);} .dot.plum{background:#B4489C;}
+.dot.sky{background:var(--sky);} .dot.mint{background:var(--mint);} .dot.coral{background:var(--coral);} .dot.blue{background:var(--blue);} .dot.sun{background:var(--sun);} .dot.violet{background:var(--violet);} .dot.plum{background:#B4489C;}
 
 .chk{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:#fff;}
 .chk input{width:18px;height:18px;accent-color:var(--accent);margin:0;}
@@ -377,6 +389,49 @@ function shrinkImage(file, maxPx, quality) {
     img.src = url;
   });
 }
+/** 파일 → base64 (data: 접두어 없이). 영상처럼 큰 파일도 그대로 */
+function fileToBase64(file) {
+  return new Promise(function (resolve, reject) {
+    var rd = new FileReader();
+    rd.onload = function () { resolve(String(rd.result).split(',')[1]); };
+    rd.onerror = function () { reject(new Error('파일을 읽지 못했습니다: ' + file.name)); };
+    rd.readAsDataURL(file);
+  });
+}
+/** 영상 파일의 한 장면(0.5초쯤)을 잡아 jpeg base64 썸네일로. 못 잡으면 '' */
+function videoThumb(file, maxPx) {
+  return new Promise(function (resolve) {
+    var url = URL.createObjectURL(file), v = document.createElement('video'), done = false;
+    var finish = function (b64) { if (done) return; done = true; URL.revokeObjectURL(url); resolve(b64 || ''); };
+    v.muted = true; v.playsInline = true; v.preload = 'auto';
+    v.onloadeddata = function () { try { v.currentTime = Math.min(0.5, (v.duration || 1) / 2); } catch (e) { finish(''); } };
+    v.onseeked = function () {
+      try {
+        var w = v.videoWidth, h = v.videoHeight, k = Math.min(1, (maxPx || 320) / Math.max(w, h)), cv = document.createElement('canvas');
+        cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+        cv.getContext('2d').drawImage(v, 0, 0, cv.width, cv.height);
+        finish(cv.toDataURL('image/jpeg', 0.7).split(',')[1]);
+      } catch (e) { finish(''); }
+    };
+    v.onerror = function () { finish(''); };
+    setTimeout(function () { finish(''); }, 6000);
+    v.src = url;
+  });
+}
+/** 사진·영상 크게 보기. load = data: URL 을 돌려주는 Promise (또는 문자열) */
+function openMedia(title, kind, load) {
+  var md = $('mdMedia'), img = $('mdMediaImg'), vid = $('mdMediaVid'), wait = $('mdMediaWait');
+  $('mdMediaTitle').innerHTML = '<i class="ti ti-' + (kind === '영상' ? 'video' : 'photo') + '"></i>' + esc(title || (kind === '영상' ? '영상' : '사진'));
+  img.classList.add('hide'); vid.classList.add('hide'); img.src = ''; vid.removeAttribute('src'); wait.classList.remove('hide'); wait.textContent = '불러오는 중…';
+  md.classList.remove('hide');
+  Promise.resolve(typeof load === 'function' ? load() : load).then(function (src) {
+    if (!src) { wait.textContent = '파일을 불러오지 못했어요. (지워졌거나 아직 준비되지 않았어요)'; return; }
+    wait.classList.add('hide');
+    if (kind === '영상') { vid.src = src; vid.classList.remove('hide'); vid.play().catch(function () {}); }
+    else { img.src = src; img.classList.remove('hide'); }
+  }).catch(function (e) { wait.textContent = (e && e.message) || String(e); });
+}
+function closeMedia() { var vid = $('mdMediaVid'); try { vid.pause(); } catch (e) {} vid.removeAttribute('src'); $('mdMedia').classList.add('hide'); }
 function kpiTile(lab, val, unit, icon, cls) {
   return '<div class="kpi ' + (cls || '') + '"><div class="lab"><i class="ti ti-' + icon + '"></i>' + lab + '</div><div class="val">' + val + (unit ? '<small>' + unit + '</small>' : '') + '</div></div>';
 }
@@ -682,6 +737,18 @@ function 학생짧게(s) { return s.학년 + '-' + s.반 + ' ' + s.번호 + '번
 </div>
 
 <div id="toast"><i class="ti ti-check"></i><span id="toastMsg"></span></div>
+
+<!-- ===== 공용 모달: 사진·영상 크게 보기 (FMS 인증 등) ===== -->
+<div id="mdMedia" class="modal hide">
+  <div style="max-width:900px;background:#111;border-radius:14px">
+    <div class="panel-head" style="border:none;color:#fff"><h3 id="mdMediaTitle" style="color:#fff"><i class="ti ti-photo"></i>사진</h3><div class="spacer"></div><button class="ghost mini" id="mdMediaClose" type="button"><i class="ti ti-x"></i>닫기</button></div>
+    <div style="text-align:center;padding:0 10px 12px;min-height:120px">
+      <div id="mdMediaWait" class="unit" style="color:#bbb;padding:30px 0">불러오는 중…</div>
+      <img id="mdMediaImg" class="hide" src="" alt="" style="max-width:100%;max-height:75vh;border-radius:8px">
+      <video id="mdMediaVid" class="hide" controls playsinline preload="metadata" style="max-width:100%;max-height:75vh;border-radius:8px;background:#000"></video>
+    </div>
+  </div>
+</div>
 <div class="madeby"><i class="ti ti-ball-basketball"></i><span class="pre">Made by</span><span class="who">음악적체육인</span></div>
 
 <script>
@@ -693,6 +760,20 @@ var FIRST_PAGE = '<?!= page ?>';
 
 $('appHome').onclick = goHome;
 $('appHome').onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goHome(); } };
+$('mdMediaClose').onclick = closeMedia;
+$('mdMedia').addEventListener('mousedown', function (e) { if (e.target === this) closeMedia(); });
+
+/* ================= 화면 색상 테마 ================= */
+var THEMES = [   /* key = 설정값 (Code.gs 의 테마들 과 같은 순서), c = 견본 색 */
+  { key: '민트', 이름: '민트 (기본)', c: ['#14A085', '#8FE3CD'] }, { key: '바다', 이름: '바다', c: ['#2A7DE1', '#9CC8F8'] },
+  { key: '코랄', 이름: '코랄', c: ['#F0664A', '#FFC2B2'] }, { key: '라벤더', 이름: '라벤더', c: ['#7A6BF0', '#C9C2FF'] },
+  { key: '숲', 이름: '숲', c: ['#3F8F3A', '#A8D9A3'] }, { key: '자정', 이름: '자정', c: ['#2C4A9E', '#9AAEE8'] },
+  { key: '로즈', 이름: '로즈', c: ['#D64577', '#F5AFC8'] }, { key: '그래파이트', 이름: '그래파이트', c: ['#455468', '#AAB6C6'] }
+];
+function applyTheme(t) {
+  var ok = THEMES.some(function (x) { return x.key === t; });
+  document.documentElement.setAttribute('data-theme', ok ? t : '민트');
+}
 
 /* ================= 로그인 화면 ================= */
 var LOGIN = { 학급: [], 제목: '<?!= teacherTitle ?>', 학생용이름: '<?!= title ?>', 자동나가기분: 3, 학생로그인: '숫자판', 모듈: [] };
@@ -713,6 +794,7 @@ function loadLoginInfo() {
   return api('getLoginInfo').then(function (info) {
     clearTimeout(slow); msg('');
     LOGIN = info;
+    applyTheme(info.테마);
     paintLoginHead($('roleTeacher').getAttribute('aria-selected') === 'true');
     $('lgSchool').classList.toggle('hide', !info.학교명);
     $('lgSchool').querySelector('span').textContent = info.학교명;

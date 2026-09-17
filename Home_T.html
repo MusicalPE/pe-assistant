@@ -24,6 +24,11 @@
 .grade-picks label{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer;background:#fff;font-size:14px;font-weight:600;}
 .grade-picks label.on{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-ink);}
 .grade-picks input{margin:0;width:16px;height:16px;accent-color:var(--brand);}
+.theme-picks{display:flex;gap:8px;flex-wrap:wrap;}
+.theme-picks button{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--line);border-radius:99px;padding:5px 12px 5px 6px;background:#fff;font-size:13.5px;font-weight:600;color:var(--ink-2);cursor:pointer;}
+.theme-picks button .sw{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--b));box-shadow:inset 0 0 0 2px rgba(255,255,255,.7);}
+.theme-picks button.on{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-ink);}
+.theme-picks button.on .sw{box-shadow:inset 0 0 0 2px #fff,0 0 0 2px var(--brand);}
 .opt{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:14px;cursor:pointer;}
 .opt input{width:17px;height:17px;accent-color:var(--warn);margin-top:3px;}
 .reset-box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
@@ -116,6 +121,8 @@
             <div class="field"><label for="setTeacher">담당 교사</label><input type="text" id="setTeacher"></div>
             <div class="field"><label for="setPhone">전화</label><input type="tel" id="setPhone"></div>
             <div class="field" style="grid-column:1/-1"><label for="setEmail">이메일</label><input type="email" id="setEmail"></div>
+            <div class="field" style="grid-column:1/-1"><label>화면 색상 테마 (로그인·메인 화면)</label><div class="theme-picks" id="setTheme"></div>
+              <div class="unit" style="margin-top:6px">누르면 바로 미리 볼 수 있고, <b>저장</b>을 눌러야 학생 화면까지 계속 적용됩니다.</div></div>
             <div class="unit" id="setLevelHint" style="grid-column:1/-1">학교급을 바꾸면 등록 학년·PAPS 대상 학년이 그 학교급 기본값으로 바뀌고, PAPS 측정 종목이 그 학교급 기본 구성으로 다시 설정됩니다 (기록은 그대로). FMS 도전은 초등학교에서만 씁니다.</div>
           </div>
         </div>
@@ -272,7 +279,7 @@ MODS.core.teacher = (function () {
     $('stuGrade').innerHTML = '<option value="">전체</option>' + options(gs, cur, function (g) { return g + '학년'; });
   }
   function modInfo(key) { return findOne(D.모듈, function (m) { return m.key === key; }) || { 이름: key, 색: 'mint', 아이콘: 'box' }; }
-  function colorVar(c) { return { mint: 'var(--brand)', sky: 'var(--sky)', coral: 'var(--coral)', blue: 'var(--blue)', sun: 'var(--sun)', violet: 'var(--violet)', plum: '#B4489C' }[c] || 'var(--brand)'; }
+  function colorVar(c) { return { mint: 'var(--mint)', sky: 'var(--sky)', coral: 'var(--coral)', blue: 'var(--blue)', sun: 'var(--sun)', violet: 'var(--violet)', plum: '#B4489C' }[c] || 'var(--brand)'; }
   Array.prototype.forEach.call(document.querySelectorAll('#mdStudent [data-close], #mdBulk [data-close], #mdCards [data-close]'), function (b) {
     b.onclick = function () { $(b.getAttribute('data-close')).classList.add('hide'); };
   });
@@ -486,6 +493,7 @@ MODS.core.teacher = (function () {
       // 학교급을 바꾸면 학년 체크박스를 그 학교급의 학년으로 미리 보여 줍니다 (실제 반영은 저장할 때)
       $('setLevel').onchange = function () { var 급 = this.value; drawGrades(급, 급 === (s.학교급 || '초') ? s.학년범위 : (급 === '중' ? [1, 2, 3] : [1, 2, 3, 4, 5, 6])); };
       $('setClasses').value = s.반범위; $('setLoginMode').value = s.학생로그인; $('setIdle').value = s.자동나가기분;
+      drawThemes(s.테마 || '민트');
       $('setMods').innerHTML = st.모듈목록.map(function (m) {
         return '<div class="mod-toggle' + (m.설치 ? '' : ' off') + '"><span class="ic" style="background:' + colorVar(m.색) + '"><i class="ti ti-' + m.아이콘 + '"></i></span>' +
           '<div><b>' + esc(m.이름) + '</b><small>' + esc(m.설명) + (m.설치 ? '' : ' · 파일이 아직 없습니다 (Mod_… 와 …_T.html 을 넣으면 켜집니다)') + '</small></div>' +
@@ -501,6 +509,20 @@ MODS.core.teacher = (function () {
       renderUpdate(D.업데이트);
     }).catch(handleErr);
   }
+  /* ---------- 색상 테마 고르기 (누르면 바로 미리보기, 저장해야 유지) ---------- */
+  function drawThemes(cur) {
+    $('setTheme').innerHTML = (window.THEMES || []).map(function (t) {
+      return '<button type="button" data-theme="' + t.key + '" class="' + (t.key === cur ? 'on' : '') + '"><span class="sw" style="--a:' + t.c[0] + ';--b:' + t.c[1] + '"></span>' + esc(t.이름) + '</button>';
+    }).join('');
+    Array.prototype.forEach.call($('setTheme').querySelectorAll('button'), function (b) {
+      b.onclick = function () {
+        Array.prototype.forEach.call($('setTheme').querySelectorAll('button'), function (x) { x.classList.remove('on'); });
+        b.classList.add('on'); applyTheme(b.getAttribute('data-theme'));
+      };
+    });
+    applyTheme(cur);
+  }
+  function pickedTheme() { var b = $('setTheme').querySelector('button.on'); return b ? b.getAttribute('data-theme') : '민트'; }
   /* ---------- 업데이트 (새 버전 알림) ---------- */
   function renderUpdate(u) {
     var box = $('setUpdate'); if (!box) return;
@@ -524,7 +546,7 @@ MODS.core.teacher = (function () {
     var 급바뀜 = $('setLevel').value !== ((D.설정 && D.설정.학교급) || '초');
     if (급바뀜 && !confirm(($('setLevel').value === '중' ? '중학교' : '초등학교') + '로 바꿉니다.\n등록 학년·PAPS 대상 학년이 기본값으로 바뀌고 PAPS 측정 종목이 그 학교급 기본 구성으로 다시 설정됩니다. 기록은 그대로 남습니다.\n계속할까요?')) return;
     var map = { 프로그램이름: $('setTitle').value, 학생용이름: $('setStuTitle').value, 학년도: $('setYear').value, 학교명: $('setSchool').value, 학교장: $('setPrincipal').value, 담당자: $('setTeacher').value,
-      전화: $('setPhone').value, 이메일: $('setEmail').value, 학교급: $('setLevel').value,
+      전화: $('setPhone').value, 이메일: $('setEmail').value, 학교급: $('setLevel').value, 테마: pickedTheme(),
       학년범위: Array.prototype.map.call($('setGrades').querySelectorAll('input:checked'), function (c) { return Number(c.value); }),
       반범위: Number($('setClasses').value), 학생로그인: $('setLoginMode').value, 자동나가기분: Number($('setIdle').value), 모듈: 모듈 };
     var btn = this; btn.disabled = true; setStatus('setStatus', '저장 중…');
@@ -533,7 +555,7 @@ MODS.core.teacher = (function () {
       if (!r.ok) { setStatus('setStatus', r.message, 'err'); return; }
       D.설정 = r.설정; D.모듈 = r.모듈목록; CTX.설정 = r.설정; CTX.모듈 = r.모듈목록;
       $('appTitle').textContent = r.설정.프로그램이름; document.title = r.설정.프로그램이름;
-      LOGIN.제목 = r.설정.프로그램이름; LOGIN.학생용이름 = r.설정.학생용이름;
+      LOGIN.제목 = r.설정.프로그램이름; LOGIN.학생용이름 = r.설정.학생용이름; LOGIN.테마 = r.설정.테마; applyTheme(r.설정.테마);
       var before = MODLIST.map(function (m) { return m.key; }).join(',');
       MODLIST = r.모듈목록.filter(function (m) { return m.사용; });
       var after = MODLIST.map(function (m) { return m.key; }).join(',');

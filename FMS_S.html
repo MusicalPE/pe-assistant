@@ -77,6 +77,22 @@
 #fms_S .badge-card.on{border-color:#F1DDA0;background:#FFFCF2;}
 #fms_S .badge-card b{display:block;font-size:14px;letter-spacing:-.02em;}
 #fms_S .badge-card small{display:block;color:var(--ink-3);font-size:11.5px;margin-top:3px;line-height:1.35;}
+#fms_S .media-box{border:2px dashed var(--line);border-radius:16px;padding:12px 14px;margin:12px 0;background:#fff;}
+#fms_S .media-box.has{border-style:solid;border-color:var(--green);background:var(--green-soft);}
+#fms_S .media-box .mb-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;margin-bottom:8px;}
+#fms_S .media-btns{display:flex;gap:8px;flex-wrap:wrap;}
+#fms_S .media-btns label{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;font-size:15px;}
+#fms_S .media-btns label i{font-size:20px;color:var(--accent);}
+#fms_S .media-btns label input{display:none;}
+#fms_S .media-prev{display:flex;align-items:center;gap:12px;margin-top:10px;}
+#fms_S .media-prev .th{width:96px;height:72px;border-radius:10px;overflow:hidden;background:#111;position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;}
+#fms_S .media-prev .th img{width:100%;height:100%;object-fit:cover;}
+#fms_S .media-prev .th .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);}
+#fms_S .media-view{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:8px 12px 8px 8px;font-weight:700;color:var(--ink);cursor:pointer;margin:6px 8px 6px 0;}
+#fms_S .media-view .th{width:64px;height:48px;border-radius:8px;overflow:hidden;background:#111;position:relative;display:flex;align-items:center;justify-content:center;color:#fff;}
+#fms_S .media-view .th img{width:100%;height:100%;object-fit:cover;}
+#fms_S .media-view .th i{position:absolute;font-size:22px;text-shadow:0 1px 4px rgba(0,0,0,.6);}
+#fms_S .media-view small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:600;}
 @media (max-width:900px){ #fms_S .s-hero{padding:18px;} #fms_S .s-hero .ring{width:88px;height:88px;} #fms_S .s-hero .ring svg{width:88px;height:88px;} }
 </style>
 
@@ -142,6 +158,38 @@
 MODS.FMS = MODS.FMS || {};
 MODS.FMS.student = (function () {
   var V = null, skillId = null, LOADING = false, peerGrade = null, pickedPeer = null;
+  var THUMB = {};   // 파일ID → data URL (짝 인증 썸네일)
+  function settings() { return (FMSX.app && FMSX.app.settings) || { 인증자료: '없음', 인증필수: false }; }
+  /* 어떤 단계의 최근 신청 중 인증 파일이 있는 것 (내가 도전한 것) */
+  function mediaAppFor(levelId) {
+    var hit = null;
+    (V.applications || []).forEach(function (a) { if (a.levelId === levelId && a.mediaId && a.status !== '취소') hit = a; });
+    return hit;
+  }
+  function mediaButton(a, label) {
+    var th = THUMB[a.thumbId || ''] || '';
+    return '<span class="media-view" data-media="' + esc(a.id) + '"><span class="th">' + (th ? '<img src="' + th + '">' : '') + '<i class="ti ti-' + (a.mediaType === '영상' ? 'player-play-filled' : 'photo') + '"></i></span><span>' + esc(label || ('짝이 찍은 ' + (a.mediaType === '영상' ? '영상' : '사진'))) + '<small>' + esc(peerName(a.peerId)) + ' · ' + esc((a.peerAt || a.at || '').slice(5, 16)) + '</small></span></span>';
+  }
+  function bindMedia(root) {
+    var ids = [];
+    Array.prototype.forEach.call(root.querySelectorAll('[data-media]'), function (el) {
+      var a = findOne(V.applications, function (x) { return x.id === el.getAttribute('data-media'); });
+      if (!a) return;
+      if (a.thumbId && THUMB[a.thumbId] === undefined) { THUMB[a.thumbId] = ''; ids.push(a.thumbId); }
+      el.onclick = function () {
+        openMedia(peerName(a.peerId) + '가 찍어 준 ' + (a.mediaType === '영상' ? '영상' : '사진'), a.mediaType, function () {
+          return api('fms_s_getMedia', TOKEN, [a.mediaId]).then(function (m) { return m[a.mediaId] || ''; });
+        });
+      };
+    });
+    if (ids.length) api('fms_s_getMedia', TOKEN, ids).then(function (m) {
+      Object.keys(m).forEach(function (id) { THUMB[id] = m[id]; });
+      Array.prototype.forEach.call(root.querySelectorAll('[data-media]'), function (el) {
+        var a = findOne(V.applications, function (x) { return x.id === el.getAttribute('data-media'); });
+        if (a && THUMB[a.thumbId]) el.querySelector('.th').innerHTML = '<img src="' + THUMB[a.thumbId] + '"><i class="ti ti-' + (a.mediaType === '영상' ? 'player-play-filled' : 'zoom-in') + '"></i>';
+      });
+    }).catch(function () {});
+  }
   var pages = ['home', 'skill', 'self', 'peer', 'requests', 'badges'];
   var nav = [
     { section: 'FMS 도전' },
@@ -232,7 +280,8 @@ MODS.FMS.student = (function () {
     $('fsmSkSteps').innerHTML = p.levels.map(function (l, i) {
       var st = p.states[i], key = st.s === 'none' ? (i === p.cur ? 'now' : '') : st.s;
       var tag = { ok: '<span class="tag sun"><i class="ti ti-award"></i>통과</span>', wait: '<span class="tag coral">선생님 확인 중</span>', peer: '<span class="tag coral">짝 확인 중</span>', no: '<span class="tag coral">다시 도전</span>', peerno: '<span class="tag coral">다시 도전</span>', now: '<span class="tag brand">지금 도전</span>' }[key] || '';
-      return '<li class="' + key + '"><span class="no">' + (st.s === 'ok' ? '<i class="ti ti-star-filled"></i>' : (i + 1)) + '</span><div class="b"><b>' + esc(l.task) + '</b><span class="unit">' + esc(FMSX.condText(l, true)) + '</span></div>' + tag + '</li>';
+      var ma = st.s === 'ok' ? mediaAppFor(l.id) : null;
+      return '<li class="' + key + '"><span class="no">' + (st.s === 'ok' ? '<i class="ti ti-star-filled"></i>' : (i + 1)) + '</span><div class="b"><b>' + esc(l.task) + '</b><span class="unit">' + esc(FMSX.condText(l, true)) + '</span>' + (ma ? '<div>' + mediaButton(ma, '통과 ' + (ma.mediaType === '영상' ? '영상' : '사진') + ' 보기') + '</div>' : '') + '</div>' + tag + '</li>';
     }).join('');
     var box = $('fsmSkNow');
     if (p.cur < 0) { $('fsmSkNowTitle').textContent = '모두 통과'; box.innerHTML = '<div class="empty"><i class="ti ti-confetti" style="color:var(--sun)"></i><strong>모든 단계를 통과했어요!</strong>다른 기술에도 도전해 봐요.</div>'; return; }
@@ -248,12 +297,15 @@ MODS.FMS.student = (function () {
       var miss = st.app.unmet.map(FMSX.crit).filter(function (c) { return c; });
       h += '<div class="note sun"><i class="ti ti-message-circle"></i><div><b>' + esc(peerName(st.app.peerId)) + '가 한 번 더 해 보재요.</b> 연습하고 다시 요청해요.' + (miss.length ? '<ul style="margin:6px 0 0;padding-left:18px">' + miss.map(function (c) { return '<li>' + esc(c.student) + '</li>'; }).join('') + '</ul>' : '') + '</div></div>';
     }
+    var ma = mediaAppFor(l.id);
+    if (ma) h += '<div class="field" style="margin:10px 0 0"><label>짝이 찍어 준 인증 자료</label></div>' + mediaButton(ma);
     if (st.s === 'wait') h += '<div class="note" style="margin:10px 0 0"><i class="ti ti-clock"></i><div><b>선생님이 확인하고 있어요.</b> 조금만 기다려요.</div></div>';
     else if (st.s === 'peer') h += '<div class="note" style="margin:10px 0 0"><i class="ti ti-user-check"></i><div><b>' + esc(peerName(st.app.peerId)) + '에게 확인을 요청했어요.</b> ' + esc(peerName(st.app.peerId)) + '가 자기 화면에서 확인해 주면 선생님께 가요.</div></div><button class="bigsave ghost" id="fsmSkCancel"><i class="ti ti-x"></i>요청 취소하기</button>';
     else h += '<button class="bigsave" id="fsmSkPeer"><i class="ti ti-users"></i>짝에게 확인 요청하기</button>';
     if (crit.length && st.s !== 'wait') h += '<button class="bigsave ghost" id="fsmSkSelf"><i class="ti ti-checkbox"></i>혼자 체크하기</button>';
     box.innerHTML = h;
     bindSay($('fms_sp_skill'));
+    bindMedia($('fms_sp_skill'));
     if ($('fsmSkPeer')) $('fsmSkPeer').onclick = openPeer;
     if ($('fsmSkSelf')) $('fsmSkSelf').onclick = openSelf;
     if ($('fsmSkCancel')) $('fsmSkCancel').onclick = function () {
@@ -353,6 +405,13 @@ MODS.FMS.student = (function () {
     if (needsRecord) h += '<div class="field" style="margin-bottom:4px"><label>기록을 적어요</label><span class="unit">' + who + '가 한 ' + (l.unit === '초' ? '시간(초)을 재어서' : l.unit === '회' || l.unit === '걸음' ? '횟수를 세어서' : '거리를 재어서') + ' 적어요. 통과 기준: ' + esc(l.target) + esc(l.unit) + ' ' + esc(l.dir) + '</span></div>' +
       '<div class="field" style="margin-bottom:12px"><div class="amount"><button type="button" class="ghost" id="fsmRpMinus"><i class="ti ti-minus"></i></button><input type="number" id="fsmRpRec" min="0" step="any" inputmode="decimal" placeholder="0"><span class="u">' + esc(l.unit) + '</span><button type="button" class="ghost" id="fsmRpPlus"><i class="ti ti-plus"></i></button></div></div>';
     if (seenOnly) h += '<button type="button" class="seen" id="fsmRpSeen"><i class="ti ti-eye"></i>끝까지 봤어요</button>';
+    var mset = settings(), canMedia = mset.인증자료 !== '없음', canVideo = mset.인증자료 === '사진+영상', MEDIA = null;
+    if (canMedia) h += '<div class="media-box" id="fsmRpMedia"><div class="mb-head"><i class="ti ti-camera" style="color:var(--accent)"></i>' + who + '가 하는 모습을 ' + (canVideo ? '찍어요' : '사진으로 찍어요') + (mset.인증필수 ? ' <span class="tag coral">꼭 올려요</span>' : ' <span class="unit">(안 찍어도 돼요)</span>') + '</div>' +
+      '<div class="media-btns"><label><i class="ti ti-camera"></i>사진 찍기<input type="file" id="fsmRpCam" accept="image/*" capture="environment"></label>' +
+      (canVideo ? '<label><i class="ti ti-video"></i>영상 찍기 (15초 안)<input type="file" id="fsmRpVid" accept="video/*" capture="environment"></label>' : '') +
+      '<label><i class="ti ti-folder" style="color:var(--sky)"></i>골라서 올리기<input type="file" id="fsmRpPick" accept="' + (canVideo ? 'image/*,video/*' : 'image/*') + '"></label></div>' +
+      '<div class="media-prev hide" id="fsmRpPrev"><div class="th" id="fsmRpTh"></div><div style="flex:1"><b id="fsmRpMName"></b><div class="unit" id="fsmRpMInfo"></div></div><button type="button" class="mini danger" id="fsmRpMClear"><i class="ti ti-x"></i>빼기</button></div>' +
+      '<div class="unit" style="margin-top:8px">선생님과 ' + who + '만 볼 수 있어요.' + (canVideo ? ' 영상은 짧게(15초 안, 25MB까지) 찍어요.' : '') + '</div></div>';
     if (l.band === '고') h += '<div class="field" style="margin-top:12px"><label>친구에게 한마디 (쓰지 않아도 돼요)</label><input type="text" id="fsmRpComment" maxlength="60"></div>';
     h += '<button class="bigsave" id="fsmRpOk" disabled><i class="ti ti-send"></i>통과! 선생님께 보내기</button><div class="ok-hint" id="fsmRpHint"></div><button class="bigsave ghost" id="fsmRpNo"><i class="ti ti-refresh"></i>한 번 더 해 보자고 하기</button><button class="ghost mini" id="fsmRpBack" style="margin-top:10px"><i class="ti ti-arrow-left"></i>목록으로</button></div></div>';
     $('fsmRqBody').innerHTML = h;
@@ -371,8 +430,37 @@ MODS.FMS.student = (function () {
         if (v === '' || isNaN(Number(v))) { ok = false; hint = hint || '기록을 적어요.'; }
         else if (FMSX.recordMet(l, v) === false) { ok = false; hint = '기록이 통과 기준(' + l.target + l.unit + ' ' + l.dir + ')에 아직 못 미쳐요.'; }
       }
+      if (canMedia && mset.인증필수 && !MEDIA) { ok = false; hint = hint || (canVideo ? '사진이나 영상을 찍어 올려야 통과를 보낼 수 있어요.' : '사진을 찍어 올려야 통과를 보낼 수 있어요.'); }
+      if (MEDIA === 'busy') { ok = false; hint = '파일을 준비하고 있어요…'; }
       okBtn.disabled = !ok; $('fsmRpHint').textContent = ok ? '' : hint;
     };
+    /* ---- 인증 사진·영상 ---- */
+    function takeMedia(input) {
+      var f = input.files && input.files[0];
+      if (!f) return;
+      var isVideo = /^video\//.test(f.type);
+      if (isVideo && !canVideo) { toast('영상은 올릴 수 없어요. 사진으로 찍어요.', 'err'); input.value = ''; return; }
+      if (!isVideo && !/^image\//.test(f.type)) { toast('사진이나 영상 파일만 올릴 수 있어요.', 'err'); input.value = ''; return; }
+      if (isVideo && f.size > 25 * 1024 * 1024) { toast('영상이 너무 커요 (' + Math.round(f.size / 1048576) + 'MB). 15초 안으로 짧게 다시 찍어요.', 'err'); input.value = ''; return; }
+      MEDIA = 'busy'; ready();
+      $('fsmRpPrev').classList.remove('hide'); $('fsmRpTh').innerHTML = '<i class="ti ti-loader-2"></i>'; $('fsmRpMName').textContent = isVideo ? '영상 준비 중…' : '사진 준비 중…'; $('fsmRpMInfo').textContent = '';
+      var job = isVideo
+        ? Promise.all([fileToBase64(f), videoThumb(f, 320)]).then(function (arr) { return { 종류: '영상', 타입: f.type || 'video/mp4', 본문: arr[0], 썸네일: arr[1], 파일명: f.name }; })
+        : Promise.all([shrinkImage(f, 1200, 0.82), shrinkImage(f, 320, 0.7)]).then(function (arr) { return { 종류: '사진', 타입: 'image/jpeg', 본문: arr[0], 썸네일: arr[1], 파일명: f.name }; });
+      job.then(function (m) {
+        MEDIA = m;
+        $('fsmRpTh').innerHTML = (m.썸네일 ? '<img src="data:image/jpeg;base64,' + m.썸네일 + '">' : '') + (m.종류 === '영상' ? '<span class="play"><i class="ti ti-player-play-filled"></i></span>' : '');
+        $('fsmRpMName').textContent = m.종류 === '영상' ? '영상을 올릴 준비가 됐어요' : '사진을 올릴 준비가 됐어요';
+        $('fsmRpMInfo').textContent = m.종류 === '영상' ? Math.max(1, Math.round(f.size / 1048576 * 10) / 10) + 'MB' : '';
+        $('fsmRpMedia').classList.add('has'); ready();
+      }).catch(function (e) { MEDIA = null; $('fsmRpPrev').classList.add('hide'); $('fsmRpMedia').classList.remove('has'); toast((e && e.message) || String(e), 'err'); ready(); });
+    }
+    if (canMedia) {
+      $('fsmRpCam').onchange = function () { takeMedia(this); };
+      if ($('fsmRpVid')) $('fsmRpVid').onchange = function () { takeMedia(this); };
+      $('fsmRpPick').onchange = function () { takeMedia(this); };
+      $('fsmRpMClear').onclick = function () { MEDIA = null; $('fsmRpCam').value = ''; if ($('fsmRpVid')) $('fsmRpVid').value = ''; $('fsmRpPick').value = ''; $('fsmRpPrev').classList.add('hide'); $('fsmRpMedia').classList.remove('has'); ready(); };
+    }
     if (needsRecord) {
       var bump = function (d) { var n = Number($('fsmRpRec').value) || 0; $('fsmRpRec').value = Math.max(0, Math.round((n + d) * 10) / 10); ready(); };
       $('fsmRpMinus').onclick = function () { bump(-1); }; $('fsmRpPlus').onclick = function () { bump(1); }; $('fsmRpRec').oninput = ready;
@@ -384,7 +472,9 @@ MODS.FMS.student = (function () {
     var send = function (confirmIt) {
       okBtn.disabled = true; $('fsmRpNo').disabled = true;
       var results = critRequired ? crit.map(function (c) { return { id: c.id, met: !!marks[c.id] }; }) : [];
-      api('fms_s_peerRespond', TOKEN, { appId: req.id, confirm: confirmIt, record: needsRecord ? $('fsmRpRec').value : '', results: results, comment: $('fsmRpComment') ? $('fsmRpComment').value : '' })
+      var media = (MEDIA && MEDIA !== 'busy') ? MEDIA : null;
+      if (media) toast(media.종류 === '영상' ? '영상을 올리는 중이에요… 잠시만요' : '사진을 올리는 중이에요…');
+      api('fms_s_peerRespond', TOKEN, { appId: req.id, confirm: confirmIt, record: needsRecord ? $('fsmRpRec').value : '', results: results, comment: $('fsmRpComment') ? $('fsmRpComment').value : '', media: media })
         .then(function () { toast(confirmIt ? '선생님께 보냈어요. 고마워요!' : req.requester.name + '에게 다시 해 보자고 전했어요'); renderRequests(); })
         .catch(function (e) { $('fsmRpNo').disabled = false; ready(); handleErr(e); });
     };
@@ -399,10 +489,11 @@ MODS.FMS.student = (function () {
       var p = progress(k.id);
       if (!p.levels.length) return;
       html += '<div class="cat-head"><span class="tag ' + FMSX.catInfo(k.category)[2] + '">' + esc(k.category) + '</span><h3>' + esc(k.name) + '</h3></div><div class="badges" style="margin-bottom:6px">' +
-        p.levels.map(function (l, i) { var on = p.states[i].s === 'ok'; total++; if (on) got++; return '<div class="badge-card' + (on ? ' on' : '') + '"><div class="ic"><i class="ti ti-' + (on ? 'award' : 'lock') + '"></i></div><b>' + (i + 1) + '단계</b><small>' + esc(l.task) + '</small></div>'; }).join('') + '</div>';
+        p.levels.map(function (l, i) { var on = p.states[i].s === 'ok', ma = on ? mediaAppFor(l.id) : null; total++; if (on) got++; return '<div class="badge-card' + (on ? ' on' : '') + '"><div class="ic"><i class="ti ti-' + (on ? 'award' : 'lock') + '"></i></div><b>' + (i + 1) + '단계</b><small>' + esc(l.task) + '</small>' + (ma ? '<button type="button" class="mini soft" data-media="' + esc(ma.id) + '" style="margin-top:8px"><i class="ti ti-' + (ma.mediaType === '영상' ? 'player-play' : 'photo') + '"></i>' + (ma.mediaType === '영상' ? '영상' : '사진') + '</button>' : '') + '</div>'; }).join('') + '</div>';
     });
     $('fsmBadgeSub').textContent = total + '개 중 ' + got + '개를 받았어요';
     $('fsmBadgeBody').innerHTML = html || '<div class="panel"><div class="empty"><i class="ti ti-award"></i><strong>아직 배지가 없어요</strong></div></div>';
+    bindMedia($('fsmBadgeBody'));
   }
 
   return { nav: nav, init: init, show: show, reset: reset };
