@@ -236,7 +236,7 @@
 
   <!-- ===== 교내 리그전 · 설정 ===== -->
   <div class="page hide" id="club_tp_lgSetup">
-    <div class="page-head"><h2>교내 리그전 · 설정</h2><span class="sub">회차(1학기·2학기)를 만들고, 그 안에 <b>종목</b>을 여러 개 둡니다. 종목마다 반 대항인지 선수·팀 대항인지 고르고 참가 명단을 넣습니다.</span></div>
+    <div class="page-head"><h2>교내 리그전 · 설정</h2><span class="sub">회차(1학기·2학기)를 만들고, 그 안에 <b>종목</b>을 여러 개 둡니다. 종목마다 반 대항·팀 대항·개인전 중에서 고르고 참가 명단을 넣습니다.</span></div>
     <div class="bar">
       <div class="field"><label>회차</label><select id="cbLgSel" style="min-width:210px"></select></div>
       <button class="ghost" id="cbLgAdd"><i class="ti ti-plus"></i>회차 추가</button>
@@ -263,7 +263,7 @@
         </div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h3><i class="ti ti-ball-volleyball"></i>종목 · 참가 명단</h3><div class="spacer"></div><span class="unit">종목은 목록에서 고르고, 없으면 맨 위 "직접 입력…"을 고르세요. 대상은 학년을 체크하면 됩니다.</span></div>
+        <div class="panel-head"><h3><i class="ti ti-ball-volleyball"></i>종목 · 참가 명단</h3><div class="spacer"></div><span class="unit">참가 단위는 <b>반 대항 · 팀 대항 · 개인전</b> 중에서. 반 대항은 참가 수만 넣으면 1반, 2반… 이 자동으로, 팀 대항은 팀 이름과 주장, 개인전은 명단에서 학생을 고릅니다.</span></div>
         <div class="scroll-x"><table><thead><tr><th>종목</th><th>대상 (체크)</th><th>방식</th><th>참가 단위</th><th>참가 수</th><th>참가 명단</th><th></th></tr></thead><tbody id="cbLgGradeRows"></tbody></table></div>
         <div class="savebar">
           <button class="ghost" id="cbLgGradeAdd"><i class="ti ti-plus"></i>종목 추가</button>
@@ -328,7 +328,7 @@
   <!-- ===== 모달: 명단에서 선수 고르기 ===== -->
   <div id="cbMdLgStu" class="modal hide">
     <div style="max-width:720px">
-      <div class="panel-head"><h3><i class="ti ti-users"></i>명단에서 참가 선수 고르기</h3><div class="spacer"></div><button class="ghost mini" data-close="cbMdLgStu"><i class="ti ti-x"></i>닫기</button></div>
+      <div class="panel-head"><h3 id="cbLgStuTitle"><i class="ti ti-users"></i>명단에서 참가 선수 고르기</h3><div class="spacer"></div><button class="ghost mini" data-close="cbMdLgStu"><i class="ti ti-x"></i>닫기</button></div>
       <div class="panel-body">
         <div class="bar" style="margin:0 0 12px">
           <div class="field"><label>학년</label><select id="cbLgStuGrade"></select></div>
@@ -338,7 +338,7 @@
         </div>
         <div id="cbLgStuList" style="max-height:44vh;overflow:auto;display:flex;flex-wrap:wrap;gap:6px"></div>
       </div>
-      <div class="savebar"><span class="status" id="cbLgStuStatus"></span><div class="spacer"></div>
+      <div class="savebar"><span class="unit" id="cbLgStuHint"></span><span class="status" id="cbLgStuStatus"></span><div class="spacer"></div>
         <button id="cbLgStuAdd"><i class="ti ti-plus"></i>참가 명단에 넣기</button></div>
     </div>
   </div>
@@ -432,7 +432,6 @@
   </div>
   <datalist id="cbResultList"><option value="우승"><option value="준우승"><option value="3위"><option value="4위"><option value="예선 탈락"><option value="참가"></datalist>
   <datalist id="cbItemList"><option value="용품구입비"><option value="간식비"><option value="대회참가비"><option value="교통비"><option value="강사비"><option value="시설사용료"><option value="기타"></datalist>
-  <datalist id="cbLgSportList"><option value="8자 마라톤"><option value="피구형 게임"><option value="농구형 게임"><option value="발야구형 게임"><option value="배구형 게임"><option value="축구형 게임"><option value="티볼"><option value="줄넘기"><option value="플로어볼"><option value="핸드볼형 게임"></datalist>
 </div>
 
 <script>
@@ -1281,7 +1280,8 @@ MODS.CLUB.teacher = (function () {
   function lgSport(id) { var l = Lg(); return l ? (l.종목.filter(function (g) { return g.id === id; })[0] || null) : null; }
   function lgTeamName(g, id) { var t = (g.팀 || []).filter(function (x) { return x.id === id; })[0]; return t ? t.이름 : '(미정)'; }
   function lgLabel(g) { return g.종목 + (g.대상 ? ' · ' + g.대상 : ''); }
-  function lgUnitWord(g) { return g.단위 === '선수' ? '선수·팀' : '반'; }
+  function lgUnitWord(g) { return lgUnitName(g.단위); }        // 반 · 팀 · 선수
+  function lgSideWord(g) { return lgSideName(g.단위); }        // 담임 · 주장 · 소속
   function lgDone(m) { return m.상태 === '완료' || (m.홈점 !== '' && m.홈점 !== null && m.홈점 !== undefined && m.어웨이점 !== '' && m.어웨이점 !== null && m.어웨이점 !== undefined); }
   function lgSorted(g) { return (g.경기 || []).slice().sort(function (a, b) { return ((a.날짜 || '9999') + (a.교시 || '')).localeCompare((b.날짜 || '9999') + (b.교시 || '')) || (a.순 - b.순); }); }
   function lgRec(g, tid) { return (g.기록 || []).filter(function (x) { return x.팀 === tid; })[0] || {}; }
@@ -1358,10 +1358,15 @@ MODS.CLUB.teacher = (function () {
     $('cbLgGradeRows').innerHTML = l.종목.map(lgSportRowHtml).join('') || '<tr><td colspan="7" class="unit" style="padding:14px">"종목 추가"로 이 회차에서 운영할 종목을 넣어 주세요.</td></tr>';
     bindLgSportRows();
   }
+  /** 단위별 이름 */
+  function lgUnitName(단위) { return 단위 === '팀' ? '팀' : (단위 === '개인' ? '선수' : '반'); }
+  function lgSideName(단위) { return 단위 === '팀' ? '주장' : (단위 === '개인' ? '소속' : '담임'); }
   function lgTeamChip(t, 단위) {
+    var w = 단위 === '반' ? 62 : 96;
     return '<span class="lg-chip" style="display:inline-flex;gap:3px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:2px 4px">' +
-      '<input type="text" data-t="' + t.id + '" data-tk="이름" value="' + esc(t.이름) + '" placeholder="' + (단위 === '선수' ? '선수·팀 이름' : '반') + '" style="width:' + (단위 === '선수' ? 92 : 62) + 'px;padding:4px 6px">' +
-      '<input type="text" data-t="' + t.id + '" data-tk="소속" value="' + esc(t.소속 || '') + '" placeholder="' + (단위 === '선수' ? '학년·반' : '담임') + '" style="width:70px;padding:4px 6px">' +
+      '<input type="text" data-t="' + t.id + '" data-tk="이름" value="' + esc(t.이름) + '" placeholder="' + esc(lgUnitName(단위) + ' 이름') + '" style="width:' + w + 'px;padding:4px 6px">' +
+      '<input type="text" data-t="' + t.id + '" data-tk="소속" value="' + esc(t.소속 || '') + '" placeholder="' + esc(lgSideName(단위)) + '" style="width:' + (단위 === '팀' ? 76 : 70) + 'px;padding:4px 6px"' + (단위 === '팀' ? ' readonly' : '') + '>' +
+      (단위 === '팀' ? '<button class="mini ghost" data-cap title="주장 고르기" style="padding:2px 5px"><i class="ti ti-user"></i></button>' : '') +
       '<button class="mini ghost" data-chipdel title="빼기" style="padding:2px 5px"><i class="ti ti-x"></i></button></span>';
   }
   function lgSportRowHtml(g) {
@@ -1370,27 +1375,30 @@ MODS.CLUB.teacher = (function () {
     var 직접 = !!(g.종목 && !op.있음);
     return '<tr data-id="' + g.id + '" data-unit="' + 단위 + '">' +
       '<td><select data-k="종목선택" style="width:158px">' + op.html + '</select>' +
-        '<input type="text" class="text' + (직접 ? '' : ' hide') + '" data-k="종목" value="' + esc(직접 ? g.종목 : '') + '" list="cbLgSportList" placeholder="종목 이름" style="width:158px;margin-top:4px"></td>' +
+        '<input type="text" class="text' + (직접 ? '' : ' hide') + '" data-k="종목" value="' + esc(직접 ? g.종목 : '') + '" placeholder="종목 이름" style="width:158px;margin-top:4px"></td>' +
       '<td>' + lgTargetBox(g.대상 || '') + '</td>' +
       '<td><select data-k="방식"><option value="리그전"' + (g.방식 !== '기록' ? ' selected' : '') + '>리그전 (맞대결)</option><option value="기록"' + (g.방식 === '기록' ? ' selected' : '') + '>기록 경기 (8자 마라톤 등)</option></select></td>' +
-      '<td><select data-k="단위"><option value="반"' + (단위 !== '선수' ? ' selected' : '') + '>반 대항</option><option value="선수"' + (단위 === '선수' ? ' selected' : '') + '>선수·팀</option></select></td>' +
+      '<td><select data-k="단위">' + ['반', '팀', '개인'].map(function (u) {
+        return '<option value="' + u + '"' + (단위 === u ? ' selected' : '') + '>' + (u === '반' ? '반 대항' : u === '팀' ? '팀 대항' : '개인전') + '</option>';
+      }).join('') + '</select></td>' +
       '<td><input type="number" data-k="참가수" value="' + (g.팀 || []).length + '" min="0" max="24" style="width:68px"></td>' +
       '<td><div class="lg-teams" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">' + (g.팀 || []).map(function (t) { return lgTeamChip(t, 단위); }).join('') +
-        '<button class="mini ghost' + (단위 === '선수' ? '' : ' hide') + '" data-pick><i class="ti ti-users"></i>명단에서 고르기</button></div></td>' +
+        '<button class="mini ghost' + (단위 === '개인' ? '' : ' hide') + '" data-pick><i class="ti ti-users"></i>명단에서 고르기</button></div></td>' +
       '<td><button class="mini danger" data-del><i class="ti ti-trash"></i></button></td></tr>';
   }
   function lgChips(tr) { return qa('.lg-chip', tr).map(function (sp) { var i = sp.querySelector('[data-tk=이름]'); return { id: i.dataset.t, 이름: i.value, 소속: sp.querySelector('[data-tk=소속]').value }; }); }
   function lgDrawChips(tr, list) {
     var 단위 = tr.dataset.unit, box = tr.querySelector('.lg-teams');
     box.innerHTML = list.map(function (t) { return lgTeamChip(t, 단위); }).join('') +
-      '<button class="mini ghost' + (단위 === '선수' ? '' : ' hide') + '" data-pick><i class="ti ti-users"></i>명단에서 고르기</button>';
+      '<button class="mini ghost' + (단위 === '개인' ? '' : ' hide') + '" data-pick><i class="ti ti-users"></i>명단에서 고르기</button>';
     tr.querySelector('[data-k=참가수]').value = list.length;
     bindLgChipBtns(tr);
   }
   function bindLgChipBtns(tr) {
     qa('[data-chipdel]', tr).forEach(function (b) { b.onclick = function () { lgDrawChips(tr, lgChips(tr).filter(function (x) { return x.id !== b.parentNode.querySelector('[data-tk=이름]').dataset.t; })); }; });
+    qa('[data-cap]', tr).forEach(function (b) { b.onclick = function () { lgStuModal(tr, b.parentNode.querySelector('[data-tk=소속]')); }; });
     var pick = tr.querySelector('[data-pick]');
-    if (pick) pick.onclick = function () { lgStuModal(tr); };
+    if (pick) pick.onclick = function () { lgStuModal(tr, null); };
   }
   function bindLgSportRows() {
     qa('#cbLgGradeRows tr[data-id]').forEach(function (tr) {
@@ -1414,13 +1422,16 @@ MODS.CLUB.teacher = (function () {
       });
       tr.querySelector('[data-del]').onclick = function () { if (confirm('이 종목과 경기 기록을 지울까요?\n저장을 눌러야 실제로 지워집니다.')) tr.remove(); };
       tr.querySelector('[data-k=단위]').onchange = function () {
-        tr.dataset.unit = this.value;
+        var u = this.value;
+        tr.dataset.unit = u;
         var cur = lgChips(tr).map(function (t, i) {
-          var nm = (t.이름 || '').trim();
-          if (this.value === '선수' && /^\d+반$/.test(nm)) nm = '';          // 반 기본값은 선수 칸에서 비웁니다
-          if (this.value === '반' && !nm) nm = (i + 1) + '반';
-          return { id: t.id, 이름: nm, 소속: t.소속 };
-        }, this);
+          var nm = (t.이름 || '').trim(), 소속 = t.소속 || '';
+          if (u !== '반' && /^\d+반$/.test(nm)) nm = '';                 // 반 기본값은 팀·개인 칸에서 비웁니다
+          if (u === '반' && !nm) nm = (i + 1) + '반';
+          if (u === '팀' && !nm) nm = i + 1 + '팀';
+          if (u !== '개인' && /^\d+-\d+$/.test(소속)) 소속 = '';          // 개인전에서 넣은 "5-1" 은 팀·반 칸에 맞지 않습니다
+          return { id: t.id, 이름: nm, 소속: 소속 };
+        });
         lgDrawChips(tr, cur);
       };
       tr.querySelector('[data-k=참가수]').onchange = function () {
@@ -1463,10 +1474,14 @@ MODS.CLUB.teacher = (function () {
   };
 
   /* ---------- 명단에서 선수 고르기 ---------- */
-  var LGSTU_TR = null;
-  function lgStuModal(tr) {
-    LGSTU_TR = tr;
+  var LGSTU_TR = null, LGSTU_CAP = null;   // LGSTU_CAP 이 있으면 "주장 고르기" 모드
+  function lgStuModal(tr, capInput) {
+    LGSTU_TR = tr; LGSTU_CAP = capInput || null;
     $('cbMdLgStu').classList.remove('hide');
+    $('cbLgStuTitle').innerHTML = '<i class="ti ti-users"></i>' + (LGSTU_CAP ? '명단에서 주장 고르기' : '명단에서 참가 선수 고르기');
+    $('cbLgStuAll').classList.toggle('hide', !!LGSTU_CAP);
+    $('cbLgStuAdd').classList.toggle('hide', !!LGSTU_CAP);
+    $('cbLgStuHint').textContent = LGSTU_CAP ? '학생을 누르면 바로 주장이 됩니다.' : '';
     setSt('cbLgStuStatus', '');
     var gs = allGrades();
     $('cbLgStuGrade').innerHTML = gs.map(function (g) { return '<option value="' + g + '">' + g + '학년</option>'; }).join('');
@@ -1477,9 +1492,24 @@ MODS.CLUB.teacher = (function () {
     $('cbLgStuList').innerHTML = '<span class="unit">불러오는 중…</span>';
     api('club_t_lgStudents', TOKEN, $('cbLgStuGrade').value, $('cbLgStuClass').value).then(function (list) {
       LGSTU = list || [];
-      $('cbLgStuList').innerHTML = LGSTU.length ? LGSTU.map(function (s, i) {
+      if (!LGSTU.length) { $('cbLgStuList').innerHTML = '<span class="unit">그 학년·반에 학생이 없습니다.</span>'; return; }
+      if (LGSTU_CAP) {
+        $('cbLgStuList').innerHTML = LGSTU.map(function (s, i) {
+          return '<button class="mini ghost" data-cap-i="' + i + '">' + esc(s.학년 + '-' + s.반 + '-' + s.번호 + ' ' + s.이름) + '</button>';
+        }).join('');
+        qa('#cbLgStuList [data-cap-i]').forEach(function (b) {
+          b.onclick = function () {
+            var st = LGSTU[Number(b.dataset.capI)];
+            LGSTU_CAP.value = st.이름 + ' (' + st.학년 + '-' + st.반 + ')';
+            $('cbMdLgStu').classList.add('hide');
+            toast(st.이름 + ' 학생을 주장으로 넣었습니다. 저장을 눌러 주세요.');
+          };
+        });
+        return;
+      }
+      $('cbLgStuList').innerHTML = LGSTU.map(function (s, i) {
         return '<label class="chk sm"><input type="checkbox" data-i="' + i + '"><span>' + esc(s.학년 + '-' + s.반 + '-' + s.번호 + ' ' + s.이름) + '</span></label>';
-      }).join('') : '<span class="unit">그 학년·반에 학생이 없습니다.</span>';
+      }).join('');
     }).catch(handleErr);
   }
   $('cbLgStuGrade').onchange = lgStuLoad;
@@ -1522,7 +1552,7 @@ MODS.CLUB.teacher = (function () {
     ['cbLgGen', 'cbLgFill', 'cbLgRowAdd', 'cbLgFillDateBox', 'cbLgFillPeriodBox'].forEach(function (id) { $(id).classList.toggle('hide', isRec); });
     $('cbLgMatchHint').textContent = isRec ? '1차·2차 기록 중 높은 쪽이 순위가 됩니다.' : '스코어를 둘 다 넣으면 "완료"로 바뀝니다.';
     if (isRec) {
-      $('cbLgMatchHead').innerHTML = '<tr><th>' + esc(단위) + '</th><th>소속</th><th>1차 기록</th><th>2차 기록</th><th>최고</th><th>경기일</th><th>비고</th></tr>';
+      $('cbLgMatchHead').innerHTML = '<tr><th>' + esc(단위) + '</th><th>' + esc(lgSideWord(g)) + '</th><th>1차 기록</th><th>2차 기록</th><th>최고</th><th>경기일</th><th>비고</th></tr>';
       $('cbLgMatchRows').innerHTML = g.팀.map(function (t) {
         var r = lgRec(g, t.id);
         return '<tr data-t="' + t.id + '"><td class="name">' + esc(t.이름) + '</td><td class="unit">' + esc(t.소속 || '') + '</td>' +
@@ -1666,7 +1696,7 @@ MODS.CLUB.teacher = (function () {
         var u = lgUnitWord(g);
         h += '<div' + (gi ? ' class="pb"' : '') + ' style="text-align:center"><h1 style="font-size:22pt;margin-top:8pt">' + esc(l.학년도 + '년 ' + l.이름) + '</h1><h1 style="font-size:19pt;margin-bottom:14pt">' + esc(lgLabel(g)) + ' 대진표</h1></div>';
         if (g.방식 === '기록') {
-          h += '<table style="font-size:13pt"><thead><tr><th>순위</th><th>' + esc(u) + '</th><th>소속</th><th>1차</th><th>2차</th><th>최고 기록</th></tr></thead><tbody>' +
+          h += '<table style="font-size:13pt"><thead><tr><th>순위</th><th>' + esc(u) + '</th><th>' + esc(lgSideWord(g)) + '</th><th>1차</th><th>2차</th><th>최고 기록</th></tr></thead><tbody>' +
             lgRecStand(g).map(function (r) { return '<tr><td class="c">' + r.순위 + '</td><td class="c">' + esc(r.팀.이름) + '</td><td class="c">' + esc(r.팀.소속 || '') + '</td><td class="c">' + esc(r.r1) + '</td><td class="c">' + esc(r.r2) + '</td><td class="c"><b>' + (r.최고 === null ? '' : r.최고) + '</b></td></tr>'; }).join('') + '</tbody></table>';
         } else {
           h += '<table style="font-size:13pt"><thead><tr><th>순</th><th>경기일자</th><th>교시</th><th>경기</th><th>결과</th></tr></thead><tbody>' +
@@ -1692,7 +1722,7 @@ MODS.CLUB.teacher = (function () {
       h += '<h3>' + (gi + 1) + ') ' + esc(lgLabel(g)) + (g.팀.length ? ' <span style="font-weight:400;font-size:9pt">— ' + esc(lgRoster(g)) + '</span>' : '') + '</h3>';
       if (g.방식 === '기록') {
         var rs = t === 'result' ? lgRecStand(g) : g.팀.map(function (tm) { return { 팀: tm, r1: '', r2: '', 날짜: '', 비고: lgRec(g, tm.id).비고 || '', 최고: null, 순위: '' }; });
-        h += '<table><thead><tr><th>순</th><th>' + esc(u) + '</th><th>소속</th><th>경기일자</th><th>1차</th><th>2차</th><th>최고 기록</th>' + (t === 'result' ? '<th>순위</th>' : '') + '<th>비고</th></tr></thead><tbody>' +
+        h += '<table><thead><tr><th>순</th><th>' + esc(u) + '</th><th>' + esc(lgSideWord(g)) + '</th><th>경기일자</th><th>1차</th><th>2차</th><th>최고 기록</th>' + (t === 'result' ? '<th>순위</th>' : '') + '<th>비고</th></tr></thead><tbody>' +
           rs.map(function (r, i) {
             return '<tr><td class="c">' + (i + 1) + '</td><td class="c">' + esc(r.팀.이름) + '</td><td class="c">' + esc(r.팀.소속 || '') + '</td><td class="c">' + esc(t === 'result' && r.날짜 ? kdate(r.날짜) : '') + '</td><td class="c">' + esc(r.r1) + '</td><td class="c">' + esc(r.r2) + '</td><td class="c"><b>' + (r.최고 === null ? '' : r.최고) + '</b></td>' + (t === 'result' ? '<td class="c">' + r.순위 + '</td>' : '') + '<td>' + esc(r.비고 || '') + '</td></tr>';
           }).join('') + '</tbody></table>';
@@ -1720,7 +1750,7 @@ MODS.CLUB.teacher = (function () {
         x.p(l.학년도 + '년 ' + l.이름, { b: true, sz: 40, align: 'center', after: 80 });
         x.p(lgLabel(g) + ' 대진표', { b: true, sz: 36, align: 'center', after: 240 });
         if (g.방식 === '기록') {
-          var rows = [['순위', u, '소속', '1차', '2차', '최고 기록']];
+          var rows = [['순위', u, lgSideWord(g), '1차', '2차', '최고 기록']];
           lgRecStand(g).forEach(function (r) { rows.push([r.순위, r.팀.이름, r.팀.소속 || '', r.r1, r.r2, { t: r.최고 === null ? '' : String(r.최고), b: true }]); });
           x.table(rows, cols([10, 16, 18, 16, 16, 24]), { header: true, sz: 26, aligns: rows[0].map(function () { return 'center'; }) });
         } else {
@@ -1749,7 +1779,7 @@ MODS.CLUB.teacher = (function () {
       var u = lgUnitWord(g);
       x.p((gi + 1) + ') ' + lgLabel(g) + (g.팀.length ? '  — ' + lgRoster(g) : ''), { b: true, before: 120, after: 40, keep: true });
       if (g.방식 === '기록') {
-        var head = ['순', u, '소속', '경기일자', '1차', '2차', '최고 기록']; if (t === 'result') head.push('순위'); head.push('비고');
+        var head = ['순', u, lgSideWord(g), '경기일자', '1차', '2차', '최고 기록']; if (t === 'result') head.push('순위'); head.push('비고');
         var rows = [head];
         var list = t === 'result' ? lgRecStand(g) : g.팀.map(function (tm) { return { 팀: tm, r1: '', r2: '', 날짜: '', 비고: lgRec(g, tm.id).비고 || '', 최고: null, 순위: '' }; });
         list.forEach(function (r, i) {
