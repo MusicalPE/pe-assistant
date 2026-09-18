@@ -15,16 +15,29 @@
  *   클럽_대회   : 대회ID, 클럽ID, 일자, 대회명, 주최, 장소, 결과, 인원, 비고
  *   클럽_예산   : 예산ID, 클럽ID, 항목, 세부, 단가, 수량, 금액, 집행일, 비고
  *   클럽_사진   : 사진ID, 클럽ID, 날짜, 설명, 파일ID, 썸네일ID, 파일명, 업로드일시
+ *
+ * 교내 리그전 (클럽과는 따로 도는 학교 전체 리그)
+ *   클럽_리그     : 리그ID, 학년도, 이름, 시작, 종료, 승점승, 승점무, 승점패, 장소, 방침, 등록일
+ *   클럽_리그종목 : 종목ID, 리그ID, 순, 종목, 대상, 방식(리그전|기록), 참가단위(반|선수)
+ *   클럽_리그팀   : 팀ID, 종목ID, 리그ID, 순, 이름, 소속
+ *   클럽_리그경기 : 경기ID, 종목ID, 리그ID, 순, 날짜, 교시, 홈팀ID, 어웨이팀ID, 홈점, 어웨이점, 상태, 비고
+ *   클럽_리그기록 : 기록ID, 종목ID, 리그ID, 팀ID, 1차, 2차, 날짜, 비고
  *******************************************************/
 
-var CLUB = { 클럽: '클럽_클럽', 참가자: '클럽_참가자', 활동: '클럽_활동', 대회: '클럽_대회', 예산: '클럽_예산', 사진: '클럽_사진' };
+var CLUB = { 클럽: '클럽_클럽', 참가자: '클럽_참가자', 활동: '클럽_활동', 대회: '클럽_대회', 예산: '클럽_예산', 사진: '클럽_사진',
+             리그: '클럽_리그', 리그종목: '클럽_리그종목', 리그팀: '클럽_리그팀', 리그경기: '클럽_리그경기', 리그기록: '클럽_리그기록' };
 var CLUB_H = {
   클럽:   ['클럽ID', '학년도', '이름', '종목', '대상', '운영시작', '운영종료', '활동시간대', '활동장소', '목표시간', '배정예산', '개요', '내용', '결과', '직위', '주소', '등록일'],
   참가자: ['클럽ID', '학생ID', '이름', '비고', '등록일'],
   활동:   ['활동ID', '클럽ID', '날짜', '시작', '종료', '분', '유형', '장소', '내용', '비고', '참여학생ID', '참여수', '입력일시'],
   대회:   ['대회ID', '클럽ID', '일자', '대회명', '주최', '장소', '결과', '인원', '비고'],
   예산:   ['예산ID', '클럽ID', '항목', '세부', '단가', '수량', '금액', '집행일', '비고'],
-  사진:   ['사진ID', '클럽ID', '날짜', '설명', '파일ID', '썸네일ID', '파일명', '업로드일시']
+  사진:   ['사진ID', '클럽ID', '날짜', '설명', '파일ID', '썸네일ID', '파일명', '업로드일시'],
+  리그:     ['리그ID', '학년도', '이름', '시작', '종료', '승점승', '승점무', '승점패', '장소', '방침', '등록일'],
+  리그종목: ['종목ID', '리그ID', '순', '종목', '대상', '방식', '참가단위'],
+  리그팀:   ['팀ID', '종목ID', '리그ID', '순', '이름', '소속'],
+  리그경기: ['경기ID', '종목ID', '리그ID', '순', '날짜', '교시', '홈팀ID', '어웨이팀ID', '홈점', '어웨이점', '상태', '비고'],
+  리그기록: ['기록ID', '종목ID', '리그ID', '팀ID', '1차', '2차', '날짜', '비고']
 };
 var CLUB_색 = '#FFF4D1';
 var CLUB_FOLDER_KEY = 'CLUB_PHOTO_FOLDER_ID';
@@ -57,6 +70,17 @@ function club_hooks_() {
                    설명: '참가 ' + c.참가자.length + '명 · 누적 ' + c.활동.length + '회 ' + Math.round(총분 / 60 * 10) / 10 + '시간' + (최근 ? ' · 최근 ' + 최근.날짜.slice(5).replace('-', '/') : ''), 이동: 'dash' });
       });
       if (!카드.length) 카드.push({ 제목: '스포츠클럽', 값: 0, 단위: '개', 설명: '클럽 설정에서 첫 클럽을 만들어 주세요', 이동: 'settings' });
+      var 리그 = club_리그목록_();
+      if (리그.length) {
+        var l = 리그[0], 전체 = 0, 완료 = 0, 팀수 = 0;
+        l.종목.forEach(function (g) {
+          팀수 += g.팀.length;
+          if (g.방식 === '기록') { 전체 += g.팀.length; 완료 += g.기록.filter(function (r) { return r['1차'] !== '' || r['2차'] !== ''; }).length; }
+          else { 전체 += g.경기.length; 완료 += g.경기.filter(club_경기끝_).length; }
+        });
+        카드.push({ 제목: l.이름 || '교내 리그전', 값: 완료, 단위: '/ ' + 전체 + '경기',
+                   설명: l.종목.length + '개 종목 · 참가 ' + 팀수 + '팀' + (전체 && 완료 === 전체 ? ' · 모두 끝났습니다' : ''), 이동: 'lgSched' });
+      }
       return { 카드: 카드 };
     },
     학생프로필: function (학생ID) {
@@ -75,7 +99,8 @@ function club_hooks_() {
       return [
         { key: '기록', 이름: '활동 일지·대회 실적·예산 집행 (클럽·참가자는 남음)', 수: rows_(CLUB.활동).length + rows_(CLUB.대회).length + rows_(CLUB.예산).length },
         { key: '사진', 이름: '활동 사진 (드라이브 파일도 휴지통으로)', 수: rows_(CLUB.사진).length },
-        { key: '클럽', 이름: '클럽·참가 학생까지 모두', 수: rows_(CLUB.클럽).length }
+        { key: '클럽', 이름: '클럽·참가 학생까지 모두', 수: rows_(CLUB.클럽).length },
+        { key: '리그', 이름: '교내 리그전 (회차·종목·참가 명단·대진·결과까지 모두)', 수: rows_(CLUB.리그).length }
       ];
     },
     초기화: function (opts) {
@@ -89,6 +114,7 @@ function club_hooks_() {
         res.사진 = 시트비우기_(CLUB.사진);
       }
       if (opts.클럽) { res.클럽 = 시트비우기_(CLUB.클럽); 시트비우기_(CLUB.참가자); }
+      if (opts.리그) { res.리그 = 시트비우기_(CLUB.리그); 시트비우기_(CLUB.리그종목); 시트비우기_(CLUB.리그팀); 시트비우기_(CLUB.리그경기); 시트비우기_(CLUB.리그기록); }
       club_캐시지우기_();
       return res;
     },
@@ -108,7 +134,7 @@ function club_hooks_() {
 
 /* ================= 읽기 ================= */
 
-function club_캐시지우기_() { 캐시지우기_('club_all'); }
+function club_캐시지우기_() { 캐시지우기_('club_all'); 캐시지우기_('club_lg'); }
 function club_시각_(v) {
   if (v instanceof Date) return ('0' + v.getHours()).slice(-2) + ':' + ('0' + v.getMinutes()).slice(-2);
   var m = str_(v).match(/(\d{1,2}):(\d{2})/);
@@ -398,3 +424,266 @@ function club_t_getPhotoData(token, ids) {
 }
 
 function club_t_folderUrl(token) { 교사확인_(token); return club_폴더_().getUrl(); }
+
+/* =====================================================================
+   교내 리그전 — 회차 · 종목(부문) · 참가 팀(반 또는 선수) · 대진 · 결과 · 순위
+   클럽 활동과는 따로 도는 학교 전체 리그입니다.
+   한 회차 안에 종목을 여러 개 두고, 종목마다 참가 단위(반 대항 / 선수·팀)와
+   참가 명단을 따로 넣습니다.
+   ===================================================================== */
+
+var CLUB_리그방식 = ['리그전', '기록'];
+var CLUB_리그단위 = ['반', '선수'];
+var CLUB_리그상태 = ['예정', '완료', '연기'];
+
+function club_경기끝_(m) {
+  return m.상태 === '완료' || (m.홈점 !== '' && m.홈점 !== null && m.어웨이점 !== '' && m.어웨이점 !== null);
+}
+
+/** 모든 회차를 화면이 쓰는 모양으로 (종목·참가팀·경기·기록 포함). 캐시됨 */
+function club_리그목록_() {
+  return 캐시_('club_lg', function () {
+    var 학년도 = str_(설정_().학년도);
+    var by = {}, list = [], 종목맵 = {};
+    rows_(CLUB.리그).forEach(function (r) {
+      var id = str_(r.리그ID); if (!id) return;
+      var l = { id: id, 학년도: str_(r.학년도) || 학년도, 이름: str_(r.이름) || '교내 리그전',
+                시작: 날짜정리_(r.시작), 종료: 날짜정리_(r.종료),
+                승점: { 승: num_(r.승점승) === null ? 3 : num_(r.승점승), 무: num_(r.승점무) === null ? 1 : num_(r.승점무), 패: num_(r.승점패) === null ? 0 : num_(r.승점패) },
+                장소: str_(r.장소), 방침: str_(r.방침), 등록일: 날짜정리_(r.등록일), 종목: [] };
+      by[id] = l; list.push(l);
+    });
+    rows_(CLUB.리그종목).forEach(function (r) {
+      var l = by[str_(r.리그ID)], id = str_(r.종목ID);
+      if (!l || !id) return;
+      var g = { id: id, 순: num_(r.순) || 0, 종목: str_(r.종목), 대상: str_(r.대상),
+                방식: CLUB_리그방식.indexOf(str_(r.방식)) >= 0 ? str_(r.방식) : '리그전',
+                단위: CLUB_리그단위.indexOf(str_(r.참가단위)) >= 0 ? str_(r.참가단위) : '반',
+                팀: [], 경기: [], 기록: [] };
+      종목맵[id] = g; l.종목.push(g);
+    });
+    rows_(CLUB.리그팀).forEach(function (r) {
+      var g = 종목맵[str_(r.종목ID)]; if (!g || !str_(r.팀ID)) return;
+      g.팀.push({ id: str_(r.팀ID), 순: num_(r.순) || 0, 이름: str_(r.이름), 소속: str_(r.소속) });
+    });
+    rows_(CLUB.리그경기).forEach(function (r) {
+      var g = 종목맵[str_(r.종목ID)]; if (!g || !str_(r.경기ID)) return;
+      g.경기.push({ id: str_(r.경기ID), 순: num_(r.순) || 0, 날짜: 날짜정리_(r.날짜), 교시: str_(r.교시),
+                   홈: str_(r.홈팀ID), 어웨이: str_(r.어웨이팀ID),
+                   홈점: num_(r.홈점) === null ? '' : num_(r.홈점), 어웨이점: num_(r.어웨이점) === null ? '' : num_(r.어웨이점),
+                   상태: CLUB_리그상태.indexOf(str_(r.상태)) >= 0 ? str_(r.상태) : '예정', 비고: str_(r.비고) });
+    });
+    rows_(CLUB.리그기록).forEach(function (r) {
+      var g = 종목맵[str_(r.종목ID)]; if (!g || !str_(r.팀ID)) return;
+      g.기록.push({ 팀: str_(r.팀ID), '1차': num_(r['1차']) === null ? '' : num_(r['1차']), '2차': num_(r['2차']) === null ? '' : num_(r['2차']),
+                   날짜: 날짜정리_(r.날짜), 비고: str_(r.비고) });
+    });
+    list.forEach(function (l) {
+      l.종목.sort(function (a, b) { return (a.순 - b.순) || String(a.종목).localeCompare(String(b.종목), 'ko'); });
+      l.종목.forEach(function (g) {
+        g.팀.sort(function (a, b) { return (a.순 - b.순) || String(a.이름).localeCompare(String(b.이름), 'ko'); });
+        g.경기.sort(function (a, b) { return a.순 - b.순; });
+      });
+    });
+    list.sort(function (a, b) { return String(b.학년도 + b.등록일).localeCompare(String(a.학년도 + a.등록일)); });
+    return list;
+  });
+}
+
+function club_리그찾기_(id) {
+  var hit = club_리그목록_().filter(function (l) { return l.id === str_(id); })[0];
+  if (!hit) throw new Error('리그 회차를 찾지 못했습니다. 화면을 새로 고쳐 주세요.');
+  return hit;
+}
+function club_리그종목찾기_(l, gid) {
+  var hit = l.종목.filter(function (g) { return g.id === str_(gid); })[0];
+  if (!hit) throw new Error('종목을 찾지 못했습니다. 화면을 새로 고쳐 주세요.');
+  return hit;
+}
+
+/* ---------- 교사 API ---------- */
+
+function club_t_lgBoot(token) {
+  교사확인_(token);
+  return { 설정: club_설정_(), 리그: club_리그목록_(), 오늘: 오늘_() };
+}
+
+/** 회차 추가. copyFrom 이 있으면 종목·참가 명단 구성을 복사합니다 (경기는 복사하지 않음) */
+function club_t_lgAddSeason(token, 이름, copyFrom) {
+  교사확인_(token);
+  var 설정 = 설정_();
+  var src = str_(copyFrom) ? club_리그목록_().filter(function (l) { return l.id === str_(copyFrom); })[0] : null;
+  var id = makeId_('L');
+  return withLock_(function () {
+    appendRow_(CLUB.리그, CLUB_H.리그, {
+      리그ID: id, 학년도: str_(설정.학년도), 이름: str_(이름).slice(0, 60) || '교내 리그전',
+      시작: '', 종료: '',
+      승점승: src ? src.승점.승 : 3, 승점무: src ? src.승점.무 : 1, 승점패: src ? src.승점.패 : 0,
+      장소: src ? src.장소 : '',
+      방침: src ? src.방침 : '모든 학생이 한 번씩 경기에 참여함.\n경기 중 발생하는 비신사적인 행동(비방, 욕설 등)은 퇴장 조치함.\n경기에 참여하지 않는 학생은 선수들을 응원하도록 함.',
+      등록일: 오늘_()
+    });
+    if (src) {
+      var 종목행 = [], 팀행 = [];
+      src.종목.forEach(function (g, i) {
+        var gid = makeId_('G') + Math.floor(Math.random() * 90 + 10);
+        종목행.push({ 종목ID: gid, 리그ID: id, 순: i + 1, 종목: g.종목, 대상: g.대상, 방식: g.방식, 참가단위: g.단위 });
+        g.팀.forEach(function (t, j) { 팀행.push({ 팀ID: makeId_('T') + Math.floor(Math.random() * 90 + 10), 종목ID: gid, 리그ID: id, 순: j + 1, 이름: t.이름, 소속: t.소속 }); });
+      });
+      appendRows_(CLUB.리그종목, CLUB_H.리그종목, 종목행);
+      appendRows_(CLUB.리그팀, CLUB_H.리그팀, 팀행);
+    }
+    club_캐시지우기_();
+    return { ok: true, id: id, 리그: club_리그목록_() };
+  });
+}
+
+function club_t_lgDeleteSeason(token, 리그ID) {
+  교사확인_(token);
+  var l = club_리그찾기_(리그ID);
+  return withLock_(function () {
+    var 같은 = function (o) { return str_(o.리그ID) === l.id; };
+    행지우기_(CLUB.리그기록, 같은); 행지우기_(CLUB.리그경기, 같은); 행지우기_(CLUB.리그팀, 같은);
+    행지우기_(CLUB.리그종목, 같은);
+    행지우기_(CLUB.리그, function (o) { return str_(o.리그ID) === l.id; });
+    club_캐시지우기_();
+    return { ok: true, 리그: club_리그목록_() };
+  });
+}
+
+/**
+ * 회차 정보 + 종목·참가 명단을 통째로 저장합니다.
+ * m = { id, 학년도, 이름, 시작, 종료, 승점:{승,무,패}, 장소, 방침,
+ *       종목:[ { id?, 종목, 대상, 방식, 단위, 팀:[{ id?, 이름, 소속 }] } ] }
+ * 없어진 종목·참가 팀에 딸린 경기·기록도 함께 정리합니다.
+ */
+function club_t_lgSaveSetup(token, m) {
+  교사확인_(token);
+  m = m || {};
+  var l = club_리그찾기_(m.id);
+  var 승점 = m.승점 || {};
+  return withLock_(function () {
+    var hit = rows_(CLUB.리그).filter(function (r) { return str_(r.리그ID) === l.id; })[0];
+    if (hit) setCells_(CLUB.리그, CLUB_H.리그, hit._row, {
+      학년도: str_(m.학년도) || l.학년도, 이름: str_(m.이름).slice(0, 60) || l.이름,
+      시작: 날짜정리_(m.시작), 종료: 날짜정리_(m.종료),
+      승점승: Math.max(0, num_(승점.승) || 0), 승점무: Math.max(0, num_(승점.무) || 0), 승점패: Math.max(0, num_(승점.패) || 0),
+      장소: str_(m.장소).slice(0, 100), 방침: str_(m.방침).slice(0, 2000)
+    });
+
+    var 종목행 = [], 팀행 = [], 살린종목 = {}, 살린팀 = {};
+    (m.종목 || []).slice(0, 20).forEach(function (g, i) {
+      var 종목 = str_(g.종목).slice(0, 30); if (!종목) return;
+      var gid = str_(g.id) || (makeId_('G') + Math.floor(Math.random() * 90 + 10));
+      살린종목[gid] = true;
+      종목행.push({ 종목ID: gid, 리그ID: l.id, 순: i + 1, 종목: 종목, 대상: str_(g.대상).slice(0, 30),
+                   방식: CLUB_리그방식.indexOf(str_(g.방식)) >= 0 ? str_(g.방식) : '리그전',
+                   참가단위: CLUB_리그단위.indexOf(str_(g.단위)) >= 0 ? str_(g.단위) : '반' });
+      (g.팀 || []).slice(0, 24).forEach(function (t, j) {
+        var tid = str_(t.id) || (makeId_('T') + Math.floor(Math.random() * 90 + 10));
+        살린팀[tid] = true;
+        팀행.push({ 팀ID: tid, 종목ID: gid, 리그ID: l.id, 순: j + 1, 이름: str_(t.이름).slice(0, 30) || (j + 1), 소속: str_(t.소속).slice(0, 30) });
+      });
+    });
+
+    var 같은 = function (o) { return str_(o.리그ID) === l.id; };
+    행지우기_(CLUB.리그종목, 같은); 행지우기_(CLUB.리그팀, 같은);
+    appendRows_(CLUB.리그종목, CLUB_H.리그종목, 종목행);
+    appendRows_(CLUB.리그팀, CLUB_H.리그팀, 팀행);
+    행지우기_(CLUB.리그경기, function (o) {
+      return str_(o.리그ID) === l.id && (!살린종목[str_(o.종목ID)] || !살린팀[str_(o.홈팀ID)] || !살린팀[str_(o.어웨이팀ID)]);
+    });
+    행지우기_(CLUB.리그기록, function (o) {
+      return str_(o.리그ID) === l.id && (!살린종목[str_(o.종목ID)] || !살린팀[str_(o.팀ID)]);
+    });
+    club_캐시지우기_();
+    return { ok: true, 리그: club_리그목록_() };
+  });
+}
+
+/** 대진 자동 생성 (라운드로빈). 그 종목의 기존 경기는 지웁니다 */
+function club_t_lgGenerate(token, 리그ID, 종목ID) {
+  교사확인_(token);
+  var l = club_리그찾기_(리그ID), g = club_리그종목찾기_(l, 종목ID);
+  if (g.팀.length < 2) throw new Error('참가 팀이 2개 이상 있어야 대진을 만들 수 있습니다.');
+  var pairs = club_라운드로빈_(g.팀.map(function (t) { return t.id; }));
+  var rows = pairs.map(function (p, i) {
+    return { 경기ID: makeId_('M') + Math.floor(Math.random() * 90 + 10), 종목ID: g.id, 리그ID: l.id, 순: i + 1,
+             날짜: '', 교시: '', 홈팀ID: p[0], 어웨이팀ID: p[1], 홈점: '', 어웨이점: '', 상태: '예정', 비고: '' };
+  });
+  return withLock_(function () {
+    행지우기_(CLUB.리그경기, function (o) { return str_(o.종목ID) === g.id; });
+    appendRows_(CLUB.리그경기, CLUB_H.리그경기, rows);
+    club_캐시지우기_();
+    return { ok: true, 경기수: rows.length, 리그: club_리그목록_() };
+  });
+}
+
+function club_라운드로빈_(ids) {
+  var out = [];
+  if (ids.length === 2) return [[ids[0], ids[1]], [ids[1], ids[0]]];
+  var t = ids.slice();
+  if (t.length % 2) t.push(null);
+  var n = t.length, rounds = n - 1;
+  for (var r = 0; r < rounds; r++) {
+    for (var i = 0; i < n / 2; i++) {
+      var a = t[i], b = t[n - 1 - i];
+      if (a && b) out.push(r % 2 ? [b, a] : [a, b]);
+    }
+    t.splice(1, 0, t.pop());
+  }
+  return out;
+}
+
+/**
+ * 한 종목의 경기 일정(또는 기록)을 통째로 저장합니다.
+ * rows = [{ id?, 날짜, 교시, 홈, 어웨이, 홈점, 어웨이점, 상태, 비고 }]  (리그전)
+ *      = [{ 팀, 1차, 2차, 날짜, 비고 }]                                (기록)
+ */
+function club_t_lgSaveSchedule(token, 리그ID, 종목ID, rows) {
+  교사확인_(token);
+  var l = club_리그찾기_(리그ID), g = club_리그종목찾기_(l, 종목ID);
+  var 팀 = {}; g.팀.forEach(function (t) { 팀[t.id] = true; });
+  var objs = [];
+  if (g.방식 === '기록') {
+    (rows || []).forEach(function (r) {
+      var tid = str_(r.팀); if (!팀[tid]) return;
+      objs.push({ 기록ID: makeId_('R') + Math.floor(Math.random() * 90 + 10), 종목ID: g.id, 리그ID: l.id, 팀ID: tid,
+                  '1차': num_(r['1차']) === null ? '' : num_(r['1차']), '2차': num_(r['2차']) === null ? '' : num_(r['2차']),
+                  날짜: 날짜정리_(r.날짜), 비고: str_(r.비고).slice(0, 100) });
+    });
+  } else {
+    (rows || []).slice(0, 300).forEach(function (r, i) {
+      var h = str_(r.홈), a = str_(r.어웨이);
+      if (!팀[h] || !팀[a]) return;
+      var hp = num_(r.홈점), ap = num_(r.어웨이점);
+      var 상태 = CLUB_리그상태.indexOf(str_(r.상태)) >= 0 ? str_(r.상태) : '예정';
+      if (hp !== null && ap !== null && 상태 === '예정') 상태 = '완료';
+      objs.push({ 경기ID: str_(r.id) || (makeId_('M') + Math.floor(Math.random() * 90 + 10)), 종목ID: g.id, 리그ID: l.id, 순: i + 1,
+                  날짜: 날짜정리_(r.날짜), 교시: str_(r.교시).slice(0, 20), 홈팀ID: h, 어웨이팀ID: a,
+                  홈점: hp === null ? '' : hp, 어웨이점: ap === null ? '' : ap, 상태: 상태, 비고: str_(r.비고).slice(0, 100) });
+    });
+  }
+  return withLock_(function () {
+    if (g.방식 === '기록') {
+      행지우기_(CLUB.리그기록, function (o) { return str_(o.종목ID) === g.id; });
+      appendRows_(CLUB.리그기록, CLUB_H.리그기록, objs);
+    } else {
+      행지우기_(CLUB.리그경기, function (o) { return str_(o.종목ID) === g.id; });
+      appendRows_(CLUB.리그경기, CLUB_H.리그경기, objs);
+    }
+    club_캐시지우기_();
+    return { ok: true, 저장: objs.length, 리그: club_리그목록_() };
+  });
+}
+
+/** 공통 학생 명단에서 참가 선수 후보를 뽑습니다 (선수 단위 종목의 "명단에서 고르기") */
+function club_t_lgStudents(token, 학년, 반) {
+  교사확인_(token);
+  var 학년n = num_(학년), 반n = num_(반);
+  return 학생목록_(false).filter(function (s) {
+    return (!학년n || Number(s.학년) === 학년n) && (!반n || Number(s.반) === 반n);
+  }).map(function (s) {
+    return { 학생ID: s.학생ID, 이름: s.이름, 학년: Number(s.학년), 반: Number(s.반), 번호: Number(s.번호) };
+  });
+}

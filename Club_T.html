@@ -231,6 +231,115 @@
     <div class="paper-wrap cb-papers"><div class="paper" id="cbRpPaper"><div class="empty"><i class="ti ti-file-text"></i><strong>미리보기 버튼을 눌러 주세요</strong>클럽 정보와 활동 기록으로 보고서를 만듭니다.</div></div></div>
   </div>
 
+  <!-- ===== 교내 리그전 · 설정 ===== -->
+  <div class="page hide" id="club_tp_lgSetup">
+    <div class="page-head"><h2>교내 리그전 · 설정</h2><span class="sub">회차(1학기·2학기)를 만들고, 그 안에 <b>종목</b>을 여러 개 둡니다. 종목마다 반 대항인지 선수·팀 대항인지 고르고 참가 명단을 넣습니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>회차</label><select id="cbLgSel" style="min-width:210px"></select></div>
+      <button class="ghost" id="cbLgAdd"><i class="ti ti-plus"></i>회차 추가</button>
+      <button class="danger" id="cbLgDel"><i class="ti ti-trash"></i>회차 삭제</button>
+      <div class="spacer"></div>
+      <span class="unit">모든 리그전 화면은 여기서 고른 회차를 봅니다.</span>
+    </div>
+    <div class="note hide" id="cbLgNone"><i class="ti ti-tournament"></i><div>아직 회차가 없습니다. <b>회차 추가</b>를 눌러 첫 회차를 만들어 주세요.</div></div>
+    <div id="cbLgSetupBody">
+      <div class="panel">
+        <div class="panel-head"><h3><i class="ti ti-tournament"></i>회차 정보</h3></div>
+        <div class="panel-body">
+          <div class="grid g4" style="margin-bottom:12px">
+            <div class="field"><label>학년도</label><input type="number" id="cbLgYear" min="2000" max="2100"></div>
+            <div class="field"><label>회차 이름</label><input type="text" id="cbLgName" placeholder="예: 1학기 교내 리그전"></div>
+            <div class="field"><label>운영 기간 시작</label><input type="date" id="cbLgFrom"></div>
+            <div class="field"><label>운영 기간 끝</label><input type="date" id="cbLgTo"></div>
+            <div class="field"><label>승점 (승)</label><input type="number" id="cbLgPW" min="0"></div>
+            <div class="field"><label>승점 (무)</label><input type="number" id="cbLgPD" min="0"></div>
+            <div class="field"><label>승점 (패)</label><input type="number" id="cbLgPL" min="0"></div>
+            <div class="field"><label>장소</label><input type="text" id="cbLgPlace" placeholder="예: 강당 및 운동장"></div>
+          </div>
+          <div class="field"><label>운영 방침 (한 줄이 문서의 항목 하나)</label><textarea id="cbLgPolicy" style="min-height:74px" placeholder="예: 모든 학생이 한 번씩 경기에 참여함.&#10;경기 중 비신사적인 행동(비방, 욕설 등)은 퇴장 조치함."></textarea></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3><i class="ti ti-ball-volleyball"></i>종목 · 참가 명단</h3><div class="spacer"></div><span class="unit">반 대항이면 참가 수만큼 1반, 2반… 이 자동으로 생깁니다. 선수·팀 대항은 이름을 적거나 명단에서 고르세요.</span></div>
+        <div class="scroll-x"><table><thead><tr><th>종목</th><th>대상</th><th>방식</th><th>참가 단위</th><th>참가 수</th><th>참가 명단</th><th></th></tr></thead><tbody id="cbLgGradeRows"></tbody></table></div>
+        <div class="savebar">
+          <button class="ghost" id="cbLgGradeAdd"><i class="ti ti-plus"></i>종목 추가</button>
+          <div class="spacer"></div><span class="status" id="cbLgSetupStatus"></span>
+          <button id="cbLgSetupSave"><i class="ti ti-device-floppy"></i>저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 교내 리그전 · 대진·일정·결과 ===== -->
+  <div class="page hide" id="club_tp_lgSched">
+    <div class="page-head"><h2>교내 리그전 · 대진·일정·결과</h2><span class="sub" id="cbLgSchedSub">경기마다 날짜·교시·대진을 적고, 끝나면 스코어를 넣으면 순위가 계산됩니다.</span></div>
+    <div class="bar">
+      <div class="field"><label>종목</label><select id="cbLgGradeSel" style="min-width:210px"></select></div>
+      <button class="soft" id="cbLgGen"><i class="ti ti-wand"></i>대진 자동 생성 (라운드로빈)</button>
+      <div class="field" id="cbLgFillDateBox"><label>첫 경기일</label><input type="date" id="cbLgFillDate"></div>
+      <div class="field" id="cbLgFillPeriodBox"><label>교시</label><input type="text" id="cbLgFillPeriod" placeholder="2교시" style="width:86px"></div>
+      <button class="ghost" id="cbLgFill"><i class="ti ti-calendar-plus"></i>주 1회로 날짜 채우기</button>
+      <div class="spacer"></div>
+      <button class="ghost" id="cbLgRowAdd"><i class="ti ti-plus"></i>경기 추가</button>
+    </div>
+    <div class="grid g2" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:start">
+      <div class="panel" style="margin:0">
+        <div class="panel-head"><h3 id="cbLgMatchTitle"><i class="ti ti-list-numbers"></i>경기 일정</h3><div class="spacer"></div><span class="unit" id="cbLgMatchHint">스코어를 둘 다 넣으면 "완료"로 바뀝니다.</span></div>
+        <div class="scroll-x"><table><thead id="cbLgMatchHead"></thead><tbody id="cbLgMatchRows"></tbody></table></div>
+        <div class="savebar"><span class="status" id="cbLgSchedStatus"></span><div class="spacer"></div><button id="cbLgSchedSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+      </div>
+      <div>
+        <div class="panel" style="margin:0 0 14px">
+          <div class="panel-head"><h3><i class="ti ti-trophy"></i>순위</h3></div>
+          <div class="scroll-x"><table><thead id="cbLgStandHead"></thead><tbody id="cbLgStandRows"></tbody></table></div>
+        </div>
+        <div class="panel" style="margin:0">
+          <div class="panel-head"><h3><i class="ti ti-medal"></i>회차 시상 요약</h3></div>
+          <div class="panel-body" id="cbLgAwards"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 교내 리그전 · 문서 ===== -->
+  <div class="page hide" id="club_tp_lgDoc">
+    <div class="page-head"><h2>교내 리그전 · 문서</h2><span class="sub">운영계획서에 넣을 일정표(스코어 빈칸), 결과보고서용 결과·순위표, 복도 게시용 대진표를 만듭니다.</span></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-file-text"></i>문서 종류</h3></div>
+      <div class="panel-body">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div class="field"><label>종류</label><select id="cbLgDocType"><option value="plan">계획서용 일정표 (스코어 빈칸)</option><option value="result">결과·순위표 (결과보고서용)</option><option value="board">게시용 대진표 (종목별 한 장)</option></select></div>
+          <div class="field"><label>종목</label><select id="cbLgDocGrade"><option value="">전체 종목</option></select></div>
+          <div class="field" style="flex:1;min-width:260px"><label>제목</label><input type="text" id="cbLgDocTitle"></div>
+        </div>
+      </div>
+      <div class="savebar"><span class="status" id="cbLgDocStatus"></span><div class="spacer"></div>
+        <button class="ghost" id="cbLgDocPreview"><i class="ti ti-eye"></i>미리보기</button>
+        <button class="soft" id="cbLgDocPrint"><i class="ti ti-printer"></i>인쇄 / PDF</button>
+        <button id="cbLgDocDocx"><i class="ti ti-file-type-docx"></i>Word 파일 내려받기</button></div>
+    </div>
+    <div class="paper-wrap cb-papers"><div class="paper" id="cbLgPaper"><div class="empty"><i class="ti ti-file-text"></i><strong>미리보기 버튼을 눌러 주세요</strong>회차 설정과 경기 일정으로 문서를 만듭니다.</div></div></div>
+  </div>
+
+  <!-- ===== 모달: 명단에서 선수 고르기 ===== -->
+  <div id="cbMdLgStu" class="modal hide">
+    <div style="max-width:720px">
+      <div class="panel-head"><h3><i class="ti ti-users"></i>명단에서 참가 선수 고르기</h3><div class="spacer"></div><button class="ghost mini" data-close="cbMdLgStu"><i class="ti ti-x"></i>닫기</button></div>
+      <div class="panel-body">
+        <div class="bar" style="margin:0 0 12px">
+          <div class="field"><label>학년</label><select id="cbLgStuGrade"></select></div>
+          <div class="field"><label>반</label><select id="cbLgStuClass"></select></div>
+          <div class="spacer"></div>
+          <button class="ghost mini" id="cbLgStuAll"><i class="ti ti-checks"></i>모두 고르기</button>
+        </div>
+        <div id="cbLgStuList" style="max-height:44vh;overflow:auto;display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+      <div class="savebar"><span class="status" id="cbLgStuStatus"></span><div class="spacer"></div>
+        <button id="cbLgStuAdd"><i class="ti ti-plus"></i>참가 명단에 넣기</button></div>
+    </div>
+  </div>
+
   <!-- ===== 클럽 설정 ===== -->
   <div class="page hide" id="club_tp_settings">
     <div class="page-head"><h2>클럽 설정</h2><span class="sub">보고서 머리말과 운영 개요에 그대로 들어갑니다.</span></div>
@@ -320,6 +429,7 @@
   </div>
   <datalist id="cbResultList"><option value="우승"><option value="준우승"><option value="3위"><option value="4위"><option value="예선 탈락"><option value="참가"></datalist>
   <datalist id="cbItemList"><option value="용품구입비"><option value="간식비"><option value="대회참가비"><option value="교통비"><option value="강사비"><option value="시설사용료"><option value="기타"></datalist>
+  <datalist id="cbLgSportList"><option value="8자 마라톤"><option value="피구형 게임"><option value="농구형 게임"><option value="발야구형 게임"><option value="배구형 게임"><option value="축구형 게임"><option value="티볼"><option value="줄넘기"><option value="플로어볼"><option value="핸드볼형 게임"></datalist>
 </div>
 
 <script>
@@ -334,7 +444,7 @@ MODS.CLUB.teacher = (function () {
   var D = null;              // { 설정, 클럽:[...] }
   var CUR = null;            // 현재 클럽 id
   var IMG = {};              // 파일ID → dataURL 캐시
-  var pages = ['dash', 'act', 'members', 'att', 'comp', 'budget', 'photo', 'report', 'settings'];
+  var pages = ['dash', 'act', 'members', 'att', 'comp', 'budget', 'photo', 'report', 'settings', 'lgSetup', 'lgSched', 'lgDoc'];
   var nav = [
     { section: '스포츠클럽' },
     { id: 'dash', label: '현황', icon: 'layout-dashboard' },
@@ -345,7 +455,11 @@ MODS.CLUB.teacher = (function () {
     { id: 'budget', label: '예산 집행', icon: 'coin' },
     { id: 'photo', label: '활동 사진', icon: 'camera' },
     { id: 'report', label: '정산보고서', icon: 'file-text' },
-    { id: 'settings', label: '클럽 설정', icon: 'settings' }
+    { id: 'settings', label: '클럽 설정', icon: 'settings' },
+    { section: '교내 리그전' },
+    { id: 'lgSetup', label: '리그 설정', icon: 'tournament' },
+    { id: 'lgSched', label: '대진·일정·결과', icon: 'list-numbers' },
+    { id: 'lgDoc', label: '리그 문서', icon: 'file-description' }
   ];
   var SPORTS = ['넷볼', '축구', '풋살', '농구', '배구', '배드민턴', '티볼', '야구·소프트볼', '피구', '줄넘기', '육상', '탁구', '플로어볼', '핸드볼', '플라잉디스크', '태권도', '씨름', '수영', '댄스스포츠', '뉴스포츠', '직접 입력'];
   var ROOT = $('club_T');
@@ -397,13 +511,18 @@ MODS.CLUB.teacher = (function () {
   /* ---------- 모듈 뼈대 ---------- */
   var BOOTP = null;
   function init(ctx) { D = null; try { CUR = localStorage.getItem(CUR_KEY) || null; } catch (e) {} boot(null); }
-  function reset() { D = null; BOOTP = null; IMG = {}; }
+  function reset() { D = null; BOOTP = null; IMG = {}; LG = null; LGBOOTP = null; }
   function boot(then) {
     if (!BOOTP) BOOTP = api('club_t_boot', TOKEN).then(function (b) { D = b; BOOTP = null; setClubs(b.클럽); }, function (e) { BOOTP = null; throw e; });
     BOOTP.then(function () { if (then) then(); }).catch(handleErr);
   }
   function show(p) {
     pages.forEach(function (id) { $('club_tp_' + id).classList.toggle('hide', id !== p); });
+    if (p.indexOf('lg') === 0) {
+      var lgFn = { lgSetup: renderLgSetup, lgSched: renderLgSched, lgDoc: renderLgDoc }[p];
+      if (lgFn) lgBoot(lgFn);
+      return;
+    }
     var fn = { dash: renderDash, act: renderAct, members: renderMembers, att: renderAtt, comp: renderComp, budget: renderBudget, photo: renderPhotos, report: renderReportPage, settings: renderSettings }[p];
     if (!fn) return;
     var run = function () { renderClubBar(); if (!C() && p !== 'settings') { go('CLUB', 'settings'); return; } fn(); };
@@ -1093,6 +1212,536 @@ MODS.CLUB.teacher = (function () {
         setSt('cbRpStatus', 'Word 파일을 내려받았습니다. 한글(HWP)에서도 바로 열 수 있습니다.', 'ok');
       } catch (e) { setSt('cbRpStatus', '문서 생성 실패: ' + e.message, 'err'); }
     });
+  };
+
+  /* =====================================================================
+     교내 리그전 — 회차 · 종목(부문) · 참가 명단(반 또는 선수) · 대진 · 순위 · 문서
+     클럽 활동과는 따로 도는 학교 전체 리그입니다.
+     ===================================================================== */
+  var LG = null;            // { 설정, 리그:[...] }
+  var LGBOOTP = null;
+  var LGID = null;          // 현재 회차 id
+  var LGGID = null;         // 현재 종목 id
+  var LG_KEY = 'pe_club_lg';
+  var LGSTU = null;         // 선수 고르기 모달이 쓰는 학생 목록
+
+  function lgBoot(then) {
+    if (LG) { then(); return; }
+    if (!LGBOOTP) LGBOOTP = api('club_t_lgBoot', TOKEN).then(function (b) { LG = b; LGBOOTP = null; setLeagues(b.리그); }, function (e) { LGBOOTP = null; throw e; });
+    LGBOOTP.then(function () { then(); }).catch(handleErr);
+  }
+  function setLeagues(list) {
+    if (!LG) return;
+    LG.리그 = list || [];
+    try { if (!LGID) LGID = localStorage.getItem(LG_KEY) || null; } catch (e) {}
+    if (!Lg()) { LGID = LG.리그.length ? LG.리그[0].id : null; }
+    try { localStorage.setItem(LG_KEY, LGID || ''); } catch (e) {}
+    if (!lgSport(LGGID)) { var l = Lg(); LGGID = l && l.종목.length ? l.종목[0].id : null; }
+  }
+  function leagues() { return LG ? LG.리그 : []; }
+  function Lg() { return leagues().filter(function (l) { return l.id === LGID; })[0] || null; }
+  function lgSport(id) { var l = Lg(); return l ? (l.종목.filter(function (g) { return g.id === id; })[0] || null) : null; }
+  function lgTeamName(g, id) { var t = (g.팀 || []).filter(function (x) { return x.id === id; })[0]; return t ? t.이름 : '(미정)'; }
+  function lgLabel(g) { return g.종목 + (g.대상 ? ' · ' + g.대상 : ''); }
+  function lgUnitWord(g) { return g.단위 === '선수' ? '선수·팀' : '반'; }
+  function lgDone(m) { return m.상태 === '완료' || (m.홈점 !== '' && m.홈점 !== null && m.홈점 !== undefined && m.어웨이점 !== '' && m.어웨이점 !== null && m.어웨이점 !== undefined); }
+  function lgSorted(g) { return (g.경기 || []).slice().sort(function (a, b) { return ((a.날짜 || '9999') + (a.교시 || '')).localeCompare((b.날짜 || '9999') + (b.교시 || '')) || (a.순 - b.순); }); }
+  function lgRec(g, tid) { return (g.기록 || []).filter(function (x) { return x.팀 === tid; })[0] || {}; }
+
+  /* ---------- 순위 ---------- */
+  function lgStand(l, g) {
+    var pt = l.승점 || { 승: 3, 무: 1, 패: 0 }, map = {};
+    (g.팀 || []).forEach(function (t) { map[t.id] = { 팀: t, 경기: 0, 승: 0, 무: 0, 패: 0, 득: 0, 실: 0, 승점: 0 }; });
+    (g.경기 || []).forEach(function (m) {
+      if (!lgDone(m) || !map[m.홈] || !map[m.어웨이]) return;
+      var h = Number(m.홈점 || 0), a = Number(m.어웨이점 || 0), H = map[m.홈], A = map[m.어웨이];
+      H.경기++; A.경기++; H.득 += h; H.실 += a; A.득 += a; A.실 += h;
+      if (h > a) { H.승++; A.패++; } else if (h < a) { A.승++; H.패++; } else { H.무++; A.무++; }
+    });
+    var rows = Object.keys(map).map(function (k) { var r = map[k]; r.승점 = r.승 * pt.승 + r.무 * pt.무 + r.패 * pt.패; r.득실 = r.득 - r.실; return r; });
+    rows.sort(function (a, b) { return (b.승점 - a.승점) || (b.득실 - a.득실) || (b.득 - a.득) || String(a.팀.이름).localeCompare(String(b.팀.이름), 'ko'); });
+    var rank = 0, prev = null;
+    rows.forEach(function (r, i) { if (!prev || r.승점 !== prev.승점 || r.득실 !== prev.득실 || r.득 !== prev.득) rank = i + 1; r.순위 = r.경기 ? rank : '-'; prev = r; });
+    return rows;
+  }
+  function lgRecStand(g) {
+    var rows = (g.팀 || []).map(function (t) {
+      var r = lgRec(g, t.id);
+      var v = [Number(r['1차']), Number(r['2차'])].filter(function (x) { return !isNaN(x) && x > 0; });
+      return { 팀: t, r1: r['1차'] === undefined ? '' : r['1차'], r2: r['2차'] === undefined ? '' : r['2차'], 날짜: r.날짜 || '', 비고: r.비고 || '', 최고: v.length ? Math.max.apply(null, v) : null };
+    });
+    rows.sort(function (a, b) { return (b.최고 === null ? -1 : b.최고) - (a.최고 === null ? -1 : a.최고); });
+    var rank = 0, prev = null;
+    rows.forEach(function (r, i) { if (prev === null || r.최고 !== prev) rank = i + 1; r.순위 = r.최고 === null ? '-' : rank; prev = r.최고; });
+    return rows;
+  }
+  function lgWinners(l, g) {
+    var rows = g.방식 === '기록' ? lgRecStand(g) : lgStand(l, g);
+    var done = rows.filter(function (r) { return r.순위 !== '-'; });
+    if (!done.length) return null;
+    return { 우승: done.filter(function (r) { return r.순위 === 1; }).map(function (r) { return r.팀.이름; }).join('·'),
+             준우승: done.filter(function (r) { return r.순위 === 2; }).map(function (r) { return r.팀.이름; }).join('·') };
+  }
+
+  /* ---------- 회차 고르기 ---------- */
+  function renderLgSel() {
+    var opts = leagues().map(function (l) { return '<option value="' + l.id + '"' + (l.id === LGID ? ' selected' : '') + '>' + esc(l.학년도 + '년 ' + l.이름) + '</option>'; }).join('');
+    $('cbLgSel').innerHTML = opts || '<option value="">(회차 없음)</option>';
+  }
+  $('cbLgSel').onchange = function () { LGID = this.value; LGGID = null; setLeagues(leagues()); renderLgSetup(); };
+  $('cbLgAdd').onclick = function () {
+    var name = prompt('회차 이름을 적어 주세요.', leagues().length ? '2학기 교내 리그전' : '1학기 교내 리그전');
+    if (name === null) return;
+    var src = Lg();
+    var copy = src && confirm('이전 회차(' + src.이름 + ')의 종목·참가 명단 구성을 복사할까요?\n경기 일정은 복사하지 않습니다.') ? src.id : '';
+    api('club_t_lgAddSeason', TOKEN, name.trim() || '교내 리그전', copy).then(function (r) {
+      LGID = r.id; LGGID = null; setLeagues(r.리그); renderLgSetup(); toast('회차를 만들었습니다.');
+    }).catch(handleErr);
+  };
+  $('cbLgDel').onclick = function () {
+    var l = Lg(); if (!l) return;
+    if (!confirm('"' + l.이름 + '" 회차와 모든 종목·경기 기록을 지울까요?\n되돌릴 수 없습니다.')) return;
+    api('club_t_lgDeleteSeason', TOKEN, l.id).then(function (r) {
+      LGID = null; LGGID = null; setLeagues(r.리그); renderLgSetup(); toast('지웠습니다.');
+    }).catch(handleErr);
+  };
+
+  /* ---------- 리그 설정 (회차 정보 · 종목 · 참가 명단) ---------- */
+  function renderLgSetup() {
+    renderLgSel();
+    var l = Lg();
+    $('cbLgNone').classList.toggle('hide', !!l);
+    $('cbLgSetupBody').classList.toggle('hide', !l);
+    setSt('cbLgSetupStatus', '');
+    if (!l) return;
+    $('cbLgYear').value = l.학년도; $('cbLgName').value = l.이름; $('cbLgFrom').value = l.시작 || ''; $('cbLgTo').value = l.종료 || '';
+    $('cbLgPW').value = l.승점.승; $('cbLgPD').value = l.승점.무; $('cbLgPL').value = l.승점.패;
+    $('cbLgPlace').value = l.장소 || ''; $('cbLgPolicy').value = l.방침 || '';
+    $('cbLgGradeRows').innerHTML = l.종목.map(lgSportRowHtml).join('') || '<tr><td colspan="7" class="unit" style="padding:14px">"종목 추가"로 이 회차에서 운영할 종목을 넣어 주세요.</td></tr>';
+    bindLgSportRows();
+  }
+  function lgTeamChip(t, 단위) {
+    return '<span class="lg-chip" style="display:inline-flex;gap:3px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:2px 4px">' +
+      '<input type="text" data-t="' + t.id + '" data-tk="이름" value="' + esc(t.이름) + '" placeholder="' + (단위 === '선수' ? '선수·팀 이름' : '반') + '" style="width:' + (단위 === '선수' ? 92 : 62) + 'px;padding:4px 6px">' +
+      '<input type="text" data-t="' + t.id + '" data-tk="소속" value="' + esc(t.소속 || '') + '" placeholder="' + (단위 === '선수' ? '학년·반' : '담임') + '" style="width:70px;padding:4px 6px">' +
+      '<button class="mini ghost" data-chipdel title="빼기" style="padding:2px 5px"><i class="ti ti-x"></i></button></span>';
+  }
+  function lgSportRowHtml(g) {
+    var 단위 = g.단위 || '반';
+    return '<tr data-id="' + g.id + '" data-unit="' + 단위 + '">' +
+      '<td><input type="text" class="text" data-k="종목" value="' + esc(g.종목 || '') + '" list="cbLgSportList" placeholder="피구형 게임" style="width:140px"></td>' +
+      '<td><input type="text" class="text" data-k="대상" value="' + esc(g.대상 || '') + '" placeholder="5학년 / 전교" style="width:104px"></td>' +
+      '<td><select data-k="방식"><option value="리그전"' + (g.방식 !== '기록' ? ' selected' : '') + '>리그전 (맞대결)</option><option value="기록"' + (g.방식 === '기록' ? ' selected' : '') + '>기록 경기 (8자 마라톤 등)</option></select></td>' +
+      '<td><select data-k="단위"><option value="반"' + (단위 !== '선수' ? ' selected' : '') + '>반 대항</option><option value="선수"' + (단위 === '선수' ? ' selected' : '') + '>선수·팀</option></select></td>' +
+      '<td><input type="number" data-k="참가수" value="' + (g.팀 || []).length + '" min="0" max="24" style="width:68px"></td>' +
+      '<td><div class="lg-teams" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">' + (g.팀 || []).map(function (t) { return lgTeamChip(t, 단위); }).join('') +
+        '<button class="mini ghost' + (단위 === '선수' ? '' : ' hide') + '" data-pick><i class="ti ti-users"></i>명단에서 고르기</button></div></td>' +
+      '<td><button class="mini danger" data-del><i class="ti ti-trash"></i></button></td></tr>';
+  }
+  function lgChips(tr) { return qa('.lg-chip', tr).map(function (sp) { var i = sp.querySelector('[data-tk=이름]'); return { id: i.dataset.t, 이름: i.value, 소속: sp.querySelector('[data-tk=소속]').value }; }); }
+  function lgDrawChips(tr, list) {
+    var 단위 = tr.dataset.unit, box = tr.querySelector('.lg-teams');
+    box.innerHTML = list.map(function (t) { return lgTeamChip(t, 단위); }).join('') +
+      '<button class="mini ghost' + (단위 === '선수' ? '' : ' hide') + '" data-pick><i class="ti ti-users"></i>명단에서 고르기</button>';
+    tr.querySelector('[data-k=참가수]').value = list.length;
+    bindLgChipBtns(tr);
+  }
+  function bindLgChipBtns(tr) {
+    qa('[data-chipdel]', tr).forEach(function (b) { b.onclick = function () { lgDrawChips(tr, lgChips(tr).filter(function (x) { return x.id !== b.parentNode.querySelector('[data-tk=이름]').dataset.t; })); }; });
+    var pick = tr.querySelector('[data-pick]');
+    if (pick) pick.onclick = function () { lgStuModal(tr); };
+  }
+  function bindLgSportRows() {
+    qa('#cbLgGradeRows tr[data-id]').forEach(function (tr) {
+      bindLgChipBtns(tr);
+      tr.querySelector('[data-del]').onclick = function () { if (confirm('이 종목과 경기 기록을 지울까요?\n저장을 눌러야 실제로 지워집니다.')) tr.remove(); };
+      tr.querySelector('[data-k=단위]').onchange = function () {
+        tr.dataset.unit = this.value;
+        var cur = lgChips(tr).map(function (t, i) {
+          var nm = (t.이름 || '').trim();
+          if (this.value === '선수' && /^\d+반$/.test(nm)) nm = '';          // 반 기본값은 선수 칸에서 비웁니다
+          if (this.value === '반' && !nm) nm = (i + 1) + '반';
+          return { id: t.id, 이름: nm, 소속: t.소속 };
+        }, this);
+        lgDrawChips(tr, cur);
+      };
+      tr.querySelector('[data-k=참가수]').onchange = function () {
+        var n = Math.max(0, Math.min(24, Number(this.value) || 0)), cur = lgChips(tr), 단위 = tr.dataset.unit;
+        while (cur.length < n) cur.push({ id: 'new_' + uid(), 이름: 단위 === '선수' ? '' : (cur.length + 1) + '반', 소속: '' });
+        lgDrawChips(tr, cur.slice(0, n));
+      };
+    });
+  }
+  $('cbLgGradeAdd').onclick = function () {
+    if (!Lg()) { toast('먼저 회차를 추가해 주세요.', 'err'); return; }
+    if (!$('cbLgGradeRows').querySelector('tr[data-id]')) $('cbLgGradeRows').innerHTML = '';
+    var g = { id: 'new_' + uid(), 종목: '', 대상: '', 방식: '리그전', 단위: '반',
+              팀: [{ id: 'new_' + uid(), 이름: '1반', 소속: '' }, { id: 'new_' + uid(), 이름: '2반', 소속: '' }] };
+    $('cbLgGradeRows').insertAdjacentHTML('beforeend', lgSportRowHtml(g));
+    bindLgSportRows();
+  };
+  $('cbLgSetupSave').onclick = function () {
+    var l = Lg(); if (!l) return;
+    var 종목 = qa('#cbLgGradeRows tr[data-id]').map(function (tr) {
+      return {
+        id: tr.dataset.id.indexOf('new_') === 0 ? '' : tr.dataset.id,
+        종목: tr.querySelector('[data-k=종목]').value.trim(),
+        대상: tr.querySelector('[data-k=대상]').value.trim(),
+        방식: tr.querySelector('[data-k=방식]').value,
+        단위: tr.querySelector('[data-k=단위]').value,
+        팀: lgChips(tr).map(function (t, i) {
+          return { id: t.id.indexOf('new_') === 0 ? '' : t.id, 이름: (t.이름 || '').trim() || ((i + 1) + (tr.dataset.unit === '선수' ? '번' : '반')), 소속: (t.소속 || '').trim() };
+        })
+      };
+    }).filter(function (g) { return g.종목; });
+    var m = { id: l.id, 학년도: $('cbLgYear').value, 이름: $('cbLgName').value.trim() || l.이름, 시작: $('cbLgFrom').value, 종료: $('cbLgTo').value,
+              승점: { 승: Number($('cbLgPW').value || 0), 무: Number($('cbLgPD').value || 0), 패: Number($('cbLgPL').value || 0) },
+              장소: $('cbLgPlace').value.trim(), 방침: $('cbLgPolicy').value, 종목: 종목 };
+    setSt('cbLgSetupStatus', '저장하는 중…');
+    api('club_t_lgSaveSetup', TOKEN, m).then(function (r) {
+      LGGID = null; setLeagues(r.리그); renderLgSetup();
+      setSt('cbLgSetupStatus', '저장했습니다.', 'ok'); toast('저장했습니다.');
+    }).catch(function (e) { setSt('cbLgSetupStatus', String(e.message || e), 'err'); handleErr(e); });
+  };
+
+  /* ---------- 명단에서 선수 고르기 ---------- */
+  var LGSTU_TR = null;
+  function lgStuModal(tr) {
+    LGSTU_TR = tr;
+    $('cbMdLgStu').classList.remove('hide');
+    setSt('cbLgStuStatus', '');
+    var gs = allGrades();
+    $('cbLgStuGrade').innerHTML = gs.map(function (g) { return '<option value="' + g + '">' + g + '학년</option>'; }).join('');
+    $('cbLgStuClass').innerHTML = '<option value="">전체</option>' + [1,2,3,4,5,6,7,8,9,10].map(function (c) { return '<option value="' + c + '">' + c + '반</option>'; }).join('');
+    lgStuLoad();
+  }
+  function lgStuLoad() {
+    $('cbLgStuList').innerHTML = '<span class="unit">불러오는 중…</span>';
+    api('club_t_lgStudents', TOKEN, $('cbLgStuGrade').value, $('cbLgStuClass').value).then(function (list) {
+      LGSTU = list || [];
+      $('cbLgStuList').innerHTML = LGSTU.length ? LGSTU.map(function (s, i) {
+        return '<label class="chk sm"><input type="checkbox" data-i="' + i + '"><span>' + esc(s.학년 + '-' + s.반 + '-' + s.번호 + ' ' + s.이름) + '</span></label>';
+      }).join('') : '<span class="unit">그 학년·반에 학생이 없습니다.</span>';
+    }).catch(handleErr);
+  }
+  $('cbLgStuGrade').onchange = lgStuLoad;
+  $('cbLgStuClass').onchange = lgStuLoad;
+  $('cbLgStuAll').onclick = function () {
+    qa('#cbLgStuList input[type=checkbox]').forEach(function (c) { c.checked = true; c.closest('label.chk').classList.add('on'); });
+  };
+  $('cbLgStuAdd').onclick = function () {
+    if (!LGSTU_TR) return;
+    var picked = qa('#cbLgStuList input[type=checkbox]').filter(function (c) { return c.checked; }).map(function (c) { return LGSTU[Number(c.dataset.i)]; });
+    if (!picked.length) { setSt('cbLgStuStatus', '학생을 골라 주세요.', 'err'); return; }
+    var cur = lgChips(LGSTU_TR).filter(function (t) { return (t.이름 || '').trim(); });
+    var have = {}; cur.forEach(function (t) { have[t.이름 + '|' + t.소속] = true; });
+    picked.forEach(function (s) {
+      var key = s.이름 + '|' + s.학년 + '-' + s.반;
+      if (have[key]) return;
+      have[key] = true;
+      cur.push({ id: 'new_' + uid(), 이름: s.이름, 소속: s.학년 + '-' + s.반 });
+    });
+    lgDrawChips(LGSTU_TR, cur);
+    $('cbMdLgStu').classList.add('hide');
+    toast(picked.length + '명을 참가 명단에 넣었습니다. 저장을 눌러 주세요.');
+  };
+
+  /* ---------- 대진 · 일정 · 결과 ---------- */
+  function renderLgSched() {
+    var l = Lg();
+    if (!l || !l.종목.length) {
+      $('cbLgGradeSel').innerHTML = '<option value="">(종목 없음)</option>';
+      $('cbLgMatchHead').innerHTML = '';
+      $('cbLgMatchRows').innerHTML = '<tr><td class="unit" style="padding:14px">리그 설정에서 회차와 종목을 먼저 만들어 주세요.</td></tr>';
+      $('cbLgStandHead').innerHTML = ''; $('cbLgStandRows').innerHTML = ''; $('cbLgAwards').innerHTML = '<span class="unit">종목이 없습니다.</span>';
+      return;
+    }
+    if (!lgSport(LGGID)) LGGID = l.종목[0].id;
+    $('cbLgGradeSel').innerHTML = l.종목.map(function (g) { return '<option value="' + g.id + '"' + (g.id === LGGID ? ' selected' : '') + '>' + esc(lgLabel(g)) + '</option>'; }).join('');
+    $('cbLgSchedSub').textContent = l.학년도 + '년 ' + l.이름 + (l.시작 ? ' · ' + kdate(l.시작) + ' ~ ' + kdate(l.종료) : '');
+    var g = lgSport(LGGID), isRec = g.방식 === '기록', 단위 = lgUnitWord(g);
+    $('cbLgMatchTitle').innerHTML = '<i class="ti ti-list-numbers"></i>' + esc(lgLabel(g)) + (isRec ? ' · 기록' : ' · 경기 일정');
+    ['cbLgGen', 'cbLgFill', 'cbLgRowAdd', 'cbLgFillDateBox', 'cbLgFillPeriodBox'].forEach(function (id) { $(id).classList.toggle('hide', isRec); });
+    $('cbLgMatchHint').textContent = isRec ? '1차·2차 기록 중 높은 쪽이 순위가 됩니다.' : '스코어를 둘 다 넣으면 "완료"로 바뀝니다.';
+    if (isRec) {
+      $('cbLgMatchHead').innerHTML = '<tr><th>' + esc(단위) + '</th><th>소속</th><th>1차 기록</th><th>2차 기록</th><th>최고</th><th>경기일</th><th>비고</th></tr>';
+      $('cbLgMatchRows').innerHTML = g.팀.map(function (t) {
+        var r = lgRec(g, t.id);
+        return '<tr data-t="' + t.id + '"><td class="name">' + esc(t.이름) + '</td><td class="unit">' + esc(t.소속 || '') + '</td>' +
+          '<td><input type="number" data-k="1차" value="' + esc(r['1차'] === undefined ? '' : r['1차']) + '" style="width:86px"></td>' +
+          '<td><input type="number" data-k="2차" value="' + esc(r['2차'] === undefined ? '' : r['2차']) + '" style="width:86px"></td>' +
+          '<td class="lg-best"><b>' + (Math.max(Number(r['1차']) || 0, Number(r['2차']) || 0) || '') + '</b></td>' +
+          '<td><input type="date" data-k="날짜" value="' + esc(r.날짜 || '') + '"></td>' +
+          '<td><input type="text" class="text" data-k="비고" value="' + esc(r.비고 || '') + '" style="width:110px"></td></tr>';
+      }).join('') || '<tr><td colspan="7" class="unit" style="padding:14px">참가 명단이 없습니다. 리그 설정에서 넣어 주세요.</td></tr>';
+      qa('#cbLgMatchRows tr[data-t]').forEach(function (tr) {
+        var f = function () { var v = Math.max(Number(tr.querySelector('[data-k="1차"]').value) || 0, Number(tr.querySelector('[data-k="2차"]').value) || 0); tr.querySelector('.lg-best').innerHTML = '<b>' + (v || '') + '</b>'; };
+        tr.querySelector('[data-k="1차"]').oninput = f; tr.querySelector('[data-k="2차"]').oninput = f;
+      });
+    } else {
+      $('cbLgMatchHead').innerHTML = '<tr><th>순</th><th>경기일자</th><th>교시·시간</th><th>경기</th><th>스코어</th><th>상태</th><th>비고</th><th></th></tr>';
+      $('cbLgMatchRows').innerHTML = lgSorted(g).map(function (m, i) { return lgMatchRowHtml(g, m, i); }).join('') ||
+        '<tr><td colspan="8" class="unit" style="padding:14px">"대진 자동 생성"을 누르거나 "경기 추가"로 직접 넣어 주세요.</td></tr>';
+      bindLgMatchRows();
+    }
+    renderLgStand(l, g); renderLgAwards(l);
+    setSt('cbLgSchedStatus', '');
+  }
+  function lgTeamOpts(g, sel) { return (g.팀 || []).map(function (t) { return '<option value="' + t.id + '"' + (t.id === sel ? ' selected' : '') + '>' + esc(t.이름) + '</option>'; }).join(''); }
+  function lgMatchRowHtml(g, m, i) {
+    return '<tr data-id="' + m.id + '"><td class="num">' + (i + 1) + '</td>' +
+      '<td><input type="date" data-k="날짜" value="' + esc(m.날짜 || '') + '"></td>' +
+      '<td><input type="text" class="text" data-k="교시" value="' + esc(m.교시 || '') + '" placeholder="2교시" style="width:72px"></td>' +
+      '<td style="white-space:nowrap"><select data-k="홈">' + lgTeamOpts(g, m.홈) + '</select> : <select data-k="어웨이">' + lgTeamOpts(g, m.어웨이) + '</select></td>' +
+      '<td style="white-space:nowrap"><input type="number" data-k="홈점" value="' + esc(m.홈점 === undefined || m.홈점 === null ? '' : m.홈점) + '" style="width:58px" min="0"> : <input type="number" data-k="어웨이점" value="' + esc(m.어웨이점 === undefined || m.어웨이점 === null ? '' : m.어웨이점) + '" style="width:58px" min="0"></td>' +
+      '<td><select data-k="상태">' + ['예정', '완료', '연기'].map(function (s) { return '<option' + ((m.상태 || '예정') === s ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td>' +
+      '<td><input type="text" class="text" data-k="비고" value="' + esc(m.비고 || '') + '" style="width:92px"></td>' +
+      '<td><button class="mini danger" data-del><i class="ti ti-trash"></i></button></td></tr>';
+  }
+  function bindLgMatchRows() {
+    qa('#cbLgMatchRows tr[data-id]').forEach(function (tr) {
+      tr.querySelector('[data-del]').onclick = function () { tr.remove(); };
+      var h = tr.querySelector('[data-k=홈점]'), a = tr.querySelector('[data-k=어웨이점]'), s = tr.querySelector('[data-k=상태]');
+      var f = function () { if (h.value !== '' && a.value !== '' && s.value === '예정') s.value = '완료'; };
+      h.oninput = f; a.oninput = f;
+    });
+  }
+  $('cbLgGradeSel').onchange = function () { LGGID = this.value; renderLgSched(); };
+  $('cbLgRowAdd').onclick = function () {
+    var g = lgSport(LGGID); if (!g) return;
+    if (g.팀.length < 2) { toast('참가 팀이 2개 이상 있어야 합니다.', 'err'); return; }
+    if (!$('cbLgMatchRows').querySelector('tr[data-id]')) $('cbLgMatchRows').innerHTML = '';
+    var n = qa('#cbLgMatchRows tr[data-id]').length;
+    $('cbLgMatchRows').insertAdjacentHTML('beforeend', lgMatchRowHtml(g, { id: 'new_' + uid(), 홈: g.팀[0].id, 어웨이: g.팀[1].id, 상태: '예정' }, n));
+    bindLgMatchRows();
+  };
+  $('cbLgGen').onclick = function () {
+    var l = Lg(), g = lgSport(LGGID); if (!l || !g) return;
+    if (g.팀.length < 2) { toast('참가 팀이 2개 이상 있어야 합니다.', 'err'); return; }
+    if (g.경기.length && !confirm('이미 경기가 ' + g.경기.length + '개 있습니다. 지우고 새로 만들까요?')) return;
+    setSt('cbLgSchedStatus', '대진을 만드는 중…');
+    api('club_t_lgGenerate', TOKEN, l.id, g.id).then(function (r) {
+      setLeagues(r.리그); renderLgSched();
+      setSt('cbLgSchedStatus', r.경기수 + '경기를 만들었습니다. 날짜·교시를 채워 주세요.', 'ok');
+      toast(r.경기수 + '경기를 만들었습니다.');
+    }).catch(function (e) { setSt('cbLgSchedStatus', String(e.message || e), 'err'); handleErr(e); });
+  };
+  function addDaysYmd(s, n) { var d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); }
+  $('cbLgFill').onclick = function () {
+    var d = $('cbLgFillDate').value, p = $('cbLgFillPeriod').value.trim();
+    if (!d) { toast('첫 경기일을 골라 주세요.', 'err'); return; }
+    var i = 0;
+    qa('#cbLgMatchRows tr[data-id]').forEach(function (tr) {
+      tr.querySelector('[data-k=날짜]').value = addDaysYmd(d, 7 * i);
+      var pi = tr.querySelector('[data-k=교시]'); if (p && !pi.value) pi.value = p;
+      i++;
+    });
+    setSt('cbLgSchedStatus', '주 1회 간격으로 채웠습니다. 저장을 눌러 주세요.', 'ok');
+  };
+  $('cbLgSchedSave').onclick = function () {
+    var l = Lg(), g = lgSport(LGGID); if (!l || !g) return;
+    var rows;
+    if (g.방식 === '기록') {
+      rows = qa('#cbLgMatchRows tr[data-t]').map(function (tr) {
+        return { 팀: tr.dataset.t, '1차': tr.querySelector('[data-k="1차"]').value, '2차': tr.querySelector('[data-k="2차"]').value,
+                 날짜: tr.querySelector('[data-k=날짜]').value, 비고: tr.querySelector('[data-k=비고]').value.trim() };
+      });
+    } else {
+      rows = qa('#cbLgMatchRows tr[data-id]').map(function (tr) {
+        var o = { id: tr.dataset.id.indexOf('new_') === 0 ? '' : tr.dataset.id };
+        qa('[data-k]', tr).forEach(function (inp) { o[inp.dataset.k] = inp.value; });
+        return o;
+      });
+    }
+    setSt('cbLgSchedStatus', '저장하는 중…');
+    api('club_t_lgSaveSchedule', TOKEN, l.id, g.id, rows).then(function (r) {
+      setLeagues(r.리그); renderLgSched();
+      setSt('cbLgSchedStatus', '저장했습니다.', 'ok'); toast('저장했습니다.');
+    }).catch(function (e) { setSt('cbLgSchedStatus', String(e.message || e), 'err'); handleErr(e); });
+  };
+  function renderLgStand(l, g) {
+    var 단위 = lgUnitWord(g);
+    if (g.방식 === '기록') {
+      $('cbLgStandHead').innerHTML = '<tr><th>순위</th><th>' + esc(단위) + '</th><th>1차</th><th>2차</th><th>최고</th></tr>';
+      $('cbLgStandRows').innerHTML = lgRecStand(g).map(function (r) {
+        return '<tr><td><b>' + r.순위 + '</b></td><td class="name">' + esc(r.팀.이름) + '</td><td>' + esc(r.r1) + '</td><td>' + esc(r.r2) + '</td><td><b>' + (r.최고 === null ? '' : r.최고) + '</b></td></tr>';
+      }).join('');
+      return;
+    }
+    $('cbLgStandHead').innerHTML = '<tr><th>순위</th><th>' + esc(단위) + '</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득실</th><th>승점</th></tr>';
+    $('cbLgStandRows').innerHTML = lgStand(l, g).map(function (r) {
+      return '<tr><td><b>' + r.순위 + '</b></td><td class="name">' + esc(r.팀.이름) + '</td><td>' + r.경기 + '</td><td>' + r.승 + '</td><td>' + r.무 + '</td><td>' + r.패 + '</td><td>' + (r.득실 > 0 ? '+' : '') + r.득실 + '</td><td><b>' + r.승점 + '</b></td></tr>';
+    }).join('');
+  }
+  function renderLgAwards(l) {
+    $('cbLgAwards').innerHTML = l.종목.map(function (g) {
+      var w = lgWinners(l, g);
+      var done;
+      if (g.방식 === '기록') done = g.팀.length ? (g.기록 || []).filter(function (r) { return r['1차'] !== '' || r['2차'] !== ''; }).length + '/' + g.팀.length + ' 기록' : '참가 명단 없음';
+      else done = (g.경기 || []).length ? (g.경기 || []).filter(lgDone).length + '/' + g.경기.length + '경기 완료' : '대진 전';
+      return '<div class="stu-row"><span class="n" style="width:150px">' + esc(lgLabel(g)) + '</span><span style="flex:1">' +
+        (w ? '<span class="tag sun">우승 ' + esc(w.우승) + '</span> ' + (w.준우승 ? '<span class="tag">준우승 ' + esc(w.준우승) + '</span>' : '') : '<span class="unit">결과 없음</span>') +
+        '</span><span class="v">' + done + '</span></div>';
+    }).join('') || '<span class="unit">종목이 없습니다.</span>';
+  }
+
+  /* ---------- 리그 문서 ---------- */
+  function renderLgDoc() {
+    var l = Lg();
+    $('cbLgDocGrade').innerHTML = '<option value="">전체 종목</option>' + (l ? l.종목.map(function (g) { return '<option value="' + g.id + '">' + esc(lgLabel(g)) + '</option>'; }).join('') : '');
+    if (!$('cbLgDocTitle').value && l) $('cbLgDocTitle').value = l.학년도 + '년 ' + l.이름;
+    setSt('cbLgDocStatus', '');
+  }
+  function lgDocData() {
+    var l = Lg(); if (!l) return null;
+    var gid = $('cbLgDocGrade').value;
+    return { l: l, sports: l.종목.filter(function (g) { return !gid || g.id === gid; }), type: $('cbLgDocType').value,
+             title: $('cbLgDocTitle').value.trim() || (l.학년도 + '년 ' + l.이름) };
+  }
+  function lgMatchLabel(g, m) { return lgTeamName(g, m.홈) + ' : ' + lgTeamName(g, m.어웨이); }
+  function lgScoreLabel(m) { return lgDone(m) ? (m.홈점 + ' : ' + m.어웨이점) : (m.상태 === '연기' ? '연기' : ''); }
+  function lgRoster(g) { return g.팀.map(function (t) { return t.이름 + (t.소속 ? ' ' + t.소속 : ''); }).join(', '); }
+  function lgDocHTML(d) {
+    var l = d.l, t = d.type, h = '';
+    if (t === 'board') {
+      d.sports.forEach(function (g, gi) {
+        var u = lgUnitWord(g);
+        h += '<div' + (gi ? ' class="pb"' : '') + ' style="text-align:center"><h1 style="font-size:22pt;margin-top:8pt">' + esc(l.학년도 + '년 ' + l.이름) + '</h1><h1 style="font-size:19pt;margin-bottom:14pt">' + esc(lgLabel(g)) + ' 대진표</h1></div>';
+        if (g.방식 === '기록') {
+          h += '<table style="font-size:13pt"><thead><tr><th>순위</th><th>' + esc(u) + '</th><th>소속</th><th>1차</th><th>2차</th><th>최고 기록</th></tr></thead><tbody>' +
+            lgRecStand(g).map(function (r) { return '<tr><td class="c">' + r.순위 + '</td><td class="c">' + esc(r.팀.이름) + '</td><td class="c">' + esc(r.팀.소속 || '') + '</td><td class="c">' + esc(r.r1) + '</td><td class="c">' + esc(r.r2) + '</td><td class="c"><b>' + (r.최고 === null ? '' : r.최고) + '</b></td></tr>'; }).join('') + '</tbody></table>';
+        } else {
+          h += '<table style="font-size:13pt"><thead><tr><th>순</th><th>경기일자</th><th>교시</th><th>경기</th><th>결과</th></tr></thead><tbody>' +
+            lgSorted(g).map(function (m, i) { return '<tr style="height:34pt"><td class="c">' + (i + 1) + '</td><td class="c">' + esc(m.날짜 ? md(m.날짜) + '(' + wd(m.날짜) + ')' : '') + '</td><td class="c">' + esc(m.교시) + '</td><td class="c"><b>' + esc(lgMatchLabel(g, m)) + '</b></td><td class="c" style="font-size:15pt">' + esc(lgScoreLabel(m)) + '</td></tr>'; }).join('') + '</tbody></table>';
+          h += '<h3 style="margin-top:14pt">순위</h3><table style="font-size:12pt"><thead><tr><th>순위</th><th>' + esc(u) + '</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득실</th><th>승점</th></tr></thead><tbody>' +
+            lgStand(l, g).map(function (r) { return '<tr><td class="c">' + r.순위 + '</td><td class="c">' + esc(r.팀.이름) + '</td><td class="c">' + r.경기 + '</td><td class="c">' + r.승 + '</td><td class="c">' + r.무 + '</td><td class="c">' + r.패 + '</td><td class="c">' + r.득실 + '</td><td class="c"><b>' + r.승점 + '</b></td></tr>'; }).join('') + '</tbody></table>';
+        }
+        if (l.장소) h += '<p style="text-align:center;margin-top:10pt">장소: ' + esc(l.장소) + '</p>';
+      });
+      return h;
+    }
+    h += '<h1>' + esc(d.title) + (t === 'result' ? ' 결과' : ' 운영 계획') + '</h1>';
+    h += '<h2>운영 개요</h2><ul>';
+    h += '<li>◦ 경기 종목: ' + esc(l.종목.map(lgLabel).join(', ')) + '</li>';
+    if (l.시작) h += '<li>◦ 경기 일정: ' + esc(kdate(l.시작) + ' ~ ' + kdate(l.종료)) + '</li>';
+    if (l.장소) h += '<li>◦ 장소: ' + esc(l.장소) + '</li>';
+    h += '<li>◦ 승점: 승 ' + l.승점.승 + '점, 무 ' + l.승점.무 + '점, 패 ' + l.승점.패 + '점</li></ul>';
+    var pol = lines(l.방침);
+    if (pol.length) h += '<h2>경기 방침</h2><ul>' + pol.map(function (x) { return '<li>◦ ' + esc(x) + '</li>'; }).join('') + '</ul>';
+    h += '<h2>' + (t === 'result' ? '경기 결과' : '경기 세부 일정') + '</h2>';
+    d.sports.forEach(function (g, gi) {
+      var u = lgUnitWord(g);
+      h += '<h3>' + (gi + 1) + ') ' + esc(lgLabel(g)) + (g.팀.length ? ' <span style="font-weight:400;font-size:9pt">— ' + esc(lgRoster(g)) + '</span>' : '') + '</h3>';
+      if (g.방식 === '기록') {
+        var rs = t === 'result' ? lgRecStand(g) : g.팀.map(function (tm) { return { 팀: tm, r1: '', r2: '', 날짜: '', 비고: lgRec(g, tm.id).비고 || '', 최고: null, 순위: '' }; });
+        h += '<table><thead><tr><th>순</th><th>' + esc(u) + '</th><th>소속</th><th>경기일자</th><th>1차</th><th>2차</th><th>최고 기록</th>' + (t === 'result' ? '<th>순위</th>' : '') + '<th>비고</th></tr></thead><tbody>' +
+          rs.map(function (r, i) {
+            return '<tr><td class="c">' + (i + 1) + '</td><td class="c">' + esc(r.팀.이름) + '</td><td class="c">' + esc(r.팀.소속 || '') + '</td><td class="c">' + esc(t === 'result' && r.날짜 ? kdate(r.날짜) : '') + '</td><td class="c">' + esc(r.r1) + '</td><td class="c">' + esc(r.r2) + '</td><td class="c"><b>' + (r.최고 === null ? '' : r.최고) + '</b></td>' + (t === 'result' ? '<td class="c">' + r.순위 + '</td>' : '') + '<td>' + esc(r.비고 || '') + '</td></tr>';
+          }).join('') + '</tbody></table>';
+      } else {
+        h += '<table><thead><tr><th>순</th><th>경기일자</th><th>요일</th><th>경기시간</th><th>경기명</th><th>스코어</th><th>비고</th></tr></thead><tbody>' +
+          lgSorted(g).map(function (m, i) { return '<tr><td class="c">' + (i + 1) + '</td><td class="c">' + esc(m.날짜 ? md(m.날짜) : '') + '</td><td class="c">' + esc(wd(m.날짜)) + '</td><td class="c">' + esc(m.교시) + '</td><td class="c">' + esc(lgMatchLabel(g, m)) + '</td><td class="c">' + (t === 'result' ? esc(lgScoreLabel(m)) : '') + '</td><td>' + esc(m.비고 || '') + '</td></tr>'; }).join('') +
+          ((g.경기 || []).length ? '' : '<tr><td colspan="7" class="c">(경기 일정 없음)</td></tr>') + '</tbody></table>';
+        if (t === 'result') h += '<table style="width:70%"><thead><tr><th>순위</th><th>' + esc(u) + '</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득점</th><th>실점</th><th>승점</th></tr></thead><tbody>' +
+          lgStand(l, g).map(function (r) { return '<tr><td class="c">' + r.순위 + '</td><td class="c">' + esc(r.팀.이름) + '</td><td class="c">' + r.경기 + '</td><td class="c">' + r.승 + '</td><td class="c">' + r.무 + '</td><td class="c">' + r.패 + '</td><td class="c">' + r.득 + '</td><td class="c">' + r.실 + '</td><td class="c"><b>' + r.승점 + '</b></td></tr>'; }).join('') + '</tbody></table>';
+      }
+    });
+    if (t === 'result') {
+      var aw = d.sports.map(function (g) { var w = lgWinners(l, g); return w ? '<li>◦ ' + esc(lgLabel(g)) + ': 우승 ' + esc(w.우승) + (w.준우승 ? ', 준우승 ' + esc(w.준우승) : '') + '</li>' : ''; }).join('');
+      if (aw) h += '<h2>운영 결과 (시상)</h2><ul>' + aw + '</ul>';
+    }
+    return h;
+  }
+  function lgDocDocx(d) {
+    var l = d.l, t = d.type, x = new Docx(), W = 9638;
+    function cols(fr) { var s = fr.reduce(function (a, b) { return a + b; }, 0); return fr.map(function (f) { return Math.round(W * f / s); }); }
+    if (t === 'board') {
+      d.sports.forEach(function (g, gi) {
+        var u = lgUnitWord(g);
+        if (gi) x.p('', { pb: true, after: 0 });
+        x.p(l.학년도 + '년 ' + l.이름, { b: true, sz: 40, align: 'center', after: 80 });
+        x.p(lgLabel(g) + ' 대진표', { b: true, sz: 36, align: 'center', after: 240 });
+        if (g.방식 === '기록') {
+          var rows = [['순위', u, '소속', '1차', '2차', '최고 기록']];
+          lgRecStand(g).forEach(function (r) { rows.push([r.순위, r.팀.이름, r.팀.소속 || '', r.r1, r.r2, { t: r.최고 === null ? '' : String(r.최고), b: true }]); });
+          x.table(rows, cols([10, 16, 18, 16, 16, 24]), { header: true, sz: 26, aligns: rows[0].map(function () { return 'center'; }) });
+        } else {
+          var rows2 = [['순', '경기일자', '교시', '경기', '결과']];
+          lgSorted(g).forEach(function (m, i) { rows2.push([i + 1, m.날짜 ? md(m.날짜) + '(' + wd(m.날짜) + ')' : '', m.교시, { t: lgMatchLabel(g, m), b: true }, lgScoreLabel(m)]); });
+          x.table(rows2, cols([8, 20, 14, 36, 22]), { header: true, sz: 26, aligns: ['center', 'center', 'center', 'center', 'center'] });
+          x.p('순위', { b: true, sz: 26, before: 200, after: 60 });
+          var rows3 = [['순위', u, '경기', '승', '무', '패', '득실', '승점']];
+          lgStand(l, g).forEach(function (r) { rows3.push([r.순위, r.팀.이름, r.경기, r.승, r.무, r.패, r.득실, { t: String(r.승점), b: true }]); });
+          x.table(rows3, cols([10, 18, 11, 11, 11, 11, 14, 14]), { header: true, sz: 22, aligns: rows3[0].map(function () { return 'center'; }) });
+        }
+        if (l.장소) x.p('장소: ' + l.장소, { align: 'center', sz: 22, before: 160 });
+      });
+      return x.build({ title: d.title + ' 대진표' });
+    }
+    x.title(d.title + (t === 'result' ? ' 결과' : ' 운영 계획'));
+    x.h('운영 개요');
+    x.bullet('경기 종목: ' + l.종목.map(lgLabel).join(', '));
+    if (l.시작) x.bullet('경기 일정: ' + kdate(l.시작) + ' ~ ' + kdate(l.종료));
+    if (l.장소) x.bullet('장소: ' + l.장소);
+    x.bullet('승점: 승 ' + l.승점.승 + '점, 무 ' + l.승점.무 + '점, 패 ' + l.승점.패 + '점');
+    var pol = lines(l.방침);
+    if (pol.length) { x.h('경기 방침'); pol.forEach(function (s) { x.bullet(s); }); }
+    x.h(t === 'result' ? '경기 결과' : '경기 세부 일정');
+    d.sports.forEach(function (g, gi) {
+      var u = lgUnitWord(g);
+      x.p((gi + 1) + ') ' + lgLabel(g) + (g.팀.length ? '  — ' + lgRoster(g) : ''), { b: true, before: 120, after: 40, keep: true });
+      if (g.방식 === '기록') {
+        var head = ['순', u, '소속', '경기일자', '1차', '2차', '최고 기록']; if (t === 'result') head.push('순위'); head.push('비고');
+        var rows = [head];
+        var list = t === 'result' ? lgRecStand(g) : g.팀.map(function (tm) { return { 팀: tm, r1: '', r2: '', 날짜: '', 비고: lgRec(g, tm.id).비고 || '', 최고: null, 순위: '' }; });
+        list.forEach(function (r, i) {
+          var row = [i + 1, r.팀.이름, r.팀.소속 || '', t === 'result' && r.날짜 ? kdate(r.날짜) : '', r.r1, r.r2, { t: r.최고 === null ? '' : String(r.최고), b: true }];
+          if (t === 'result') row.push(r.순위);
+          row.push(r.비고 || '');
+          rows.push(row);
+        });
+        x.table(rows, cols(t === 'result' ? [6, 12, 12, 14, 9, 9, 13, 8, 22] : [6, 12, 12, 16, 10, 10, 14, 24]), { header: true, sz: 18, aligns: head.map(function (q) { return q === '비고' ? 'left' : 'center'; }) });
+      } else {
+        var rows2 = [['순', '경기일자', '요일', '경기시간', '경기명', '스코어', '비고']];
+        lgSorted(g).forEach(function (m, i) { rows2.push([i + 1, m.날짜 ? md(m.날짜) : '', wd(m.날짜), m.교시, lgMatchLabel(g, m), t === 'result' ? lgScoreLabel(m) : '', m.비고 || '']); });
+        if (!(g.경기 || []).length) rows2.push([{ t: '(경기 일정 없음)', span: 7, align: 'center' }]);
+        x.table(rows2, cols([6, 13, 8, 13, 24, 14, 22]), { header: true, sz: 18, aligns: ['center', 'center', 'center', 'center', 'center', 'center', 'left'] });
+        if (t === 'result') {
+          var rows3 = [['순위', u, '경기', '승', '무', '패', '득점', '실점', '승점']];
+          lgStand(l, g).forEach(function (r) { rows3.push([r.순위, r.팀.이름, r.경기, r.승, r.무, r.패, r.득, r.실, { t: String(r.승점), b: true }]); });
+          x.table(rows3, cols([10, 16, 10, 9, 9, 9, 11, 11, 12]).map(function (w) { return Math.round(w * 0.7); }), { header: true, sz: 18, aligns: rows3[0].map(function () { return 'center'; }) });
+        }
+      }
+    });
+    if (t === 'result') {
+      var aw = d.sports.map(function (g) { var w = lgWinners(l, g); return w ? lgLabel(g) + ': 우승 ' + w.우승 + (w.준우승 ? ', 준우승 ' + w.준우승 : '') : null; }).filter(Boolean);
+      if (aw.length) { x.h('운영 결과 (시상)'); aw.forEach(function (s) { x.bullet(s); }); }
+    }
+    return x.build({ title: d.title });
+  }
+  $('cbLgDocPreview').onclick = function () {
+    var d = lgDocData(); if (!d) { toast('회차가 없습니다.', 'err'); return; }
+    $('cbLgPaper').innerHTML = lgDocHTML(d);
+    setSt('cbLgDocStatus', '미리보기를 만들었습니다.', 'ok');
+  };
+  $('cbLgDocPrint').onclick = function () {
+    var d = lgDocData(); if (!d) { toast('회차가 없습니다.', 'err'); return; }
+    var html = lgDocHTML(d);
+    $('cbLgPaper').innerHTML = html;
+    var area = document.getElementById('cbPrintArea');
+    if (!area) { area = document.createElement('div'); area.id = 'cbPrintArea'; area.className = 'print-area cb-papers'; document.body.appendChild(area); }
+    area.innerHTML = '<style>@page{size:A4 portrait;margin:15mm;}</style><div class="paper">' + html + '</div>';
+    document.body.classList.add('printing');
+    setSt('cbLgDocStatus', '인쇄 창을 열었습니다.', 'ok');
+    setTimeout(function () { window.print(); }, 150);
+  };
+  $('cbLgDocDocx').onclick = function () {
+    var d = lgDocData(); if (!d) { toast('회차가 없습니다.', 'err'); return; }
+    try {
+      var names = { plan: '_일정표', result: '_결과', board: '_대진표' };
+      download((d.title + names[d.type]).replace(/[\\/:*?"<>|]/g, '_') + '.docx', lgDocDocx(d));
+      setSt('cbLgDocStatus', 'Word 파일을 내려받았습니다. 한글(HWP)에서도 바로 열 수 있습니다.', 'ok');
+    } catch (e) { setSt('cbLgDocStatus', '문서 생성 실패: ' + e.message, 'err'); }
   };
 
   return { nav: nav, init: init, show: show, reset: reset };
