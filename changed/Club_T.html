@@ -1240,7 +1240,8 @@ MODS.CLUB.teacher = (function () {
         return '<option value="' + esc(x) + '"' + (x === cur ? ' selected' : '') + '>' + esc(x) + '</option>';
       }).join('') + '</optgroup>';
     }).join('');
-    return { html: '<option value="">직접 입력…</option>' + body, 있음: 있음 };
+    // 맨 위는 자리표시(고르기), 직접 입력은 맨 아래 — 맨 위에 두면 처음부터 골라져 있어 눌러도 바뀌지 않습니다
+    return { html: '<option value="">종목 고르기…</option>' + body + '<option value="__etc">직접 입력…</option>', 있음: 있음 };
   }
   /** 대상 = 학년 체크 (전교는 따로). 저장할 때 "5·6학년" / "전교" 같은 글로 만듭니다 */
   function lgTargetBox(cur) {
@@ -1373,6 +1374,7 @@ MODS.CLUB.teacher = (function () {
     var 단위 = g.단위 || '반';
     var op = lgSportOpts(g.종목 || '');
     var 직접 = !!(g.종목 && !op.있음);
+    if (직접) op.html = op.html.replace('<option value="__etc">', '<option value="__etc" selected>');
     return '<tr data-id="' + g.id + '" data-unit="' + 단위 + '">' +
       '<td><select data-k="종목선택" style="width:158px">' + op.html + '</select>' +
         '<input type="text" class="text' + (직접 ? '' : ' hide') + '" data-k="종목" value="' + esc(직접 ? g.종목 : '') + '" placeholder="종목 이름" style="width:158px;margin-top:4px"></td>' +
@@ -1405,9 +1407,9 @@ MODS.CLUB.teacher = (function () {
       bindLgChipBtns(tr);
       var sel = tr.querySelector('[data-k=종목선택]'), etc = tr.querySelector('[data-k=종목]');
       sel.onchange = function () {
-        var 직접 = !this.value;
+        var 직접 = this.value === '__etc';
         etc.classList.toggle('hide', !직접);
-        if (직접) etc.focus();
+        if (직접) etc.focus(); else etc.value = '';
       };
       qa('.lg-tg [data-tg]', tr).forEach(function (c) {
         c.onchange = function () {
@@ -1454,7 +1456,10 @@ MODS.CLUB.teacher = (function () {
     var 종목 = qa('#cbLgGradeRows tr[data-id]').map(function (tr) {
       return {
         id: tr.dataset.id.indexOf('new_') === 0 ? '' : tr.dataset.id,
-        종목: (tr.querySelector('[data-k=종목선택]').value || tr.querySelector('[data-k=종목]').value).trim(),
+        종목: (function () {
+          var v = tr.querySelector('[data-k=종목선택]').value;
+          return (v === '__etc' || !v ? tr.querySelector('[data-k=종목]').value : v).trim();
+        })(),
         대상: lgTargetText(tr),
         방식: tr.querySelector('[data-k=방식]').value,
         단위: tr.querySelector('[data-k=단위]').value,
