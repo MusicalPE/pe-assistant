@@ -33,6 +33,7 @@
   --sans:'Pretendard Variable',Pretendard,-apple-system,system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   --side:220px; --bar:60px;
 }
+.mod-core {--accent:var(--brand);--accent-dk:var(--brand-dk);--accent-soft:var(--brand-soft);--accent-ink:var(--brand-ink);}   /* 공통 화면(홈·명단·프로필·설정)은 테마 색 */
 .mod-mint {--accent:#14A085;--accent-dk:#0E7D68;--accent-soft:#E4F6F1;--accent-ink:#0B5C4D;}
 .mod-sky  {--accent:#3B9DFF;--accent-dk:#1F6FCB;--accent-soft:#E6F1FF;--accent-ink:#164F94;}
 .mod-coral{--accent:#FF7A59;--accent-dk:#E05A38;--accent-soft:#FFEDE7;--accent-ink:#A63F24;}
@@ -598,7 +599,7 @@ function showPage(full) {
     el.classList.toggle('hide', !(el.dataset.mod === key && el.dataset.role === (ROLE === '교사' ? 'T' : 'S')));
   });
   var main = document.querySelector('.main');
-  main.className = 'main mod-' + (key === 'core' ? 'mint' : 모듈색(key));
+  main.className = 'main mod-' + (key === 'core' ? 'core' : 모듈색(key));
   try { mod.show(page); } catch (e) { handleErr(e); }
   scrollTopMain();
 }
@@ -727,11 +728,11 @@ function 학생짧게(s) { return s.학년 + '-' + s.반 + ' ' + s.번호 + '번
   </div>
   <div class="layout">
     <div class="sidebar" id="sidebar"></div>
-    <div class="main mod-mint" id="main">
+    <div class="main mod-core" id="main">
       <?!= include('Home_T'); ?>
       <?!= include('Home_S'); ?>
       <? if (mods.CLASS) { ?><?!= include('Class_T'); ?><? } ?>
-      <? if (mods.EVAL) { ?><?!= include('Eval_T'); ?><? } ?>
+      <? if (mods.EVAL) { ?><?!= include('Eval_T'); ?><?!= include('Eval_S'); ?><? } ?>
       <? if (mods.PAPS) { ?><?!= include('PAPS_T'); ?><?!= include('PAPS_S'); ?><? } ?>
       <? if (mods.FIT)  { ?><?!= include('Fit_T');  ?><?!= include('Fit_S');  ?><? } ?>
       <? if (mods.ROPE) { ?><?!= include('Rope_T'); ?><?!= include('Rope_S'); ?><? } ?>

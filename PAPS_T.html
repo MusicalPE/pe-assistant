@@ -53,7 +53,7 @@
     <div class="panel">
       <div class="panel-head" id="pPanelHead"><h3>종목</h3></div>
       <div class="scroll-x" id="pGrid"><div class="empty">학년·반을 골라 주세요.</div></div>
-      <div class="savebar"><button id="pBtnSave" disabled><i class="ti ti-device-floppy"></i>기록 저장</button><span class="status" id="pStatus">–</span></div>
+      <div class="savebar"><button id="pBtnSave" disabled><i class="ti ti-device-floppy"></i>기록 저장</button><button class="soft" id="pBtnBulk"><i class="ti ti-clipboard-text"></i>붙여넣기로 일괄 입력</button><span class="status" id="pStatus">–</span></div>
     </div>
   </div>
 
@@ -161,6 +161,28 @@
           <button class="danger" id="pBtnResetClass"><i class="ti ti-eraser"></i>이 반 자료 지우기</button>
           <span class="status" id="pRsCStatus" style="margin-left:10px"></span>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 모달: PAPS 붙여넣기 일괄 입력 ===== -->
+<div id="pMdBulk" class="modal hide">
+  <div style="max-width:980px">
+    <div class="panel-head"><h3><i class="ti ti-clipboard-text"></i>PAPS 기록 붙여넣기</h3><span class="unit" id="pBkMeta"></span><div class="spacer"></div><button class="ghost mini" data-close="pMdBulk" type="button"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body">
+      <div id="pBkStep1">
+        <div class="note" style="margin-bottom:10px"><i class="ti ti-info-circle"></i><div>엑셀·한글 표에서 <b>번호(또는 이름) 열과 종목 열</b>을 복사해 붙여 넣으세요. 머리글 행이 있어도 되고, 열 순서는 다음 단계에서 맞춥니다. 체질량지수는 <b>키·몸무게</b> 두 열로 넣습니다. 반이 여럿이면 <b>반</b> 열을 함께 넣으면 됩니다.</div></div>
+        <div class="field"><label>붙여넣기 (탭·쉼표·공백 구분)</label><textarea id="pBkText" rows="10" style="width:100%;font-family:ui-monospace,Consolas,monospace;font-size:13px" placeholder="번호	이름	왕복오래달리기	앉아윗몸앞으로굽히기	윗몸말아올리기	50m달리기	키	몸무게
+1	김하늘	62	12	40	9.2	148.5	42.1
+2	박도윤	48	4	22	10.1	151.0	45.3"></textarea></div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button id="pBkParse"><i class="ti ti-arrow-right"></i>다음: 열 맞추기</button><span class="status" id="pBkStatus1"></span></div>
+      </div>
+      <div id="pBkStep2" class="hide">
+        <div class="unit" style="margin-bottom:8px">각 열이 무엇인지 확인하세요. 머리글이 있으면 자동으로 맞춰 둡니다. 쓰지 않을 열은 <b>무시</b>.</div>
+        <div class="scroll-x" id="pBkPreview"></div>
+        <div class="note" id="pBkWarn" style="margin-top:10px"><i class="ti ti-alert-triangle"></i><div id="pBkWarnText"></div></div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button class="ghost" id="pBkBack"><i class="ti ti-arrow-left"></i>다시 붙여넣기</button><div class="spacer"></div><span class="unit" id="pBkSummary"></span><button id="pBkSave" disabled><i class="ti ti-device-floppy"></i>저장</button><span class="status" id="pBkStatus2"></span></div>
       </div>
     </div>
   </div>
@@ -429,6 +451,153 @@ MODS.PAPS.teacher = (function () {
       setStatus($('pStatus'), res.저장수 + '건 저장했습니다.' + (미산출 ? ' 등급이 비어 있는 ' + 미산출 + '건은 기준표를 확인하세요.' : ''), 미산출 ? 'err' : 'ok');
       toast(res.저장수 + '건 저장');
     }).catch(function (e) { $('pBtnSave').disabled = false; handleErr(e); });
+  };
+
+  /* ---------- 붙여넣기 일괄 입력 ---------- */
+  var BK = { rows: [], cols: [], map: [], hasHeader: false, classes: {} };
+  function bkClose() { $('pMdBulk').classList.add('hide'); }
+  $('pMdBulk').querySelector('[data-close]').onclick = bkClose;
+  $('pMdBulk').addEventListener('mousedown', function (e) { if (e.target === this) bkClose(); });
+  $('pBtnBulk').onclick = function () {
+    if (!CLS || !CFG) return;
+    if (!CLS.학생.length) { toast(라벨() + '에 학생이 없습니다.', 'err'); return; }
+    $('pBkMeta').textContent = 라벨() + ' · ' + 상태.회차;
+    $('pBkStep1').classList.remove('hide'); $('pBkStep2').classList.add('hide');
+    setStatus($('pBkStatus1'), ''); setStatus($('pBkStatus2'), '');
+    $('pMdBulk').classList.remove('hide'); $('pBkText').focus();
+  };
+  $('pBkBack').onclick = function () { $('pBkStep1').classList.remove('hide'); $('pBkStep2').classList.add('hide'); };
+  /** 열 후보: 번호·이름·반·무시·종목들(BMI 는 키·몸무게) */
+  function bkTargets() {
+    var t = [{ k: '_no', n: '번호' }, { k: '_name', n: '이름' }, { k: '_cls', n: '반' }, { k: '_skip', n: '무시' }];
+    CFG.종목.forEach(function (e) {
+      if (e.방식 === 'BMI') { t.push({ k: 'H|' + e.종목, n: '키 (cm)', 종목: e.종목, part: 'H' }); t.push({ k: 'W|' + e.종목, n: '몸무게 (kg)', 종목: e.종목, part: 'W' }); }
+      else t.push({ k: 'V|' + e.종목, n: e.종목 + (e.단위 ? ' (' + e.단위 + ')' : ''), 종목: e.종목, part: 'V' });
+    });
+    return t;
+  }
+  function bkNorm(x) { return String(x || '').replace(/[\s()（）\-_·.]/g, '').toLowerCase(); }
+  /** 머리글 글자로 열 추정 */
+  function bkGuess(h, targets) {
+    var n = bkNorm(h); if (!n) return '_skip';
+    if (/^(번호|no|num|출석번호)$/.test(n) || n === '번') return '_no';
+    if (/^(이름|성명|name)$/.test(n)) return '_name';
+    if (/^(반|학반|class)$/.test(n)) return '_cls';
+    if (/^(신장|키|height|cm)$/.test(n)) { var hh = targets.filter(function (t) { return t.part === 'H'; })[0]; if (hh) return hh.k; }
+    if (/^(체중|몸무게|weight|kg)$/.test(n)) { var ww = targets.filter(function (t) { return t.part === 'W'; })[0]; if (ww) return ww.k; }
+    var best = null, bestLen = 0;
+    targets.forEach(function (t) {
+      if (!t.종목) return;
+      var tn = bkNorm(t.종목);
+      if (n === tn || n.indexOf(tn) >= 0 || tn.indexOf(n) >= 0) { if (tn.length > bestLen) { best = t.k; bestLen = tn.length; } }
+    });
+    if (best) return best;
+    // 흔한 별칭
+    var alias = { '왕복': '왕복오래달리기', '셔틀런': '왕복오래달리기', '페이서': '왕복오래달리기', '오래달리기': '오래달리기-걷기', '유연성': '앉아윗몸앞으로굽히기', '윗몸': '윗몸말아올리기', '악력': '악력', '멀리뛰기': '제자리멀리뛰기', '50m': '50m달리기', '50미터': '50m달리기', '팔굽혀': '팔굽혀펴기', '스텝': '스텝검사', 'bmi': '체질량지수' };
+    Object.keys(alias).forEach(function (a) { if (!best && n.indexOf(bkNorm(a)) >= 0) { var t = targets.filter(function (x) { return x.종목 === alias[a] && x.part === 'V'; })[0]; if (t) best = t.k; } });
+    return best || '_skip';
+  }
+  function bkNum(v) { var t = String(v === null || v === undefined ? '' : v).replace(/[^0-9.\-]/g, ''); return t === '' || isNaN(Number(t)) ? null : Number(t); }
+  $('pBkParse').onclick = function () {
+    var text = $('pBkText').value.replace(/\r/g, '');
+    var lines = text.split('\n').map(function (l) { return l.replace(/\s+$/, ''); }).filter(function (l) { return l.trim(); });
+    if (!lines.length) { setStatus($('pBkStatus1'), '붙여 넣은 내용이 없습니다.', 'err'); return; }
+    var sep = lines.some(function (l) { return l.indexOf('\t') >= 0; }) ? '\t' : (lines.some(function (l) { return l.indexOf(',') >= 0; }) ? ',' : /\s+/);
+    var rows = lines.map(function (l) { return (sep instanceof RegExp ? l.trim().split(sep) : l.split(sep)).map(function (c) { return c.trim(); }); });
+    var width = Math.max.apply(null, rows.map(function (r) { return r.length; }));
+    rows = rows.map(function (r) { while (r.length < width) r.push(''); return r; });
+    var targets = bkTargets();
+    // 머리글 판단: 첫 줄에 숫자 아닌 칸이 절반 이상
+    var first = rows[0], nonNum = first.filter(function (c) { return c !== '' && bkNum(c) === null; }).length;
+    var hasHeader = nonNum >= Math.max(2, Math.ceil(first.filter(function (c) { return c !== ''; }).length / 2));
+    var map = [];
+    for (var c = 0; c < width; c++) {
+      if (hasHeader) map.push(bkGuess(first[c], targets));
+      else {
+        // 머리글 없음: 1열 번호, 2열이 글자면 이름, 나머지는 화면의 종목 순서대로
+        map.push(c === 0 ? '_no' : '_skip');
+      }
+    }
+    if (!hasHeader) {
+      var body = rows, col = 1;
+      var isText = body.some(function (r) { return r[1] !== '' && bkNum(r[1]) === null; });
+      if (isText) { map[1] = '_name'; col = 2; }
+      targets.filter(function (t) { return t.종목; }).forEach(function (t) { if (col < width) map[col++] = t.k; });
+    }
+    BK = { rows: hasHeader ? rows.slice(1) : rows, cols: width, map: map, hasHeader: hasHeader, targets: targets, classes: {} };
+    if (!BK.rows.length) { setStatus($('pBkStatus1'), '자료 줄이 없습니다 (머리글만 있습니다).', 'err'); return; }
+    setStatus($('pBkStatus1'), '');
+    $('pBkStep1').classList.add('hide'); $('pBkStep2').classList.remove('hide');
+    bkDrawPreview();
+  };
+  function bkDrawPreview() {
+    var opts = BK.targets.map(function (t) { return '<option value="' + esc(t.k) + '">' + esc(t.n) + '</option>'; }).join('');
+    var html = '<table><thead><tr>' + BK.map.map(function (m, c) { return '<th><select data-col="' + c + '" style="min-width:120px;font-size:12px;padding:5px 6px">' + opts + '</select></th>'; }).join('') + '</tr></thead><tbody>' +
+      BK.rows.slice(0, 8).map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      (BK.rows.length > 8 ? '<tr><td colspan="' + BK.cols + '" class="unit">… 외 ' + (BK.rows.length - 8) + '줄</td></tr>' : '') + '</tbody></table>';
+    $('pBkPreview').innerHTML = html;
+    Array.prototype.forEach.call($('pBkPreview').querySelectorAll('select'), function (sel) {
+      sel.value = BK.map[Number(sel.dataset.col)];
+      sel.onchange = function () { BK.map[Number(sel.dataset.col)] = sel.value; bkCheck(); };
+    });
+    bkCheck();
+  }
+  /** 학생 매칭·검사 → 저장할 기록 만들기. 반 열이 있으면 같은 학년의 다른 반도 불러와 맞춥니다 */
+  function bkCheck() {
+    var noCol = BK.map.indexOf('_no'), nameCol = BK.map.indexOf('_name'), clsCol = BK.map.indexOf('_cls');
+    var valueCols = []; BK.map.forEach(function (m, c) { if (m.indexOf('|') > 0) valueCols.push(c); });
+    var warn = [], btn = $('pBkSave');
+    if (noCol < 0 && nameCol < 0) warn.push('번호 열이나 이름 열을 하나는 지정해 주세요.');
+    if (!valueCols.length) warn.push('종목 열을 하나 이상 지정해 주세요.');
+    var seen = {}; BK.map.forEach(function (m) { if (m !== '_skip' && seen[m]) warn.push('같은 항목이 두 열에 지정되어 있습니다: ' + m.replace(/^\w\|/, '')); seen[m] = true; });
+    var need = {};
+    if (clsCol >= 0) BK.rows.forEach(function (r) { var c = bkNum(r[clsCol]); if (c && c !== 상태.반) need[c] = true; });
+    var missing = Object.keys(need).filter(function (c) { return !BK.classes[c]; });
+    if (missing.length) {
+      btn.disabled = true; $('pBkSummary').textContent = '다른 반 명단 불러오는 중…';
+      Promise.all(missing.map(function (c) { return api('paps_t_getClass', TOKEN, 상태.학년, Number(c), 상태.회차).then(function (d) { BK.classes[c] = d.학생; }); }))
+        .then(bkCheck).catch(handleErr);
+      return;
+    }
+    var 기록 = [], matched = 0, unmatched = [], blank = 0, byRow = [];
+    BK.rows.forEach(function (r, i) {
+      var cls = clsCol >= 0 ? (bkNum(r[clsCol]) || 상태.반) : 상태.반;
+      var list = cls === 상태.반 ? CLS.학생 : (BK.classes[cls] || []);
+      var stu = null;
+      if (noCol >= 0) { var no = bkNum(r[noCol]); if (no !== null) stu = findOne(list, function (s) { return Number(s.번호) === no; }); }
+      if (!stu && nameCol >= 0) { var nm = bkNorm(r[nameCol]); if (nm) { var hits = list.filter(function (s) { return bkNorm(s.이름) === nm; }); if (hits.length === 1) stu = hits[0]; } }
+      if (!stu) { unmatched.push((i + 1) + '줄' + (noCol >= 0 && r[noCol] ? ' (' + r[noCol] + '번)' : nameCol >= 0 && r[nameCol] ? ' (' + r[nameCol] + ')' : '')); byRow.push(null); return; }
+      var bmi = {}, n = 0;
+      valueCols.forEach(function (c) {
+        var m = BK.map[c].split('|'), part = m[0], 종목 = m[1], v = bkNum(r[c]);
+        if (v === null) return;
+        if (part === 'V') { 기록.push({ 학생ID: stu.학생ID, 종목: 종목, 값: v }); n++; }
+        else { bmi[종목] = bmi[종목] || {}; bmi[종목][part] = v; }
+      });
+      Object.keys(bmi).forEach(function (종목) { if (bmi[종목].H && bmi[종목].W) { 기록.push({ 학생ID: stu.학생ID, 종목: 종목, 값: '', 참고1: bmi[종목].H, 참고2: bmi[종목].W }); n++; } });
+      if (n) matched++; else blank++;
+      byRow.push(stu);
+    });
+    if (unmatched.length) warn.push('명단에서 찾지 못한 줄 ' + unmatched.length + '개 (건너뜁니다): ' + unmatched.slice(0, 8).join(', ') + (unmatched.length > 8 ? ' …' : ''));
+    if (blank) warn.push('값이 하나도 없는 줄 ' + blank + '개');
+    var dup = {}; 기록.forEach(function (k) { var key = k.학생ID + '|' + k.종목; if (dup[key]) warn.push('같은 학생·종목이 두 번 나옵니다 (뒤의 값이 저장됩니다)'); dup[key] = true; });
+    $('pBkWarn').classList.toggle('hide', !warn.length); $('pBkWarnText').innerHTML = warn.map(esc).join('<br>');
+    $('pBkSummary').textContent = 기록.length ? '학생 ' + matched + '명 · 기록 ' + 기록.length + '건 저장 예정' + (clsCol >= 0 ? ' (반 ' + [상태.반].concat(Object.keys(BK.classes)).join('·') + ')' : '') : '저장할 기록이 없습니다';
+    btn.disabled = !기록.length || (noCol < 0 && nameCol < 0);
+    BK.기록 = 기록;
+  }
+  $('pBkSave').onclick = function () {
+    var 기록 = BK.기록 || [];
+    if (!기록.length) return;
+    var btn = this; btn.disabled = true; setStatus($('pBkStatus2'), '저장 중…');
+    api('paps_t_saveRecords', TOKEN, { 회차: 상태.회차, 기록: 기록 }).then(function (res) {
+      btn.disabled = false;
+      if (!res.ok) { setStatus($('pBkStatus2'), res.message, 'err'); return; }
+      var 미산출 = res.결과.filter(function (r) { return !r.등급; }).length;
+      toast(res.저장수 + '건 저장' + (미산출 ? ' · 등급 없음 ' + 미산출 + '건' : ''));
+      bkClose(); DIRTY.기록 = false; OV = null;
+      load(function () { drawInput(); setStatus($('pStatus'), res.저장수 + '건을 붙여넣기로 저장했습니다.' + (미산출 ? ' 등급이 비어 있는 ' + 미산출 + '건은 기준표를 확인하세요.' : ''), 미산출 ? 'err' : 'ok'); });
+    }).catch(function (e) { btn.disabled = false; setStatus($('pBkStatus2'), ''); handleErr(e); });
   };
 
   /* ---------- 전체 조회 ---------- */

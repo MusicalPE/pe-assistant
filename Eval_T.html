@@ -26,6 +26,29 @@
 #eval_T .in-table tr.miss td.nm::after{content:" ·";color:var(--coral);}
 #eval_T .in-table input.memo{width:100%;min-width:180px;}
 #eval_T .mx th,#eval_T .mx td{text-align:center;white-space:nowrap;}
+#eval_T .pr-card{margin-bottom:12px;}
+#eval_T .pr-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line-2);}
+#eval_T .pr-head b{font-size:16px;letter-spacing:-.02em;}
+#eval_T .pr-body{padding:12px 18px 4px;}
+#eval_T .pr-crit{list-style:none;margin:6px 0 10px;padding:0;}
+#eval_T .pr-crit li{display:flex;gap:8px;padding:3px 0;font-size:13.5px;color:var(--ink-3);align-items:flex-start;}
+#eval_T .pr-crit li.y{color:var(--ink);} #eval_T .pr-crit li i{font-size:16px;margin-top:2px;}
+#eval_T .pr-crit li.y i{color:var(--green);} #eval_T .pr-crit li.n i{color:var(--coral);}
+#eval_T .pr-say{background:var(--soft);border-radius:12px;padding:11px 14px;font-size:14.5px;line-height:1.5;margin-bottom:10px;}
+#eval_T .pr-say b{display:block;font-size:12px;color:var(--ink-3);margin-bottom:3px;letter-spacing:.02em;}
+#eval_T .pr-media{display:flex;align-items:center;gap:12px;margin:10px 0;padding:10px 12px;background:var(--soft);border-radius:12px;flex-wrap:wrap;}
+#eval_T .pr-media .th{width:120px;height:84px;border-radius:9px;overflow:hidden;background:#111;position:relative;cursor:zoom-in;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;}
+#eval_T .pr-media .th img{width:100%;height:100%;object-fit:cover;}
+#eval_T .pr-media .th i{position:absolute;font-size:30px;text-shadow:0 1px 6px rgba(0,0,0,.6);}
+#eval_T .pr-media .info{flex:1;min-width:120px;font-size:13.5px;color:var(--ink-2);}
+#eval_T .pr-media .info b{display:block;color:var(--ink);}
+#eval_T .pr-set{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0 4px;}
+#eval_T .pr-set input.memo{flex:1;min-width:200px;}
+#eval_T .pair-tbl td{vertical-align:middle;} #eval_T .pair-tbl select{min-width:150px;}
+#eval_T .pr-state span{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700;background:var(--line-2);color:var(--ink-3);}
+#eval_T .pr-state span.wait{background:var(--sun-soft);color:#946C00;}
+#eval_T .pr-state span.send{background:var(--accent-soft);color:var(--accent-ink);}
+#eval_T .pr-state span.done{background:var(--green-soft);color:#177A4E;}
 #eval_T .mx tbody td:nth-child(-n+2),#eval_T .mx thead th:nth-child(-n+2){text-align:left;}
 #eval_T .mx thead th:nth-child(2),#eval_T .mx tbody td:nth-child(2){position:sticky;left:0;background:#fff;z-index:1;}
 #eval_T .mx thead th:nth-child(2){background:var(--soft);z-index:2;}
@@ -72,6 +95,7 @@
 <div class="mroot hide" data-mod="EVAL" data-role="T" id="eval_T">
   <div class="page" id="eval_tp_plans"><div id="evPgPlans"></div></div>
   <div class="page hide" id="eval_tp_input"><div id="evPgInput"></div></div>
+  <div class="page hide" id="eval_tp_peer"><div id="evPgPeer"></div></div>
   <div class="page hide" id="eval_tp_overview"><div id="evPgOverview"></div></div>
   <div class="page hide" id="eval_tp_print"><div id="evPgPrint"></div></div>
   <div class="page hide" id="eval_tp_settings"><div id="evPgSettings"></div></div>
@@ -82,11 +106,12 @@
 MODS.EVAL = MODS.EVAL || {};
 MODS.EVAL.teacher = (function () {
   var D = null;              // { 설정, 계획, 요약, 학년도, 오늘 }
-  var pages = ['plans', 'input', 'overview', 'print', 'settings'];
+  var pages = ['plans', 'input', 'peer', 'overview', 'print', 'settings'];
   var nav = [
     { section: '수행평가' },
     { id: 'plans', label: '평가 계획', icon: 'list-details' },
     { id: 'input', label: '평가 입력', icon: 'checkbox' },
+    { id: 'peer', label: '상호평가 확인', icon: 'users-group' },
     { id: 'overview', label: '결과 조회', icon: 'table' },
     { id: 'print', label: '출력', icon: 'printer' },
     { id: 'settings', label: '수행평가 설정', icon: 'adjustments' }
@@ -125,7 +150,7 @@ MODS.EVAL.teacher = (function () {
   function init(ctx) { D = null; boot(null); }
   function reset() { D = null; BOOTP = null; IN = null; ST = { 학년: null, 학기: 0, 반: null, 평가: null }; }
   function boot(then) {
-    if (!BOOTP) BOOTP = api('eval_t_boot', TOKEN).then(function (b) { D = b; BOOTP = null; setNavCount('EVAL', 'input', 0); }, function (e) { BOOTP = null; throw e; });
+    if (!BOOTP) BOOTP = api('eval_t_boot', TOKEN).then(function (b) { D = b; BOOTP = null; setNavCount('EVAL', 'input', 0); peerCount(); }, function (e) { BOOTP = null; throw e; });
     BOOTP.then(function () { if (then) then(); }).catch(handleErr);
   }
   function show(p) {
@@ -134,6 +159,7 @@ MODS.EVAL.teacher = (function () {
       if (!ST.학년) { var g = grades(); ST.학년 = g.length ? g[0] : (allGradesList()[0] || 1); }
       if (p === 'plans') renderPlans();
       if (p === 'input') renderInput();
+      if (p === 'peer') renderPeer();
       if (p === 'overview') renderOverview();
       if (p === 'print') renderPrint();
       if (p === 'settings') renderSettings();
@@ -199,7 +225,8 @@ MODS.EVAL.teacher = (function () {
       list.forEach(function (p, i) {
         var prog = keys.map(function (k) { var n = (요약[p.id] || {})[k] || 0, t = studentsOf(k).length; return '<span class="' + (t && n >= t ? 'done' : n ? 'part' : '') + '">' + k.split('-')[1] + '반 ' + n + '/' + t + '</span>'; }).join('');
         html += '<div class="plan" data-id="' + p.id + '"><div class="ord">' + (i + 1) + '</div><div class="body">' +
-          '<div class="ttl">' + esc(p.평가명) + '<span class="tag brand" style="font-size:11px">' + p.학기 + '학기</span>' + (p.영역 ? '<span class="tag violet" style="font-size:11px">' + esc(p.영역) + '</span>' : '') + '<span class="tag" style="font-size:11px">' + p.단계수 + '단계 · ' + esc(p.라벨.join('/')) + '</span></div>' +
+          '<div class="ttl">' + esc(p.평가명) + '<span class="tag brand" style="font-size:11px">' + p.학기 + '학기</span>' + (p.영역 ? '<span class="tag violet" style="font-size:11px">' + esc(p.영역) + '</span>' : '') + '<span class="tag" style="font-size:11px">' + p.단계수 + '단계 · ' + esc(p.라벨.join('/')) + '</span>' +
+          (p.상호평가 !== 'N' ? '<span class="tag sky" style="font-size:11px"><i class="ti ti-users-group"></i>상호평가 · 짝은 ' + (p.상호평가 === '학생' ? '학생이' : '선생님이') + (p.기준.length ? ' · 기준 ' + p.기준.length + '개' : '') + '</span>' : '') + '</div>' +
           '<div class="meta">' + (p.성취기준 ? '<b>성취기준</b> ' + esc(p.성취기준) + '<br>' : '') + (p.평가요소 ? '<b>평가요소</b> ' + esc(p.평가요소) + '<br>' : '') +
             [p.방법 ? '<b>방법</b> ' + esc(p.방법) : '', p.시기 ? '<b>시기</b> ' + esc(p.시기) : '', p.비고 ? '<b>비고</b> ' + esc(p.비고) : ''].filter(Boolean).join(' · ') + '</div>' +
           (keys.length ? '<div class="pchips">' + prog + '</div>' : '') + '</div>' +
@@ -251,8 +278,16 @@ MODS.EVAL.teacher = (function () {
         '</div>' +
         '<div class="field" style="margin-bottom:8px"><label>단계</label><div class="chks"><label class="chk sm' + (p.단계수 === 3 ? ' on' : '') + '"><input type="radio" name="evLv" value="3"' + (p.단계수 === 3 ? ' checked' : '') + '><span>3단계</span></label><label class="chk sm' + (p.단계수 === 4 ? ' on' : '') + '"><input type="radio" name="evLv" value="4"' + (p.단계수 === 4 ? ' checked' : '') + '><span>4단계</span></label><span class="unit">단계 이름은 잘한 순서로. 비우면 기본 이름</span></div></div>' +
         '<div id="evLblBox" style="margin-bottom:12px">' + labelInputs(p.단계수, p.단계수 === 3 ? (p.라벨.length === 3 ? p.라벨 : D.설정.라벨3) : (p.라벨.length === 4 ? p.라벨 : D.설정.라벨4)) + '</div>' +
+        '<div class="field" style="margin-bottom:10px"><label>상호평가 (짝이 보고 체크 → 선생님이 단계 확정)</label>' +
+          '<select id="evFP"><option value="N">쓰지 않음 (선생님만 입력)</option><option value="학생">씀 · 짝을 학생이 고름</option><option value="교사">씀 · 짝을 선생님이 배정</option></select></div>' +
+        '<div class="field hide" id="evFCritBox" style="margin-bottom:12px"><label>짝이 볼 평가 기준 (한 줄에 하나 · 최대 10개)</label>' +
+          '<textarea id="evFCrit" rows="4" placeholder="두 발을 모아 뛰어요&#10;줄이 걸리지 않고 이어서 해요&#10;끝까지 리듬이 흐트러지지 않아요">' + esc((p.기준 || []).join('\n')) + '</textarea>' +
+          '<span class="unit">학생이 읽을 문장으로 짧게 적어 주세요. 짝은 잘 된 것만 체크하고 한마디를 씁니다. 단계는 선생님이 찍습니다.</span></div>' +
         '<div class="field"><label>비고</label><input type="text" id="evFR" value="' + esc(p.비고) + '"></div>',
       foot: '<span class="status"></span><div class="spacer"></div>' + (isNew ? '' : '<span class="unit">단계 수를 바꾸면 이미 찍은 결과 중 새 이름에 없는 것은 비어 보입니다</span>') + '<button id="evFSave"><i class="ti ti-device-floppy"></i>저장</button>' });
+    $('evFP').value = p.상호평가 || 'N';
+    var critToggle = function () { $('evFCritBox').classList.toggle('hide', $('evFP').value === 'N'); };
+    $('evFP').onchange = critToggle; critToggle();
     qa('input[name=evLv]', m).forEach(function (r) { r.onchange = function () {
       var n = Number(r.value); $('evLblBox').innerHTML = labelInputs(n, n === 3 ? D.설정.라벨3 : D.설정.라벨4);
       qa('label.chk', m).forEach(function (l) { var i = l.querySelector('input'); if (i && i.name === 'evLv') l.classList.toggle('on', i.checked); });
@@ -261,7 +296,8 @@ MODS.EVAL.teacher = (function () {
       var n = Number((m.querySelector('input[name=evLv]:checked') || {}).value) || 3;
       var 라벨 = qa('#evLbl input', m).map(function (i) { return i.value.trim(); });
       var plan = { id: p.id || '', 학년: Number($('evFG').value), 학기: Number($('evFS').value), 평가명: $('evFN').value.trim(), 방법: $('evFM').value.trim(), 시기: $('evFT').value.trim(), 비고: $('evFR').value.trim(), 단계수: n, 라벨: 라벨,
-                   영역: 자세히 ? $('evFA').value.trim() : p.영역, 성취기준: 자세히 ? $('evFC').value.trim() : p.성취기준, 평가요소: 자세히 ? $('evFE').value.trim() : p.평가요소 };
+                   영역: 자세히 ? $('evFA').value.trim() : p.영역, 성취기준: 자세히 ? $('evFC').value.trim() : p.성취기준, 평가요소: 자세히 ? $('evFE').value.trim() : p.평가요소,
+                   상호평가: $('evFP').value, 기준: $('evFCrit').value.split(/\n/).map(function (x) { return x.trim(); }).filter(Boolean) };
       if (!plan.평가명) { mstatus(m, '평가명을 입력해 주세요.', 'err'); return; }
       mstatus(m, '저장 중…');
       api('eval_t_savePlan', TOKEN, plan).then(function (r) { D.계획 = r.계획; ST.학년 = plan.학년; closeModal(true); toast('저장했습니다.'); renderPlans(); }).catch(function (e) { mstatus(m, (e && e.message) || String(e), 'err'); });
@@ -380,6 +416,200 @@ MODS.EVAL.teacher = (function () {
       rows.forEach(function (x) { IN.결과[x.학생ID] = (x.단계 || x.특기사항) ? { 단계: x.단계, 특기사항: x.특기사항, 평가일: d } : null; });
       setStatus('evInStatus', '저장했습니다 · ' + summaryText(), 'ok'); toast('저장했습니다.');
     }).catch(function (e) { $('evInSave').disabled = false; handleErr(e); });
+  }
+
+
+  /* ================= 상호평가 확인 ================= */
+  var PB = null, PST = { 평가: null }, PTHUMB = {};
+  function peerCount() { if (D && D.상호수) setNavCount('EVAL', 'peer', D.상호수.확인 || 0); }
+  function peerPlans() { return (D.계획 || []).filter(function (p) { return p.상호평가 !== 'N'; }); }
+
+  function renderPeer() {
+    var list = peerPlans();
+    if (PST.평가 && !list.some(function (p) { return p.id === PST.평가; })) PST.평가 = null;
+    var forGrade = list.filter(function (p) { return p.학년 === ST.학년; });
+    if (!PST.평가 && forGrade.length) PST.평가 = forGrade[0].id;
+    var head = '<div class="page-head"><h2>상호평가 확인</h2><span class="sub">짝이 기준대로 체크하고 적어 보낸 것을 보고 <b>선생님이 단계를 찍어 반영</b>합니다. 짝이 쓴 글은 참고 자료입니다.</span></div>' +
+      pickBar({ 반: true, extra: '<div class="field"><label>평가</label><select id="evPkP" style="min-width:200px">' +
+        (forGrade.length ? opt(forGrade.map(function (p) { return p.id; }), PST.평가, function (id) { var p = planById(id); return p.학기 + '학기 · ' + p.평가명; }) : '<option value="">상호평가 평가 없음</option>') + '</select></div>' +
+        '<div class="spacer"></div><button class="ghost" id="evPrPair"><i class="ti ti-users-group"></i>짝 배정</button>' });
+    if (!forGrade.length) {
+      P('Peer').innerHTML = head + '<div class="panel"><div class="empty"><i class="ti ti-users-group"></i><strong>' + ST.학년 + '학년에 상호평가를 켠 평가가 없습니다</strong>평가 계획에서 평가를 수정해 <b>상호평가</b>를 켜고 짝이 볼 기준을 적어 주세요.' +
+        '<div style="margin-top:12px"><button class="mini soft" data-go="plans"><i class="ti ti-list-details"></i>평가 계획</button></div></div></div>';
+      bindPick(renderPeer);
+      return;
+    }
+    P('Peer').innerHTML = head + '<div class="panel"><div class="panel-body"><div class="empty"><i class="ti ti-loader"></i>불러오는 중…</div></div></div>';
+    bindPick(renderPeer);
+    $('evPkP').onchange = function () { PST.평가 = $('evPkP').value; renderPeer(); };
+    $('evPrPair').onclick = function () { pairModal(); };
+    var pr = (ST.반 || '').split('-').map(Number);
+    api('eval_t_peerBoard', TOKEN, PST.평가, pr[0] || 0, pr[1] || 0).then(function (b) {
+      PB = b; D.상호수 = b.수; peerCount(); drawPeer();
+    }).catch(handleErr);
+  }
+
+  function drawPeer() {
+    var p = planById(PST.평가), box = P('Peer');
+    var old = box.querySelector('.panel'); if (old) old.remove();
+    var rows = (PB.목록 || []).filter(function (o) { return o.평가ID === PST.평가; });
+    var 보낸것 = rows.filter(function (o) { return o.상태 === '교사확인대기'; });
+    var html = '';
+    if (!보낸것.length) {
+      html += '<div class="panel"><div class="empty"><i class="ti ti-inbox"></i><strong>확인할 것이 없습니다</strong>' +
+        (rows.length ? '짝이 보내면 여기에 쌓입니다.' : (p && p.상호평가 === '교사' ? '먼저 <b>짝 배정</b>으로 짝을 정해 주세요.' : '학생이 짝을 고르면 시작됩니다.')) + '</div></div>';
+    }
+    보낸것.forEach(function (o) {
+      var 결과 = (PB.결과[o.대상학생ID] || {})[o.평가ID] || null;
+      var 체크 = (p.기준 || []).map(function (c, i) {
+        var v = o.체크[String(i + 1)];
+        return '<li class="' + (v === 1 ? 'y' : v === 0 ? 'n' : '') + '"><i class="ti ti-' + (v === 1 ? 'circle-check' : v === 0 ? 'circle-x' : 'minus') + '"></i><span>' + esc(c) + '</span></li>';
+      }).join('');
+      var 체크수 = (p.기준 || []).filter(function (c, i) { return o.체크[String(i + 1)] === 1; }).length;
+      html += '<div class="panel pr-card" data-row="' + esc(o.id) + '">' +
+        '<div class="pr-head"><b>' + esc(o.대상이름) + '</b><span class="unit">' + o.학년 + '학년 ' + o.반 + '반 ' + o.번호 + '번</span>' +
+          '<span class="tag sky">짝 ' + esc(o.짝이름) + '</span>' + (p.기준.length ? '<span class="tag">체크 ' + 체크수 + '/' + p.기준.length + '</span>' : '') +
+          '<div class="spacer"></div><span class="unit">' + esc(String(o.응답 || '').slice(5, 16)) + '</span></div>' +
+        '<div class="pr-body">' +
+          (체크 ? '<ul class="pr-crit">' + 체크 + '</ul>' : '') +
+          '<div class="pr-say"><b>짝이 쓴 글</b>' + esc(o.의견 || '(없음)') + '</div>' +
+          (o.mediaId ? '<div class="pr-media"><div class="th" data-media="' + esc(o.id) + '">' + (PTHUMB[o.thumbId] ? '<img src="' + PTHUMB[o.thumbId] + '">' : '') + '<i class="ti ti-' + (o.mediaType === '영상' ? 'player-play-filled' : 'zoom-in') + '"></i></div>' +
+            '<div class="info"><b>짝이 찍은 ' + (o.mediaType === '영상' ? '영상' : '사진') + '</b>누르면 크게 봅니다</div>' +
+            '<button class="ghost mini" data-media="' + esc(o.id) + '"><i class="ti ti-' + (o.mediaType === '영상' ? 'player-play' : 'photo') + '"></i>보기</button>' +
+            '<button class="ghost mini" data-mdel="' + esc(o.id) + '" title="파일만 지웁니다"><i class="ti ti-trash"></i></button></div>' : '') +
+          '<div class="pr-set"><span class="unit">단계</span><span class="lv">' +
+            p.라벨.map(function (l, i) { return '<button class="lvb l' + (i + 1) + ((결과 && 결과.단계 === l) ? ' on' : '') + '" data-lv="' + esc(l) + '">' + esc(l) + '</button>'; }).join('') + '</span>' +
+            '<input type="text" class="memo" placeholder="특기사항 (필요할 때만)" value="' + esc(결과 ? 결과.특기사항 : '') + '">' +
+            '<button class="ghost mini" data-quote="' + esc(o.id) + '" title="짝이 쓴 글을 특기사항에 넣기"><i class="ti ti-quote"></i>짝 글 넣기</button></div>' +
+        '</div>' +
+        '<div class="savebar"><span class="status"></span><div class="spacer"></div>' +
+          '<button class="ghost" data-redo="' + esc(o.id) + '"><i class="ti ti-refresh"></i>다시 하기</button>' +
+          '<button data-apply="' + esc(o.id) + '"><i class="ti ti-check"></i>반영</button></div></div>';
+    });
+
+    /* 진행 상황 */
+    if (ST.반 && (PB.학생 || []).length) {
+      var byStu = {}; rows.forEach(function (o) { byStu[o.대상학생ID] = o; });
+      html += '<div class="panel"><div class="panel-head"><h3><i class="ti ti-list-check"></i>' + classLabel(ST.반) + ' 진행 상황</h3><span class="unit">' + esc(p.평가명) + '</span>' +
+        '<div class="spacer"></div><span class="unit">짝 확인 중 ' + rows.filter(function (o) { return o.상태 === '짝확인대기'; }).length +
+        ' · 보냄 ' + 보낸것.length + ' · 반영 ' + rows.filter(function (o) { return o.상태 === '반영완료'; }).length + '</span></div>' +
+        '<div class="scroll-x"><table><thead><tr><th>번호</th><th>이름</th><th>짝</th><th>상태</th><th>단계</th></tr></thead><tbody>';
+      PB.학생.forEach(function (s) {
+        var o = byStu[s.학생ID], 결과 = (PB.결과[s.학생ID] || {})[PST.평가];
+        var st = !o ? '<span>아직</span>' : o.상태 === '짝확인대기' ? '<span class="wait">짝 확인 중</span>' : o.상태 === '교사확인대기' ? '<span class="send">보냄 · 확인해 주세요</span>' : '<span class="done">반영됨</span>';
+        html += '<tr><td class="unit">' + s.번호 + '</td><td><b>' + esc(s.이름) + '</b></td><td class="unit">' + esc(o ? o.짝이름 : '-') + '</td>' +
+          '<td class="pr-state">' + st + '</td><td>' + (결과 && 결과.단계 ? '<span class="tag brand">' + esc(결과.단계) + '</span>' : '<span class="unit">-</span>') + '</td></tr>';
+      });
+      html += '</tbody></table></div></div>';
+    }
+    box.insertAdjacentHTML('beforeend', html);
+    bindPeerCard(box);
+  }
+
+  function bindPeerCard(box) {
+    var p = planById(PST.평가);
+    qa('.pr-card .lvb', box).forEach(function (b) { b.onclick = function () {
+      var wrap = b.closest('.lv'), on = b.classList.contains('on');
+      qa('.lvb', wrap).forEach(function (x) { x.classList.remove('on'); });
+      if (!on) b.classList.add('on');
+    }; });
+    qa('[data-quote]', box).forEach(function (b) { b.onclick = function () {
+      var card = b.closest('.pr-card'), o = findOne(PB.목록, function (x) { return x.id === b.getAttribute('data-quote'); });
+      if (o) card.querySelector('input.memo').value = o.의견 || '';
+    }; });
+    qa('[data-apply]', box).forEach(function (b) { b.onclick = function () {
+      var card = b.closest('.pr-card'), id = b.getAttribute('data-apply');
+      var on = card.querySelector('.lvb.on');
+      if (!on) { mstatusEl(card, '단계를 골라 주세요.', 'err'); return; }
+      b.disabled = true; mstatusEl(card, '반영 중…');
+      api('eval_t_peerApply', TOKEN, id, on.getAttribute('data-lv'), card.querySelector('input.memo').value.trim(), today()).then(function (r) {
+        D.요약 = r.요약; D.상호수 = r.수; toast('반영했습니다.'); renderPeer();
+      }).catch(function (e) { b.disabled = false; mstatusEl(card, ''); handleErr(e); });
+    }; });
+    qa('[data-redo]', box).forEach(function (b) { b.onclick = function () {
+      var id = b.getAttribute('data-redo');
+      var m = openModal({ title: '다시 하기', icon: 'refresh', width: 520,
+        body: '<p style="margin:0 0 10px;color:var(--ink-2);font-size:13.5px">짝에게 다시 보냅니다. 짝이 체크한 것과 쓴 글은 지워지고, 아래 말이 짝 화면에 보입니다. 사진·영상은 그대로 남습니다.</p>' +
+          '<div class="field"><label>짝에게 한마디 (쓰지 않아도 됩니다)</label><input type="text" id="evRdM" placeholder="예: 끝까지 보고 다시 체크해 주세요" autofocus></div>',
+        foot: '<span class="status"></span><div class="spacer"></div><button id="evRdGo"><i class="ti ti-refresh"></i>다시 보내기</button>' });
+      $('evRdGo').onclick = function () {
+        mstatus(m, '보내는 중…');
+        api('eval_t_peerRedo', TOKEN, id, $('evRdM').value.trim()).then(function (r) { D.상호수 = r.수; closeModal(true); toast('짝에게 다시 보냈습니다.'); renderPeer(); })
+          .catch(function (e) { mstatus(m, (e && e.message) || String(e), 'err'); });
+      };
+    }; });
+    qa('[data-mdel]', box).forEach(function (b) { b.onclick = function () {
+      if (!confirm('이 인증 파일을 휴지통으로 보낼까요? 상호평가 기록은 그대로 남습니다.')) return;
+      api('eval_t_deleteMedia', TOKEN, b.getAttribute('data-mdel')).then(function () { toast('파일을 지웠습니다.'); renderPeer(); }).catch(handleErr);
+    }; });
+    /* 썸네일·크게 보기 */
+    var need = [];
+    qa('[data-media]', box).forEach(function (el) {
+      var o = findOne(PB.목록, function (x) { return x.id === el.getAttribute('data-media'); });
+      if (!o) return;
+      if (o.thumbId && PTHUMB[o.thumbId] === undefined) { PTHUMB[o.thumbId] = ''; need.push(o.thumbId); }
+      el.onclick = function () {
+        openMedia(o.대상이름 + ' · 짝이 찍은 ' + (o.mediaType === '영상' ? '영상' : '사진'), o.mediaType, function () {
+          return api('eval_t_getMedia', TOKEN, [o.mediaId]).then(function (m) { return m[o.mediaId] || ''; });
+        });
+      };
+    });
+    if (need.length) api('eval_t_getMedia', TOKEN, need).then(function (m) {
+      Object.keys(m).forEach(function (id) { PTHUMB[id] = m[id]; });
+      qa('.th[data-media]', box).forEach(function (el) {
+        var o = findOne(PB.목록, function (x) { return x.id === el.getAttribute('data-media'); });
+        if (o && PTHUMB[o.thumbId]) el.innerHTML = '<img src="' + PTHUMB[o.thumbId] + '"><i class="ti ti-' + (o.mediaType === '영상' ? 'player-play-filled' : 'zoom-in') + '"></i>';
+      });
+    }).catch(function () {});
+  }
+  function mstatusEl(card, msg, kind) { var st = card.querySelector('.status'); if (st) { st.className = 'status ' + (kind || ''); st.textContent = msg; } }
+
+  /* 짝 배정 (선생님이 정하는 평가 · 학생이 고르는 평가도 필요하면 정해 줄 수 있습니다) */
+  function pairModal() {
+    var p = planById(PST.평가);
+    if (!p) return;
+    if (!ST.반) { toast('반을 먼저 골라 주세요.', 'err'); return; }
+    var 학생 = (PB && PB.학생 && PB.학생.length) ? PB.학생 : studentsOf(ST.반).map(function (s) { return { 학생ID: s.id, 번호: s.번호, 이름: s.이름 }; });
+    if (!학생.length) { toast('이 반에 학생이 없습니다.', 'err'); return; }
+    var byStu = {}; (PB ? PB.목록 : []).forEach(function (o) { if (o.평가ID === PST.평가) byStu[o.대상학생ID] = o; });
+    var body = '<div class="note" style="margin-bottom:10px"><i class="ti ti-info-circle"></i><div><b>왼쪽 학생</b>이 하는 모습을 <b>오른쪽 짝</b>이 보고 체크합니다. 이미 보낸 것과 반영된 것은 바뀌지 않습니다.</div></div>' +
+      '<div class="chks" style="margin-bottom:10px"><button class="ghost mini" id="evPrAuto1"><i class="ti ti-arrows-exchange"></i>둘씩 짝</button><button class="ghost mini" id="evPrAuto2"><i class="ti ti-rotate"></i>돌아가며</button><button class="ghost mini" id="evPrClear"><i class="ti ti-eraser"></i>비우기</button></div>' +
+      '<div class="scroll-x" style="max-height:52vh"><table class="pair-tbl"><thead><tr><th>번호</th><th>학생</th><th>봐 줄 짝</th><th>상태</th></tr></thead><tbody>' +
+      학생.map(function (s) {
+        var o = byStu[s.학생ID], 잠김 = o && (o.상태 === '교사확인대기' || o.상태 === '반영완료');
+        var opts = '<option value="">- 없음 -</option>' + 학생.filter(function (x) { return x.학생ID !== s.학생ID; })
+          .map(function (x) { return '<option value="' + esc(x.학생ID) + '"' + (o && o.짝학생ID === x.학생ID ? ' selected' : '') + '>' + x.번호 + '. ' + esc(x.이름) + '</option>'; }).join('');
+        return '<tr><td class="unit">' + s.번호 + '</td><td><b>' + esc(s.이름) + '</b></td>' +
+          '<td><select data-pair="' + esc(s.학생ID) + '"' + (잠김 ? ' disabled' : '') + '>' + opts + '</select></td>' +
+          '<td class="pr-state">' + (!o ? '<span>아직</span>' : o.상태 === '짝확인대기' ? '<span class="wait">짝 확인 중</span>' : o.상태 === '교사확인대기' ? '<span class="send">보냄</span>' : '<span class="done">반영됨</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+    var m = openModal({ title: '짝 배정 — ' + p.평가명, icon: 'users-group', width: 680, body: body,
+      foot: '<span class="status"></span><div class="spacer"></div><button id="evPrSave"><i class="ti ti-device-floppy"></i>배정 저장</button>' });
+    var sels = function () { return qa('select[data-pair]', m).filter(function (x) { return !x.disabled; }); };
+    $('evPrAuto1').onclick = function () {
+      var free = sels(), ids = free.map(function (x) { return x.getAttribute('data-pair'); });
+      free.forEach(function (sel, i) {
+        var j = (i % 2 === 0) ? i + 1 : i - 1;
+        if (j >= ids.length) j = i - 1;                       // 홀수면 마지막은 앞사람과
+        sel.value = ids[j] || '';
+      });
+    };
+    $('evPrAuto2').onclick = function () {
+      var free = sels(), ids = free.map(function (x) { return x.getAttribute('data-pair'); });
+      free.forEach(function (sel, i) { sel.value = ids[(i + 1) % ids.length] || ''; });
+    };
+    $('evPrClear').onclick = function () { sels().forEach(function (sel) { sel.value = ''; }); };
+    $('evPrSave').onclick = function () {
+      var pairs = [];
+      sels().forEach(function (sel) { if (sel.value) pairs.push({ 대상학생ID: sel.getAttribute('data-pair'), 짝학생ID: sel.value }); });
+      if (!pairs.length) { mstatus(m, '짝을 하나 이상 골라 주세요.', 'err'); return; }
+      mstatus(m, '저장 중…');
+      api('eval_t_assignPairs', TOKEN, PST.평가, pairs).then(function (r) {
+        D.상호수 = r.수; closeModal(true);
+        toast('짝 ' + (r.새로 + r.바꿈) + '명 배정' + (r.건너뜀 ? ' · ' + r.건너뜀 + '명은 그대로' : ''));
+        renderPeer();
+      }).catch(function (e) { mstatus(m, (e && e.message) || String(e), 'err'); });
+    };
   }
 
   /* ================= 결과 조회 ================= */
@@ -557,12 +787,33 @@ MODS.EVAL.teacher = (function () {
           '<div class="field"><label>4단계 기본 이름</label><input type="text" id="evSL4" value="' + esc(S.라벨4.join(', ')) + '"></div>' +
         '</div>' +
         '<div class="field"><label>평가별 결과표 제목</label><input type="text" id="evSTitle" value="' + esc(S.출력제목) + '" style="max-width:320px"></div>' +
-        '<div class="note" style="margin-top:12px"><i class="ti ti-eye-off"></i><div>수행평가는 <b>선생님만</b> 봅니다. 학생 로그인 화면·학생 메뉴·프로필·배지 어디에도 나가지 않습니다.</div></div>' +
+        '<div class="note" style="margin-top:12px"><i class="ti ti-eye-off"></i><div>평가 결과(단계·특기사항)는 <b>선생님만</b> 봅니다. 상호평가를 켠 평가가 있을 때만 학생 화면에 <b>상호평가</b> 메뉴가 생기고, 학생에게는 진행 상태와 짝이 찍어 준 사진·영상만 보입니다.</div></div>' +
       '</div><div class="savebar"><span class="status" id="evSStatus"></span><div class="spacer"></div><button id="evSSave"><i class="ti ti-device-floppy"></i>저장</button></div></div>' +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-camera"></i>상호평가 인증 사진·영상</h3><span class="unit">짝이 확인할 때 올리는 자료</span></div><div class="panel-body">' +
+        '<div class="grid g3" style="margin-bottom:10px">' +
+          '<div class="field"><label>올릴 수 있는 것</label><select id="evSMedia"><option value="사진+영상">사진 + 영상</option><option value="사진">사진만</option><option value="없음">없음 (안 씀)</option></select></div>' +
+          '<div class="field"><label>보내려면</label><select id="evSReq"><option value="N">올리지 않아도 됨</option><option value="Y">꼭 올려야 함</option></select></div>' +
+          '<div class="field"><label>단계를 반영한 뒤</label><select id="evSKeep"><option value="유지">그대로 두기 (학생이 다시 볼 수 있음)</option><option value="반영후삭제">휴지통으로 (용량 절약)</option></select></div>' +
+        '</div><div class="unit" id="evSMediaInfo">영상은 25MB(약 15초)까지 올릴 수 있습니다.</div></div>' +
+        '<div class="savebar"><span class="status" id="evSMStatus"></span><div class="spacer"></div><button id="evSMSave"><i class="ti ti-device-floppy"></i>저장</button></div></div>' +
       '<div class="panel"><div class="panel-head"><h3><i class="ti ti-database"></i>자료</h3><span class="unit">평가 ' + (D.계획 || []).length + '개</span></div><div class="panel-body">' +
         '<div class="note"><i class="ti ti-info-circle"></i><div>평가 계획은 <b>평가_계획</b>, 결과는 <b>평가_결과</b> 시트에 있습니다. 결과에는 학년도가 붙어 학년 올리기를 해도 지난 학년도 결과가 남습니다.</div></div>' +
         '<div class="chks"><button class="ghost" data-go="reset"><i class="ti ti-trash"></i>초기화 화면으로</button></div></div></div>';
     bindChk(P('Settings'));
+    $('evSMedia').value = S.인증자료; $('evSReq').value = S.인증필수 ? 'Y' : 'N'; $('evSKeep').value = S.인증보관;
+    api('eval_t_mediaInfo', TOKEN).then(function (r) {
+      if (!$('evSMediaInfo')) return;
+      $('evSMediaInfo').innerHTML = '지금 남아 있는 인증 파일 <b>' + r.파일수 + '개</b>' + (r.폴더URL ? ' · <a href="' + esc(r.폴더URL) + '" target="_blank" rel="noopener">드라이브 폴더 열기</a>' : ' · 파일은 오프라인 데이터 폴더(사진)에 저장됩니다') +
+        '<br>영상은 25MB(약 15초)까지 올릴 수 있습니다. 파일이 많아지면 <b>설정 → 초기화</b>에서 평가 결과를 지울 때 함께 정리됩니다.';
+    }).catch(function () {});
+    $('evSMSave').onclick = function () {
+      var btn = this; btn.disabled = true; setStatus('evSMStatus', '저장 중…');
+      api('eval_t_saveSettings', TOKEN, { 인증자료: $('evSMedia').value, 인증필수: $('evSReq').value === 'Y', 인증보관: $('evSKeep').value }).then(function (r) {
+        btn.disabled = false;
+        if (!r.ok) { setStatus('evSMStatus', r.message, 'err'); return; }
+        D.설정 = r.설정; setStatus('evSMStatus', '저장했습니다.', 'ok');
+      }).catch(function (e) { btn.disabled = false; setStatus('evSMStatus', ''); handleErr(e); });
+    };
     qa('input[name=evSMode]').forEach(function (r) { r.onchange = function () { qa('input[name=evSMode]').forEach(function (x) { x.parentNode.classList.toggle('on', x.checked); }); }; });
     $('evSSave').onclick = function () {
       var map = { 계획방식: (P('Settings').querySelector('input[name=evSMode]:checked') || {}).value || '간단', 라벨3: $('evSL3').value.split(',').map(function (x) { return x.trim(); }).filter(Boolean), 라벨4: $('evSL4').value.split(',').map(function (x) { return x.trim(); }).filter(Boolean), 출력제목: $('evSTitle').value.trim() };

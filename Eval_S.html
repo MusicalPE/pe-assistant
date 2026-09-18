@@ -1,0 +1,338 @@
+<!-- 수행평가 · 학생 화면 (모듈 EVAL, 역할 S) — 상호평가만 보입니다. 단계·특기사항은 학생에게 나가지 않습니다 -->
+<style>
+#eval_S .s-hero{background:linear-gradient(135deg,var(--accent-dk) 0%,var(--accent) 55%,color-mix(in srgb,var(--accent) 45%,#fff) 100%);color:#fff;border-radius:20px;padding:22px 24px;margin-bottom:18px;position:relative;overflow:hidden;box-shadow:0 16px 40px -18px rgba(110,36,94,.55);}
+#eval_S .s-hero::before{content:'';position:absolute;right:-40px;top:-60px;width:210px;height:210px;border-radius:50%;background:rgba(255,255,255,.14);}
+#eval_S .s-hero h2{margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.04em;position:relative;}
+#eval_S .s-hero p{margin:0;opacity:.92;font-size:14px;position:relative;}
+#eval_S .ecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+#eval_S .ecard{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;}
+#eval_S .ecard .nm{font-size:18px;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#eval_S .ecard .sub{font-size:13px;color:var(--ink-3);font-weight:600;}
+#eval_S .ecard .st{font-size:14.5px;font-weight:700;}
+#eval_S .ecard.wait{border-color:var(--accent-soft);background:var(--accent-soft);}
+#eval_S .ecard.done{border-color:#CFE8DA;background:#F3FBF7;}
+#eval_S .crit{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:12px;padding:11px 13px;margin-bottom:8px;font-size:16px;font-weight:700;}
+#eval_S .crit .n{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;}
+#eval_S .crit .t{flex:1;}
+#eval_S .crit.checkable{cursor:pointer;border:2px solid transparent;user-select:none;-webkit-user-select:none;}
+#eval_S .crit.checkable.on{background:var(--green-soft);border-color:var(--green);}
+#eval_S .crit .cb{width:34px;height:34px;border-radius:10px;border:2.5px solid #B8C4D0;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;line-height:1;color:#fff;font-weight:900;}
+#eval_S .crit.checkable.on .cb{background:var(--green);border-color:var(--green);}
+#eval_S .crit.checkable.on .n{background:var(--green);}
+#eval_S .peer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;}
+#eval_S .peer-grid button{background:#fff;color:var(--ink);border:1.5px solid var(--line);border-radius:12px;padding:13px 8px;flex-direction:column;gap:0;font-size:17px;font-weight:800;}
+#eval_S .peer-grid button small{font-size:11.5px;color:var(--ink-3);font-weight:600;}
+#eval_S .peer-grid button:hover,#eval_S .peer-grid button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);}
+#eval_S .bigsave{width:100%;padding:15px;font-size:17px;border-radius:14px;margin-top:8px;}
+#eval_S .media-box{border:2px dashed var(--line);border-radius:16px;padding:12px 14px;margin:12px 0;background:#fff;}
+#eval_S .media-box.has{border-style:solid;border-color:var(--green);background:var(--green-soft);}
+#eval_S .media-box .mb-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;margin-bottom:8px;flex-wrap:wrap;}
+#eval_S .media-btns{display:flex;gap:8px;flex-wrap:wrap;}
+#eval_S .media-btns label{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;font-size:15px;}
+#eval_S .media-btns label i{font-size:20px;color:var(--accent);}
+#eval_S .media-btns label input{display:none;}
+#eval_S .media-prev{display:flex;align-items:center;gap:12px;margin-top:10px;}
+#eval_S .media-prev .th{width:96px;height:72px;border-radius:10px;overflow:hidden;background:#111;position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;}
+#eval_S .media-prev .th img{width:100%;height:100%;object-fit:cover;}
+#eval_S .media-prev .th .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);}
+#eval_S .media-view{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:8px 12px 8px 8px;font-weight:700;color:var(--ink);cursor:pointer;}
+#eval_S .media-view .th{width:60px;height:45px;border-radius:8px;overflow:hidden;background:#111;position:relative;display:flex;align-items:center;justify-content:center;color:#fff;}
+#eval_S .media-view .th img{width:100%;height:100%;object-fit:cover;}
+#eval_S .media-view .th i{position:absolute;font-size:20px;text-shadow:0 1px 4px rgba(0,0,0,.6);}
+#eval_S .media-view small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:600;}
+#eval_S .ok-hint{text-align:center;font-size:13px;font-weight:600;color:var(--coral);min-height:18px;margin-top:6px;}
+@media (max-width:900px){ #eval_S .s-hero{padding:18px;} }
+</style>
+
+<div class="mroot hide" data-mod="EVAL" data-role="S" id="eval_S">
+
+  <!-- ===== 내 상호평가 ===== -->
+  <div class="page" id="eval_sp_home">
+    <div class="s-hero">
+      <h2 id="esHello">상호평가</h2>
+      <p id="esHeroSub">친구가 봐 주고, 선생님이 확인해요</p>
+    </div>
+    <div id="esHomeBody"></div>
+  </div>
+
+  <!-- ===== 친구 평가하기 ===== -->
+  <div class="page hide" id="eval_sp_check">
+    <div class="page-head"><h2 id="esCkTitle">친구 평가하기</h2><span class="sub" id="esCkSub">친구가 하는 모습을 보고 기준대로 체크한 뒤 한마디를 적어요.</span><div class="spacer"></div><button class="ghost mini" id="esCkRefresh"><i class="ti ti-refresh"></i>새로고침</button></div>
+    <div id="esCkBody"></div>
+  </div>
+</div>
+
+<script>
+MODS.EVAL = MODS.EVAL || {};
+MODS.EVAL.student = (function () {
+  var V = null, LOADING = false, THUMB = {}, picking = null;
+  var pages = ['home', 'check'];
+  var nav = [
+    { section: '상호평가' },
+    { id: 'home', label: '내 상호평가', icon: 'user-check' },
+    { id: 'check', label: '친구 평가하기', icon: 'clipboard-check' }
+  ];
+  var ROOT = $('eval_S');
+  function qa(sel, root) { return Array.prototype.slice.call((root || ROOT).querySelectorAll(sel)); }
+  /** 이름 뒤 조사 고르기 (받침 있으면 앞것) — '이가' '은는' '을를' */
+  function 조사(name, pair) {
+    var t = String(name || ''), c = t.charCodeAt(t.length - 1);
+    var 받침 = (c >= 0xAC00 && c <= 0xD7A3) ? ((c - 0xAC00) % 28) > 0 : false;
+    return t + (받침 ? pair.charAt(0) : pair.charAt(1));
+  }
+
+  function init(ctx) { V = null; load(null); }              // 요청 수 배지를 위해 미리 불러옵니다
+  function reset() { V = null; THUMB = {}; picking = null; }
+  function load(then) {
+    if (LOADING) return;
+    LOADING = true;
+    api('eval_s_boot', TOKEN).then(function (v) { LOADING = false; setV(v); if (then) then(); })
+      .catch(function (e) { LOADING = false; handleErr(e); });
+  }
+  function refresh() { return api('eval_s_view', TOKEN).then(setV); }
+  function setV(v) { V = v; setNavCount('EVAL', 'check', (V.요청 || []).length); }
+  function pagesShow(id) { pages.forEach(function (p) { $('eval_sp_' + p).classList.toggle('hide', p !== id); }); scrollTopMain(); }
+  function show(p) {
+    if (pages.indexOf(p) < 0) p = 'home';
+    var fn = p === 'check' ? renderCheck : renderHome;
+    if (!V) { pagesShow(p); load(function () { pagesShow(p); fn(); }); return; }
+    pagesShow(p); fn();
+  }
+  function planById(id) { return findOne(V.계획, function (p) { return p.id === id; }); }
+  function mine(pid) { return findOne(V.내것, function (x) { return x.평가ID === pid; }); }
+
+  /* ---------- 짝이 찍어 준 사진·영상 ---------- */
+  function mediaButton(o) {
+    if (!o || !o.mediaId) return '';
+    var th = THUMB[o.thumbId || ''] || '', isV = o.mediaType === '영상';
+    return '<span class="media-view" data-media="' + esc(o.id) + '"><span class="th">' + (th ? '<img src="' + th + '">' : '') + '<i class="ti ti-' + (isV ? 'player-play-filled' : 'photo') + '"></i></span><span>짝이 찍어 준 ' + (isV ? '영상' : '사진') + '<small>' + esc(o.짝이름) + ' · ' + esc(String(o.응답 || o.요청 || '').slice(5, 16)) + '</small></span></span>';
+  }
+  function bindMedia(root) {
+    var need = [];
+    qa('[data-media]', root).forEach(function (el) {
+      var o = findOne(V.내것, function (x) { return x.id === el.getAttribute('data-media'); });
+      if (!o) return;
+      if (o.thumbId && THUMB[o.thumbId] === undefined) { THUMB[o.thumbId] = ''; need.push(o.thumbId); }
+      el.onclick = function () {
+        openMedia(o.짝이름 + '가 찍어 준 ' + (o.mediaType === '영상' ? '영상' : '사진'), o.mediaType, function () {
+          return api('eval_s_getMedia', TOKEN, [o.mediaId]).then(function (m) { return m[o.mediaId] || ''; });
+        });
+      };
+    });
+    if (need.length) api('eval_s_getMedia', TOKEN, need).then(function (m) {
+      Object.keys(m).forEach(function (id) { THUMB[id] = m[id]; });
+      qa('[data-media]', root).forEach(function (el) {
+        var o = findOne(V.내것, function (x) { return x.id === el.getAttribute('data-media'); });
+        if (o && THUMB[o.thumbId]) el.querySelector('.th').innerHTML = '<img src="' + THUMB[o.thumbId] + '"><i class="ti ti-' + (o.mediaType === '영상' ? 'player-play-filled' : 'zoom-in') + '"></i>';
+      });
+    }).catch(function () {});
+  }
+
+  /* ================= 내 상호평가 ================= */
+  function renderHome() {
+    var hour = new Date().getHours();
+    $('esHello').textContent = (hour < 12 ? '좋은 아침이에요' : hour < 17 ? '오늘도 힘차게' : '오늘도 수고했어요') + ', ' + V.학생.이름 + '!';
+    $('esHeroSub').textContent = '내가 하는 모습을 짝이 봐 주고, 선생님이 확인해요. 점수는 선생님이 정해요.';
+    var list = V.계획 || [];
+    if (!list.length) {
+      $('esHomeBody').innerHTML = '<div class="panel"><div class="empty"><i class="ti ti-clipboard-check"></i><strong>지금은 상호평가가 없어요</strong>선생님이 열어 주면 여기에 나타나요.</div></div>';
+      return;
+    }
+    var html = '';
+    if ((V.요청 || []).length) html += '<div class="note sun" style="margin-bottom:12px"><i class="ti ti-user-check"></i><div><b>친구 ' + V.요청.length + '명</b>이 내 확인을 기다려요. <button class="mini soft" id="esGoCheck">평가하러 가기</button></div></div>';
+    html += '<div class="ecards">' + list.map(function (p) {
+      var o = mine(p.id), cls = '', st = '', act = '';
+      if (!o) {
+        if (p.상호평가 === '학생') { st = '나를 봐 줄 짝을 골라요'; act = '<button class="bigsave" data-pick="' + esc(p.id) + '"><i class="ti ti-users"></i>짝 고르기</button>'; }
+        else { st = '선생님이 짝을 정해 주실 거예요'; cls = ''; }
+      } else if (o.상태 === '짝확인대기') {
+        cls = 'wait'; st = esc(조사(o.짝이름, '이가')) + ' 확인해 줄 차례예요';
+        if (p.상호평가 === '학생') act = '<button class="bigsave ghost" data-cancel="' + esc(o.id) + '"><i class="ti ti-x"></i>짝 바꾸기</button>';
+      } else if (o.상태 === '교사확인대기') {
+        cls = 'wait'; st = '선생님이 확인하고 있어요';
+        act = mediaButton(o);
+      } else if (o.상태 === '반영완료') {
+        cls = 'done'; st = '확인이 끝났어요';
+        act = mediaButton(o);
+      }
+      return '<div class="ecard ' + cls + '"><div class="nm">' + esc(p.평가명) + '<span class="tag" style="font-size:11px">' + p.학기 + '학기</span></div>' +
+        '<div class="sub">' + [p.방법, p.시기].filter(Boolean).map(esc).join(' · ') + '</div>' +
+        '<div class="st">' + st + '</div>' + (act || '') + '</div>';
+    }).join('') + '</div>';
+    $('esHomeBody').innerHTML = html;
+    if ($('esGoCheck')) $('esGoCheck').onclick = function () { go('EVAL', 'check'); };
+    bindMedia($('esHomeBody'));
+    qa('[data-pick]', $('esHomeBody')).forEach(function (b) { b.onclick = function () { pickPeer(b.getAttribute('data-pick')); }; });
+    qa('[data-cancel]', $('esHomeBody')).forEach(function (b) { b.onclick = function () {
+      b.disabled = true;
+      api('eval_s_cancelPeer', TOKEN, b.getAttribute('data-cancel')).then(function (v) { setV(v); toast('짝을 다시 고를 수 있어요'); renderHome(); })
+        .catch(function (e) { b.disabled = false; handleErr(e); });
+    }; });
+  }
+
+  /* 짝 고르기 (학생이 고르는 평가) */
+  function pickPeer(pid) {
+    var p = planById(pid); if (!p) return;
+    picking = null;
+    var m = openEvalModal('누가 봐 줄까요?', p.평가명 + ' — 내가 하는 모습을 봐 줄 친구를 골라요.',
+      '<div class="peer-grid" id="esPeerGrid">' + (V.친구 || []).map(function (s) {
+        return '<button type="button" data-peer="' + esc(s.학생ID) + '">' + esc(s.이름) + '<small>' + s.번호 + '번</small></button>';
+      }).join('') + '</div>' + ((V.친구 || []).length ? '' : '<div class="unit">같은 반 친구가 명단에 없어요. 선생님께 말씀드려요.</div>') +
+      '<button class="bigsave" id="esPeerGo" disabled><i class="ti ti-send"></i>친구를 골라요</button>');
+    qa('[data-peer]', m).forEach(function (b) { b.onclick = function () {
+      picking = b.getAttribute('data-peer');
+      qa('[data-peer]', m).forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      var go = $('esPeerGo'); go.disabled = false;
+      go.innerHTML = '<i class="ti ti-send"></i>' + esc(b.textContent.replace(/\d+번$/, '')) + '에게 부탁하기';
+    }; });
+    $('esPeerGo').onclick = function () {
+      if (!picking) return;
+      var btn = this; btn.disabled = true;
+      api('eval_s_pickPeer', TOKEN, pid, picking).then(function (v) { setV(v); closeEvalModal(); toast('부탁했어요'); renderHome(); })
+        .catch(function (e) { btn.disabled = false; handleErr(e); });
+    };
+  }
+
+  /* 작은 모달 (학생 화면 전용) */
+  function openEvalModal(title, sub, body) {
+    closeEvalModal();
+    var d = document.createElement('div');
+    d.className = 'modal'; d.id = 'esModal';
+    d.innerHTML = '<div style="max-width:620px"><div class="panel-head"><h3><i class="ti ti-users"></i>' + esc(title) + '</h3><div class="spacer"></div><button class="ghost mini" id="esModalX"><i class="ti ti-x"></i>닫기</button></div>' +
+      '<div class="panel-body">' + (sub ? '<p style="margin:0 0 12px;color:var(--ink-2);font-size:14px">' + esc(sub) + '</p>' : '') + body + '</div></div>';
+    ROOT.appendChild(d);
+    d.addEventListener('mousedown', function (e) { if (e.target === d) closeEvalModal(); });
+    $('esModalX').onclick = closeEvalModal;
+    return d;
+  }
+  function closeEvalModal() { var d = $('esModal'); if (d) d.parentNode.removeChild(d); }
+
+  /* ================= 친구 평가하기 ================= */
+  $('esCkRefresh').onclick = function () { renderCheck(); };
+  function renderCheck() {
+    $('esCkTitle').textContent = '친구 평가하기';
+    $('esCkSub').textContent = '친구가 하는 모습을 보고 기준대로 체크한 뒤 한마디를 적어요.';
+    $('esCkRefresh').classList.remove('hide');
+    $('esCkBody').innerHTML = '<div class="unit">불러오는 중…</div>';
+    refresh().then(function () {
+      var list = V.요청 || [];
+      if (!list.length) { $('esCkBody').innerHTML = '<div class="panel"><div class="empty"><i class="ti ti-mood-smile"></i><strong>지금은 평가할 친구가 없어요</strong>친구가 부탁하거나 선생님이 짝을 정해 주면 여기에 나타나요.</div></div>'; return; }
+      $('esCkBody').innerHTML = '<div class="ecards">' + list.map(function (r) {
+        var p = planById(r.평가ID);
+        return '<div class="ecard"><div class="nm">' + esc(r.대상이름) + '<span class="tag brand" style="font-size:11px">' + esc(p ? p.평가명 : '') + '</span></div>' +
+          '<div class="sub">' + esc(r.번호) + '번 · ' + (p && p.기준.length ? '체크할 것 ' + p.기준.length + '개' : '기준 없음') + '</div>' +
+          (r.교사메모 ? '<div class="note sun" style="margin:0"><i class="ti ti-message-circle"></i><div>' + esc(r.교사메모) + '</div></div>' : '') +
+          '<button class="bigsave" data-do="' + esc(r.id) + '"><i class="ti ti-eye-check"></i>평가해 주기</button></div>';
+      }).join('') + '</div>';
+      qa('[data-do]', $('esCkBody')).forEach(function (b) { b.onclick = function () {
+        respond(findOne(V.요청, function (x) { return x.id === b.getAttribute('data-do'); }));
+      }; });
+    }).catch(handleErr);
+  }
+
+  function respond(req) {
+    if (!req) return;
+    var p = planById(req.평가ID);
+    if (!p) { toast('평가를 찾을 수 없어요. 선생님께 말씀드려요.', 'err'); return; }
+    var marks = {}, MEDIA = null;
+    var mset = V.설정 || { 인증자료: '없음', 인증필수: false };
+    var canMedia = mset.인증자료 !== '없음', canVideo = mset.인증자료 === '사진+영상';
+    var who = esc(req.대상이름), who가 = esc(조사(req.대상이름, '이가')), who는 = esc(조사(req.대상이름, '은는'));
+    $('esCkTitle').textContent = req.대상이름 + ' 평가하기';
+    $('esCkSub').textContent = p.평가명;
+    $('esCkRefresh').classList.add('hide');
+    var allText = p.기준.map(function (c, i) { return (i + 1) + '번, ' + c; }).join('. ');
+    var readAll = (HAS_TTS && p.기준.length) ? '<button type="button" class="soft mini" data-say="' + esc(allText) + '"><i class="ti ti-volume"></i>모두 읽어 주기</button>' : '';
+    var h = '<div class="panel" style="max-width:700px"><div class="panel-head"><h3><i class="ti ti-clipboard-check"></i>' + esc(p.평가명) + '</h3><div class="spacer"></div><span class="unit">' + who + '</span></div><div class="panel-body">' +
+      '<div class="note" style="margin-bottom:12px"><i class="ti ti-eye"></i><div><b>1.</b> 무엇을 볼지 먼저 읽어요. <b>2.</b> ' + who가 + ' 하는 동안 잘 봐요. <b>3.</b> 잘 된 것에 체크하고 한마디를 적어요.</div></div>';
+    if (p.기준.length) {
+      h += '<div class="field" style="margin-bottom:6px"><label>잘 된 것에 체크해요</label>' + readAll + '</div><div id="esCrit"></div><div class="unit" id="esCritCnt" style="margin-bottom:10px"></div>';
+    } else {
+      h += '<div class="unit" style="margin-bottom:10px">체크할 기준이 없어요. 본 대로 한마디만 적어 주세요.</div>';
+    }
+    h += '<div class="field" style="margin-bottom:4px"><label>' + who는 + ' 어떻게 했나요? (한 문장 이상)</label>' +
+      '<textarea id="esCmt" rows="3" maxlength="300" placeholder="예: 두 발을 모아 끝까지 뛰었고, 팔도 잘 돌렸어요."></textarea></div>' +
+      '<div class="unit" style="margin-bottom:8px">선생님이 이 글을 보고 평가에 참고해요. 점수는 선생님이 정해요.</div>';
+    if (canMedia) h += '<div class="media-box" id="esMedia"><div class="mb-head"><i class="ti ti-camera" style="color:var(--accent)"></i>' + who가 + ' 하는 모습을 ' + (canVideo ? '찍어요' : '사진으로 찍어요') + (mset.인증필수 ? ' <span class="tag coral">꼭 올려요</span>' : ' <span class="unit">(안 찍어도 돼요)</span>') + '</div>' +
+      '<div class="media-btns"><label><i class="ti ti-camera"></i>사진 찍기<input type="file" id="esCam" accept="image/*" capture="environment"></label>' +
+      (canVideo ? '<label><i class="ti ti-video"></i>영상 찍기 (15초 안)<input type="file" id="esVid" accept="video/*" capture="environment"></label>' : '') +
+      '<label><i class="ti ti-folder" style="color:var(--sky)"></i>골라서 올리기<input type="file" id="esPick" accept="' + (canVideo ? 'image/*,video/*' : 'image/*') + '"></label></div>' +
+      '<div class="media-prev hide" id="esPrev"><div class="th" id="esTh"></div><div style="flex:1"><b id="esMName"></b><div class="unit" id="esMInfo"></div></div><button type="button" class="mini danger" id="esMClear"><i class="ti ti-x"></i>빼기</button></div>' +
+      '<div class="unit" style="margin-top:8px">선생님과 ' + who + '만 볼 수 있어요.' + (canVideo ? ' 영상은 짧게(15초 안, 25MB까지) 찍어요.' : '') + '</div></div>';
+    h += '<button class="bigsave" id="esSend" disabled><i class="ti ti-send"></i>선생님께 보내기</button><div class="ok-hint" id="esHint"></div>' +
+      '<button class="ghost mini" id="esBack" style="margin-top:10px"><i class="ti ti-arrow-left"></i>목록으로</button></div></div>';
+    $('esCkBody').innerHTML = h;
+    bindSay($('esCkBody'));
+
+    var sendBtn = $('esSend');
+    function ready() {
+      var ok = true, hint = '';
+      if (p.기준.length) {
+        var n = p.기준.filter(function (c, i) { return marks[i + 1]; }).length;
+        $('esCritCnt').textContent = '체크 ' + n + ' / ' + p.기준.length + ' · 잘 된 것만 체크해요';
+      }
+      var cmt = ($('esCmt').value || '').replace(/\s/g, '');
+      if (cmt.length < 2) { ok = false; hint = '한마디를 적어야 보낼 수 있어요.'; }
+      if (canMedia && mset.인증필수 && !MEDIA) { ok = false; hint = hint || (canVideo ? '사진이나 영상을 올려야 보낼 수 있어요.' : '사진을 올려야 보낼 수 있어요.'); }
+      if (MEDIA === 'busy') { ok = false; hint = '파일을 준비하고 있어요…'; }
+      sendBtn.disabled = !ok; $('esHint').textContent = ok ? '' : hint;
+    }
+    if (p.기준.length) {
+      $('esCrit').innerHTML = p.기준.map(function (c, i) {
+        return '<div class="crit checkable" role="checkbox" aria-checked="false" tabindex="0" data-i="' + (i + 1) + '"><span class="cb" aria-hidden="true"></span><span class="n">' + (i + 1) + '</span>' + sayBtn(c) + '<span class="t">' + esc(c) + '</span></div>';
+      }).join('');
+      bindSay($('esCrit'));
+      qa('[data-i]', $('esCrit')).forEach(function (row) {
+        var i = Number(row.getAttribute('data-i'));
+        var toggle = function () { marks[i] = !marks[i]; row.classList.toggle('on', !!marks[i]); row.setAttribute('aria-checked', marks[i] ? 'true' : 'false'); row.querySelector('.cb').textContent = marks[i] ? '✓' : ''; ready(); };
+        row.onclick = function (e) { if (e.target.closest('.say')) return; toggle(); };
+        row.onkeydown = function (e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } };
+      });
+    }
+    $('esCmt').addEventListener('input', ready);
+    $('esBack').onclick = renderCheck;
+
+    if (canMedia) {
+      var take = function (input) {
+        var f = input.files && input.files[0];
+        if (!f) return;
+        var isVideo = /^video\//.test(f.type);
+        if (isVideo && !canVideo) { toast('영상은 올릴 수 없어요. 사진으로 찍어요.', 'err'); input.value = ''; return; }
+        if (!isVideo && !/^image\//.test(f.type)) { toast('사진이나 영상 파일만 올릴 수 있어요.', 'err'); input.value = ''; return; }
+        if (isVideo && f.size > 25 * 1024 * 1024) { toast('영상이 너무 커요 (' + Math.round(f.size / 1048576) + 'MB). 15초 안으로 짧게 다시 찍어요.', 'err'); input.value = ''; return; }
+        MEDIA = 'busy'; ready();
+        $('esPrev').classList.remove('hide'); $('esTh').innerHTML = '<i class="ti ti-loader-2"></i>'; $('esMName').textContent = isVideo ? '영상 준비 중…' : '사진 준비 중…'; $('esMInfo').textContent = '';
+        var job = isVideo
+          ? Promise.all([fileToBase64(f), videoThumb(f, 320)]).then(function (arr) { return { 종류: '영상', 타입: f.type || 'video/mp4', 본문: arr[0], 썸네일: arr[1], 파일명: f.name }; })
+          : Promise.all([shrinkImage(f, 1200, 0.82), shrinkImage(f, 320, 0.7)]).then(function (arr) { return { 종류: '사진', 타입: 'image/jpeg', 본문: arr[0], 썸네일: arr[1], 파일명: f.name }; });
+        job.then(function (mm) {
+          MEDIA = mm;
+          $('esTh').innerHTML = (mm.썸네일 ? '<img src="data:image/jpeg;base64,' + mm.썸네일 + '">' : '') + (mm.종류 === '영상' ? '<span class="play"><i class="ti ti-player-play-filled"></i></span>' : '');
+          $('esMName').textContent = mm.종류 === '영상' ? '영상을 올릴 준비가 됐어요' : '사진을 올릴 준비가 됐어요';
+          $('esMInfo').textContent = mm.종류 === '영상' ? Math.max(1, Math.round(f.size / 1048576 * 10) / 10) + 'MB' : '';
+          $('esMedia').classList.add('has'); ready();
+        }).catch(function (e) { MEDIA = null; $('esPrev').classList.add('hide'); $('esMedia').classList.remove('has'); toast((e && e.message) || String(e), 'err'); ready(); });
+      };
+      $('esCam').onchange = function () { take(this); };
+      if ($('esVid')) $('esVid').onchange = function () { take(this); };
+      $('esPick').onchange = function () { take(this); };
+      $('esMClear').onclick = function () { MEDIA = null; $('esCam').value = ''; if ($('esVid')) $('esVid').value = ''; $('esPick').value = ''; $('esPrev').classList.add('hide'); $('esMedia').classList.remove('has'); ready(); };
+    }
+    ready();
+
+    sendBtn.onclick = function () {
+      sendBtn.disabled = true;
+      var 체크 = [];
+      Object.keys(marks).forEach(function (k) { if (marks[k]) 체크.push(Number(k)); });
+      var media = (MEDIA && MEDIA !== 'busy') ? MEDIA : null;
+      if (media) toast(media.종류 === '영상' ? '영상을 올리는 중이에요… 잠시만요' : '사진을 올리는 중이에요…');
+      api('eval_s_respond', TOKEN, { 상호ID: req.id, 체크: 체크, 의견: $('esCmt').value, media: media })
+        .then(function (v) { setV(v); toast('선생님께 보냈어요. 고마워요!'); renderCheck(); })
+        .catch(function (e) { ready(); handleErr(e); });
+    };
+  }
+
+  return { nav: nav, init: init, show: show, reset: reset };
+})();
+</script>
