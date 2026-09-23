@@ -304,6 +304,71 @@ var ROPE_문구 = [
   '건강한 습관은 매일의 반복에서 시작돼요.',
   '넘어져도 괜찮아요. 다시 줄을 잡는 게 진짜 실력이에요.'
 ];
+var ROPE_GEMINI_ERR_KEY = 'GEMINI_LAST_ERROR';
+/** 쓸 수 있는 Gemini 모델 이름을 고릅니다. 모델이 은퇴해도 프로그램을 고치지 않아도 되도록
+    ListModels 로 목록을 읽어 가장 새 flash 모델을 고르고, 안 되는 모델(404·"no longer available")은 6시간 동안 피합니다. */
+function rope_gemini막힌모델_() { try { return JSON.parse(캐시읽기_('rope_gemini_blocked') || '[]'); } catch (e) { return []; } }
+function rope_gemini모델막기_(name, 초) {
+  var list = rope_gemini막힌모델_(); if (list.indexOf(name) < 0) list.push(name);
+  try { 캐시쓰기_('rope_gemini_blocked', JSON.stringify(list), 초 || 21600); } catch (e) {}
+  캐시지우기_('rope_gemini_model');
+}
+function rope_gemini버전_(name) { var m = String(name).match(/gemini-(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : 0; }
+function rope_gemini모델_(key, 다시) {
+  if (!다시) { var c = 캐시읽기_('rope_gemini_model'); if (c) return c; }
+  var 막힘 = rope_gemini막힌모델_(), 목록 = [];
+  try {
+    var res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=' + key, { muteHttpExceptions: true });
+    var j = JSON.parse(res.getContentText());
+    목록 = (j.models || []).filter(function (m) { return (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0; })
+      .map(function (m) { return String(m.name).replace(/^models\//, ''); })
+      .filter(function (n) { return 막힘.indexOf(n) < 0 && !/preview|exp|image|tts|live|audio|thinking|embedding/.test(n); });
+  } catch (e) {}
+  var 최신 = function (arr) { return arr.sort(function (a, b) { return rope_gemini버전_(b) - rope_gemini버전_(a) || a.length - b.length; })[0]; };
+  var pick = 최신(목록.filter(function (n) { return /^gemini-[\d.]+-flash$/.test(n); }))
+    || 최신(목록.filter(function (n) { return /flash/.test(n); }))
+    || 최신(목록.filter(function (n) { return /^gemini-/.test(n); }))
+    || (막힘.indexOf('gemini-2.5-flash') < 0 ? 'gemini-2.5-flash' : 'gemini-flash-latest');
+  try { 캐시쓰기_('rope_gemini_model', pick, 86400); } catch (e) {}
+  return pick;
+}
+function rope_gemini호출_(key, prompt, 시도, 모델) {
+  시도 = 시도 || 0;
+  var model = 모델 || rope_gemini모델_(key, 시도 > 0);
+  var res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key,
+    { method: 'post', contentType: 'application/json', payload: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }), muteHttpExceptions: true });
+  var code = res.getResponseCode(), body = res.getContentText();
+  if (code === 503 || code === 429 || code === 500) {
+    // 일시적 혼잡: 잠깐 쉬고 같은 모델로 한 번 더
+    Utilities.sleep(1500);
+    res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key,
+      { method: 'post', contentType: 'application/json', payload: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }), muteHttpExceptions: true });
+    code = res.getResponseCode(); body = res.getContentText();
+  }
+  if (code !== 200) {
+    var msg = ''; try { msg = JSON.parse(body).error.message; } catch (e) { msg = body.slice(0, 200); }
+    if (시도 < 3) {
+      if (code === 404 || /no longer available|not found|deprecated/i.test(msg)) {
+        // 모델이 은퇴했거나 새 사용자에게 막힘: 6시간 피하고, 구글이 권한 모델이 있으면 그것을 먼저 써 봅니다
+        rope_gemini모델막기_(model);
+        var hint = msg.match(/models\/([\w.-]+)/g), 권장 = null;
+        (hint || []).forEach(function (h) { var n = h.replace('models/', ''); if (n !== model && !권장) 권장 = n; });
+        return rope_gemini호출_(key, prompt, 시도 + 1, 권장);
+      }
+      if (code === 503 || code === 429 || code === 500) {
+        // 계속 혼잡하면 그 모델을 10분만 피하고 다음으로 새 모델로
+        rope_gemini모델막기_(model, 600);
+        return rope_gemini호출_(key, prompt, 시도 + 1, null);
+      }
+    }
+    throw new Error(model + ': HTTP ' + code + ' ' + msg);
+  }
+  var json = JSON.parse(body);
+  var text = json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0].text;
+  if (!text) throw new Error(model + ': 응답에 문장이 없습니다.');
+  if (모델) { try { 캐시쓰기_('rope_gemini_model', model, 86400); } catch (e) {} }   // 권장 모델이 됐으면 기억
+  return String(text).trim();
+}
 function rope_응원문구_(현황) {
   var key = '';
   try { key = 속성_(ROPE_GEMINI_KEY) || ''; } catch (e) {}
@@ -314,15 +379,26 @@ function rope_응원문구_(현황) {
       var prompt = '너는 ' + 학교급_().학생 + '들의 줄넘기 운동을 지도하는 체육 선생님이다.\n현재 ' + 현황.학생.length + '명의 학생이 참여했고 누적 줄넘기 총 횟수는 ' + 현황.총 + '회, 오늘은 ' + 현황.오늘기록인원 + '명이 ' + 현황.오늘총 + '회를 뛰었다.\n' +
         (현황.왕.누적 ? '누적 1위는 ' + 현황.왕.누적.이름 + ' 학생(' + 현황.왕.누적.값 + '회)이다.\n' : '') +
         '학생들을 격려하고 꾸준한 운동 습관을 만들어 주는 한 문장짜리 응원 문구를 한국어 존댓말(~해요)로 작성해줘. 따옴표나 설명 없이 문장 하나만 출력해.';
-      var res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + key,
-        { method: 'post', contentType: 'application/json', payload: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }), muteHttpExceptions: true });
-      var json = JSON.parse(res.getContentText());
-      var text = json.candidates && json.candidates[0].content.parts[0].text;
-      if (text) { text = String(text).trim().slice(0, 120); 캐시쓰기_('rope_ai_' + 오늘_(), text, 3600 * 6); return text; }
-    } catch (e) {}
+      var text = rope_gemini호출_(key, prompt, false).slice(0, 120);
+      캐시쓰기_('rope_ai_' + 오늘_(), text, 3600 * 6);
+      try { 속성저장_(ROPE_GEMINI_ERR_KEY, null); } catch (e2) {}
+      return text;
+    } catch (e) {
+      try { 속성저장_(ROPE_GEMINI_ERR_KEY, (지금_() + ' ' + e.message).slice(0, 300)); } catch (e3) {}
+    }
   }
   var d = 오늘_().split('-').map(Number);
   return ROPE_문구[(d[1] * 31 + d[2]) % ROPE_문구.length];
+}
+/** 교사: 지금 바로 문구를 만들어 봅니다 (키 확인용). 캐시를 지우고 새로 부릅니다 */
+function rope_t_testGemini(token) {
+  교사확인_(token);
+  if (!rope_gemini여부_()) throw new Error('Gemini 키가 없습니다.');
+  캐시지우기_('rope_ai_' + 오늘_()); 캐시지우기_('rope_gemini_model'); 캐시지우기_('rope_gemini_blocked');
+  var 현황 = rope_학급현황_(0, 0, rope_기록전체_(), rope_설정_());
+  var text = rope_응원문구_(현황);
+  var err = ''; try { err = 속성_(ROPE_GEMINI_ERR_KEY) || ''; } catch (e) {}
+  return { 문구: text, 오류: err, 모델: 캐시읽기_('rope_gemini_model') || '' };
 }
 
 /* ================= 기록 쓰기 (공통) ================= */
@@ -479,12 +555,14 @@ function rope_t_saveSettings(token, map) {
   if (map.geminiKey !== undefined) {
     var k = str_(map.geminiKey);
     속성저장_(ROPE_GEMINI_KEY, k || null);
-    캐시지우기_('rope_ai_' + 오늘_());
+    속성저장_(ROPE_GEMINI_ERR_KEY, null);
+    캐시지우기_('rope_ai_' + 오늘_()); 캐시지우기_('rope_gemini_model'); 캐시지우기_('rope_gemini_blocked');
   }
   return { ok: true, 설정: rope_설정_(), gemini: rope_gemini여부_() };
 }
 function rope_gemini여부_() { try { return !!속성_(ROPE_GEMINI_KEY); } catch (e) { return false; } }
-function rope_t_getSettings(token) { 교사확인_(token); return { 설정: rope_설정_(), gemini: rope_gemini여부_() }; }
+function rope_gemini오류_() { try { return 속성_(ROPE_GEMINI_ERR_KEY) || ''; } catch (e) { return ''; } }
+function rope_t_getSettings(token) { 교사확인_(token); return { 설정: rope_설정_(), gemini: rope_gemini여부_(), geminiError: rope_gemini오류_(), geminiModel: 캐시읽기_('rope_gemini_model') || '' }; }
 
 /* ================= 학생 API ================= */
 
