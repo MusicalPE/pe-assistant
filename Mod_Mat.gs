@@ -35,8 +35,10 @@ var MAT_학년군 = ['1~2', '3~4', '5~6'];     // '5-6' 은 시트가 날짜로 
 /** 시트 값 → '5~6'. 예전에 '5-6' 으로 저장돼 날짜(5월 6일)로 굳은 값도 되돌립니다 */
 function mat_학년군정리_(v) {
   if (v instanceof Date) { var k = (v.getMonth() + 1) + '~' + v.getDate(); return MAT_학년군.indexOf(k) >= 0 ? k : ''; }
-  var t = str_(v).replace(/\s/g, '').replace('-', '~').replace('학년', '');
-  if (/^\d{4}~/.test(t)) { var m = t.match(/(\d{4})~(\d{2})~(\d{2})/); if (m) t = Number(m[2]) + '~' + Number(m[3]); }
+  var t = str_(v).replace(/\s/g, '');
+  var m = t.match(/^\d{4}[-./~](\d{1,2})[-./~](\d{1,2})/);          // 시트가 날짜로 바꿔 버린 값 (2026-05-06 00:00 등)
+  if (m) t = Number(m[1]) + '~' + Number(m[2]);
+  t = t.replace(/[-–~]/g, '~').replace('학년', '');
   return MAT_학년군.indexOf(t) >= 0 ? t : '';
 }
 var MAT_구분 = ['함께', '연습', '수업'];
