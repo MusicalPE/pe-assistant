@@ -41,6 +41,7 @@
 .mod-sun  {--accent:#E0A400;--accent-dk:#B58400;--accent-soft:#FFF4D1;--accent-ink:#7A5900;}
 .mod-violet{--accent:#6C63FF;--accent-dk:#4B43C9;--accent-soft:#ECEAFF;--accent-ink:#3A33A6;}
 .mod-plum  {--accent:#B4489C;--accent-dk:#8E3079;--accent-soft:#F8E6F3;--accent-ink:#6E245E;}
+.mod-orange{--accent:#F0801A;--accent-dk:#C4620A;--accent-soft:#FFEFE0;--accent-ink:#8A4A0B;}
 
 /* ----- 화면 색상 테마 (설정 → 프로그램·학교 → 화면 색상 테마). 값은 Code.gs 의 테마들 과 같아야 합니다 ----- */
 html[data-theme="바다"]    {--brand:#2A7DE1;--brand-dk:#1F5FB0;--brand-soft:#E6F0FD;--brand-ink:#163F7A;--brand-2:#4F9CF0;--brand-3:#9CC8F8;--tint-1:#E0EEFD;--tint-2:#FFF1E0;}
@@ -205,7 +206,7 @@ td input[type=checkbox],th input[type=checkbox]{width:auto;min-width:0;}
 .tag.f3{background:var(--green-soft);color:#177A4E;} .tag.f4{background:var(--sun-soft);color:#946C00;}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;}
 .dot.f1{background:var(--f1);} .dot.f2{background:var(--f2);} .dot.f3{background:var(--f3);} .dot.f4{background:var(--f4);}
-.dot.sky{background:var(--sky);} .dot.mint{background:var(--mint);} .dot.coral{background:var(--coral);} .dot.blue{background:var(--blue);} .dot.sun{background:var(--sun);} .dot.violet{background:var(--violet);} .dot.plum{background:#B4489C;}
+.dot.sky{background:var(--sky);} .dot.mint{background:var(--mint);} .dot.coral{background:var(--coral);} .dot.blue{background:var(--blue);} .dot.sun{background:var(--sun);} .dot.violet{background:var(--violet);} .dot.plum{background:#B4489C;} .dot.orange{background:#F0801A;}
 
 .chk{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:#fff;}
 .chk input{width:18px;height:18px;accent-color:var(--accent);margin:0;}
@@ -789,6 +790,7 @@ function 학생짧게(s) { return s.학년 + '-' + s.반 + ' ' + s.번호 + '번
       <? if (mods.ROPE) { ?><?!= include('Rope_T'); ?><?!= include('Rope_S'); ?><? } ?>
       <? if (mods.FMS)  { ?><?!= include('FMS_T');  ?><?!= include('FMS_S');  ?><? } ?>
       <? if (mods.CLUB) { ?><?!= include('Club_T'); ?><? } ?>
+      <? if (mods.MAT)  { ?><?!= include('Mat_T');  ?><?!= include('Mat_S');  ?><?!= include('Mat_Game'); ?><? } ?>
     </div>
   </div>
 </div>
