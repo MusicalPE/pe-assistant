@@ -83,6 +83,12 @@
 #matOverlay .start{font-family:var(--display);font-size:clamp(26px,3.4vw,40px);font-weight:400;background:var(--yellow);color:#15130a;
     border:0;border-radius:14px;padding:.38em 1.6em .42em;cursor:pointer;box-shadow:0 6px 0 #b8940c;transition:transform .08s;align-self:center}
 #matOverlay .start:active{transform:translateY(4px);box-shadow:0 2px 0 #b8940c}
+#matOverlay .tracks{display:grid;gap:6px;margin-bottom:10px}
+#matOverlay .track{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--ground);border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:14.5px}
+#matOverlay .track span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#matOverlay .track button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;flex:none}
+#matOverlay .addbtn{display:inline-block;background:var(--ink);color:var(--ground);font-weight:700;border-radius:8px;padding:9px 14px;cursor:pointer;font-size:15px}
+#matOverlay .addbtn:focus-within{outline:3px solid var(--ink);outline-offset:3px}
 #matOverlay .err{color:#ff8a80;font-weight:600;text-align:center;margin:0}
 #matOverlay /* ---------- 재생 화면 ---------- */
   #mgPlay{justify-content:space-between}
@@ -108,6 +114,11 @@
 #matOverlay.show-ctrls .ctrls,#matOverlay .ctrls:focus-within{opacity:1}
 #matOverlay .ctrls button{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;font-weight:600;cursor:pointer}
 #matOverlay .pop{animation:pop .22s cubic-bezier(.2,.9,.3,1.3)}
+#matOverlay /* 유튜브 작은 플레이어 (왼쪽 아래) */
+  .ytbox{position:absolute;left:16px;bottom:calc(clamp(10px,1.6vh,16px) + 28px);z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px}
+#matOverlay .ytbox .frame{width:200px;height:113px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#000;opacity:.9}
+#matOverlay .ytbox .frame iframe{display:block;width:100%;height:100%;border:0}
+#matOverlay .ythint{background:var(--yellow);color:#15130a;font-weight:800;font-size:14px;border-radius:99px;padding:6px 12px;animation:pop .3s;text-align:center;max-width:220px;line-height:1.4}
 @keyframes pop{from{transform:scale(.72);opacity:.2}to{transform:scale(1);opacity:1}}
 #matOverlay /* 스트룹 */
   .s-stroop{flex-direction:column;gap:3.5vh}
@@ -157,6 +168,7 @@
 #matOverlay .s-assoc.easy .pic .e{font-size:calc(min(26vh,24vw) * var(--scale,1))}
 #matOverlay .s-assoc.easy .pics.two .pic .e{font-size:calc(min(20vh,18vw) * var(--scale,1))}
 #matOverlay .pic .n{font-family:var(--display);font-size:clamp(26px,5.4vh,64px);line-height:1}
+#matOverlay .pic .n .two-feet{display:inline-block;font-family:var(--ui);font-size:.42em;font-weight:800;background:var(--yellow);color:#15130a;border-radius:99px;padding:.15em .6em;vertical-align:middle;margin-left:.3em}
 #matOverlay /* 트위스터 */
   .s-twist{gap:5vw}
 #matOverlay .tw-l{display:flex;flex-direction:column;align-items:flex-start;gap:2vh}
@@ -165,6 +177,19 @@
 #matOverlay .tw-hold{display:flex;align-items:center;gap:1.4vw;color:var(--muted);font-weight:700;font-size:clamp(18px,3.4vh,36px)}
 #matOverlay .tw-hold b{font-family:var(--display);font-weight:400;font-size:min(12vh,9vw);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
 #matOverlay .s-twist .mat4{width:min(56vh,42vw)}
+#matOverlay /* 얼음 스텝 */
+  .s-freeze{flex-direction:column;gap:2.6vh}
+#matOverlay .fz-big{font-family:var(--display);font-size:min(24vw,34vh);line-height:1;white-space:nowrap}
+#matOverlay .fz-plus{color:var(--muted);font-size:.5em;vertical-align:.3em}
+#matOverlay .fz-sub{font-family:var(--display);font-size:clamp(26px,6vh,72px);line-height:1.1;color:var(--ink);text-align:center}
+#matOverlay .fz-dots{display:flex;gap:3vh}
+#matOverlay .fz-dots i{width:min(7vh,7vw);aspect-ratio:1;border-radius:50%;background:var(--c);opacity:.25;transition:transform .12s,opacity .12s}
+#matOverlay .fz-dots i:nth-child(1){--c:var(--red)}
+#matOverlay .fz-dots i:nth-child(2){--c:var(--yellow)}
+#matOverlay .fz-dots i:nth-child(3){--c:var(--green)}
+#matOverlay .fz-dots i:nth-child(4){--c:var(--blue)}
+#matOverlay .fz-dots i.on{opacity:1;transform:scale(1.35)}
+#matOverlay .s-freeze .mat4{width:min(30vh,30vw)}
 #matOverlay /* 끝 화면 */
   #mgDone{justify-content:center;gap:24px;text-align:center}
 #matOverlay #mgDone h2{font-family:var(--display);font-weight:400;font-size:clamp(56px,10vw,140px);margin:0;line-height:1}
@@ -261,6 +286,7 @@ body.mg-open{overflow:hidden}
     <button id="mgFsBtn">전체화면</button>
     <button id="mgExitBtn">그만하기</button>
   </div>
+  <div class="ytbox" id="mgYtBox" hidden><div class="frame"><div id="mgYtPlayer"></div></div><div class="ythint" id="mgYtHint" hidden>▶ 눌러서 음악 시작</div></div>
 </section>
 
 <!-- 끝 화면 -->
@@ -314,12 +340,14 @@ body.mg-open{overflow:hidden}
   }
 
   // ================= 소리 =================
-  let ac=null, out=null, noiseBuf=null, soundOn=true, musicOn=true;
+  let ac=null, out=null, bus=null, curDest=null, noiseBuf=null, soundOn=true, musicOn=true;
+  const dst=()=>curDest||out;
   function initAudio(){
     if(ac){ ac.resume(); return; }
     ac=new (window.AudioContext||window.webkitAudioContext)();
     const comp=ac.createDynamicsCompressor(); comp.threshold.value=-14; comp.ratio.value=4;
     out=ac.createGain(); out.gain.value=0.8; out.connect(comp).connect(ac.destination);
+    bus=ac.createGain(); bus.gain.value=1; bus.connect(out); // 음악 전용 통로 — 얼음 스텝에서 음악만 뚝 끊을 때 사용
     noiseBuf=ac.createBuffer(1, ac.sampleRate*0.5, ac.sampleRate);
     const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
   }
@@ -330,7 +358,7 @@ body.mg-open{overflow:hidden}
     g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
     let node=o.connect(g);
     if(lp){ const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=lp; node=g.connect(f); }
-    node.connect(out); o.start(t); o.stop(t+dur+0.03);
+    node.connect(dst()); o.start(t); o.stop(t+dur+0.03);
   }
   function beep(freq,dur=0.09,vol=0.18,type='sine'){ if(soundOn&&ac&&ac.state==='running') tone(freq,ac.currentTime,dur,vol,type); }
   const chime=()=>[660,880,1175].forEach((f,i)=>setTimeout(()=>beep(f,0.16,0.2,'triangle'),i*110));
@@ -341,11 +369,11 @@ body.mg-open{overflow:hidden}
   function kick(t){ const o=ac.createOscillator(), g=ac.createGain();
     o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(45,t+0.12);
     g.gain.setValueAtTime(0.9,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.28);
-    o.connect(g).connect(out); o.start(t); o.stop(t+0.3); }
+    o.connect(g).connect(dst()); o.start(t); o.stop(t+0.3); }
   function noise(t,dur,vol,type,freq){ const s=ac.createBufferSource(); s.buffer=noiseBuf;
     const f=ac.createBiquadFilter(); f.type=type; f.frequency.value=freq; const g=ac.createGain();
     g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    s.connect(f).connect(g).connect(out); s.start(t); s.stop(t+dur+0.02); }
+    s.connect(f).connect(g).connect(dst()); s.start(t); s.stop(t+dur+0.02); }
   const clap=t=>{ noise(t,0.14,0.45,'bandpass',1700); noise(t+0.012,0.1,0.3,'bandpass',2200); };
   const hat=(t,v=0.12)=>noise(t,0.035,v,'highpass',7500);
   const ohat=t=>noise(t,0.18,0.1,'highpass',6500);
@@ -360,8 +388,50 @@ body.mg-open{overflow:hidden}
     [69,_,72,_,76,_,72,_,74,_,72,_,69,_,_,_],
     [65,_,69,_,72,_,77,_,76,_,74,_,72,_,71,_],
   ];
+  const snare=(t,v=0.4)=>{ noise(t,0.16,v,'bandpass',1300); tone(190,t,0.08,v*0.5,'triangle'); };
+  // 직접 만든 기본 음악 4종 (저작권 걱정 없음)
+  const STYLES={
+    march:{ name:'행진곡',
+      step(bar,s,t,L,b16){
+        const ROOT=[41,46,48,41], TRI=[[65,69,72],[62,65,70],[64,67,70],[65,69,72]];
+        const M=[[72,_,_,72,77,_,76,_,74,_,72,_,69,_,_,_],[70,_,_,70,74,_,72,_,70,_,69,_,70,_,_,_],
+                 [67,_,_,67,72,_,70,_,67,_,64,_,67,_,_,_],[69,_,72,_,77,_,76,_,77,_,_,_,72,_,_,_]];
+        if(s%8===0){ kick(t); tone(mtof(ROOT[bar]),t,b16*3,0.34,'triangle',600); }
+        if(s%8===4){ snare(t,0.32); tone(mtof(ROOT[bar]+7),t,b16*3,0.28,'triangle',600); }
+        if(L>=3 && (s===14||s===15) && bar===3) snare(t,0.22);
+        if(L>=4 && s%8===4) TRI[bar].forEach(n=>tone(mtof(n),t,b16*1.5,0.035,'square',1800));
+        if(L>=6 && s===0 && bar===0) ohat(t);
+        if(L>=1 && M[bar][s]) tone(mtof(M[bar][s]),t,b16*2.2,0.075,'square',2200);
+      }},
+    kids:{ name:'동요풍',
+      step(bar,s,t,L,b16){
+        const ROOT=[43,48,50,43], CH=[[67,71,74,79],[64,67,72,76],[62,66,69,74],[67,71,74,79]];
+        const M=[[67,_,71,_,74,_,71,_,72,_,71,_,69,_,_,_],[72,_,76,_,72,_,67,_,69,_,71,_,72,_,_,_],
+                 [74,_,72,_,71,_,69,_,66,_,69,_,74,_,_,_],[71,_,69,_,67,_,71,_,67,_,_,_,67,_,_,_]];
+        if(s%8===0) kick(t);
+        if(L>=1 && s%8===4) clap(t);
+        if(s%2===0) hat(t,0.05);
+        if(s%4===0) tone(mtof(ROOT[bar]),t,b16*2.5,0.3,'triangle',500);
+        if(M[bar][s]) { tone(mtof(M[bar][s]+12),t,b16*2.4,0.11,'triangle'); tone(mtof(M[bar][s]+24),t,b16*0.8,0.03,'sine'); }
+        if(L>=5 && s%2===1) tone(mtof(CH[bar][(s>>1)%4]+12),t,b16*0.8,0.035,'triangle');
+      }},
+    electro:{ name:'전자음',
+      step(bar,s,t,L,b16){
+        const ROOT=[45,41,48,43], CH=[[57,60,64,69],[57,60,65,69],[55,60,64,67],[55,59,62,67]];
+        const M=[[76,_,_,_,72,_,_,_,74,_,76,_,_,_,72,_],[72,_,_,_,69,_,_,_,72,_,74,_,_,_,69,_],
+                 [67,_,_,_,72,_,_,_,76,_,74,_,_,_,72,_],[71,_,_,_,74,_,_,_,79,_,76,_,74,_,71,_]];
+        if(s%4===0) kick(t);
+        if(L>=1 && s%8===4) clap(t);
+        if(L>=3) hat(t,s%2?0.03:0.05);
+        if(L>=6 && s%4===2) ohat(t);
+        if(s%4===2) tone(mtof(ROOT[bar]-12),t,b16*1.8,0.34,'sawtooth',380+L*70);
+        if(L>=2) tone(mtof(CH[bar][s%4]+12),t,b16*0.8,0.045,'sawtooth',1800);
+        if(L>=5 && M[bar][s]) tone(mtof(M[bar][s]),t,b16*2.5,0.07,'square',2400);
+      }},
+  };
   function playStep(st,t,L,bpm,style){
     const bar=Math.floor(st/16)%4, s=st%16, b16=60/bpm/4;
+    if(STYLES[style]) return STYLES[style].step(bar,s,t,L,b16);
     if(style==='calm'){
       if(s%8===0) tone(mtof(BASS[bar]+12),t,b16*7,0.18,'triangle',700);
       if(s%2===0){ const c=CHORD[bar]; tone(mtof(c[(s/2)%4]+12),t,b16*2.5,0.05,'triangle'); }
@@ -377,9 +447,76 @@ body.mg-open{overflow:hidden}
     if(L>=2 && MEL[bar][s]) tone(mtof(MEL[bar][s]),t,b16*1.8,0.08,'square',2600);
     if(L>=5){ const c=CHORD[bar]; tone(mtof(c[s%4]+12),t,b16*0.9,0.045,'triangle'); }
   }
+  // 내 음악 파일 — 이 브라우저(IndexedDB)에 저장, 안 되면 이번 창에서만 기억
+  let memTracks=[];
+  const TrackDB={db:null,
+    open(){ if(this.db) return Promise.resolve(this.db);
+      return new Promise((res,rej)=>{ const r=indexedDB.open('matpg',1);
+        r.onupgradeneeded=()=>r.result.createObjectStore('tracks',{keyPath:'id',autoIncrement:true});
+        r.onsuccess=()=>{ this.db=r.result; res(r.result); }; r.onerror=()=>rej(r.error); }); },
+    async all(){ try{ const db=await this.open(); const list=await new Promise((res,rej)=>{ const q=db.transaction('tracks').objectStore('tracks').getAll(); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); return list.concat(memTracks); }catch(e){ return memTracks.slice(); } },
+    async add(file){ try{ const db=await this.open(); await new Promise((res,rej)=>{ const tx=db.transaction('tracks','readwrite'); tx.objectStore('tracks').add({name:file.name,blob:file}); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }
+      catch(e){ memTracks.push({id:'m'+Date.now()+Math.random(),name:file.name,blob:file}); } },
+    async del(id){ if(String(id).startsWith('m')){ memTracks=memTracks.filter(t=>t.id!==id); return; }
+      try{ const db=await this.open(); await new Promise((res,rej)=>{ const tx=db.transaction('tracks','readwrite'); tx.objectStore('tracks').delete(id); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }catch(e){} },
+  };
+  const player={el:new Audio(),urls:[],i:0,want:false,
+    load(tracks){ this.urls.forEach(u=>URL.revokeObjectURL(u)); this.urls=shuffle(tracks).map(t=>URL.createObjectURL(t.blob)); this.i=0;
+      this.el.src=this.urls[0]||''; this.el.volume=0.8; this.el.preservesPitch=true; },
+    play(){ this.want=true; if(this.urls.length) this.el.play().catch(()=>{}); },
+    pause(){ this.want=false; this.el.pause(); },
+    hold(){ this.el.pause(); },
+    resume(){ if(this.want) this.el.play().catch(()=>{}); },
+    stop(){ this.want=false; this.el.pause(); this.el.playbackRate=1; },
+  };
+  player.el.addEventListener('ended',()=>{ if(!player.urls.length) return; player.i=(player.i+1)%player.urls.length; player.el.src=player.urls[player.i]; if(player.want) player.el.play().catch(()=>{}); });
+
+  // 유튜브 링크 — 공식 IFrame Player API로 화면 구석의 작은 플레이어에 재생/정지만 맡겨요.
+  // 소리를 직접 다룰 수는 없어서(박자·페이드 불가) 리듬 스텝에서는 못 쓰고, 인터넷이 있어야 해요.
+  const yt={p:null,api:null,cfg:null,want:false,state:-1,hintT:0,
+    parse(txt){ const ids=[],lists=[];
+      String(txt||'').split(/\s+/).forEach(s=>{ if(!s) return;
+        const l=s.match(/[?&]list=([\w-]+)/); if(l){ lists.push(l[1]); return; }
+        const m=s.match(/(?:youtu\.be\/|[?&]v=|shorts\/|embed\/|live\/)([\w-]{11})/)||(/^[\w-]{11}$/.test(s)?[0,s]:null); if(m) ids.push(m[1]); });
+      return {ids:[...new Set(ids)],list:lists[0]||''}; },
+    ensure(){ if(this.api) return this.api;
+      this.api=new Promise((res,rej)=>{ if(window.YT&&YT.Player) return res();
+        const prev=window.onYouTubeIframeAPIReady; window.onYouTubeIframeAPIReady=()=>{ prev&&prev(); res(); };
+        const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; s.onerror=()=>rej(new Error('load')); document.head.appendChild(s);
+        setTimeout(()=>rej(new Error('timeout')),8000); }).catch(e=>{ this.api=null; throw e; });
+      return this.api; },
+    async open(){ await this.ensure(); if(this.p) return this.p;
+      const el=$('mgYtPlayer');
+      this.p=await new Promise(res=>{ const p=new YT.Player(el,{width:200,height:113,playerVars:{playsinline:1,rel:0,controls:1,iv_load_policy:3,disablekb:1},
+        events:{onReady:()=>res(p),onStateChange:e=>this.onState(e.data),onError:()=>{ try{ p.nextVideo(); }catch(x){} }}}); });
+      return this.p; },
+    async start(cfg){ this.cfg=cfg; this.want=true; $('mgYtBox').hidden=false; $('mgYtHint').hidden=true;
+      try{ const p=await this.open(); if(!this.want) return;
+        if(cfg.list) p.loadPlaylist({list:cfg.list,listType:'playlist'}); else p.loadPlaylist(shuffle(cfg.ids));
+        try{ p.setLoop(true); }catch(e){} this.hint();
+      }catch(e){ $('mgYtHint').textContent='유튜브를 불러오지 못했어요 (인터넷 연결 확인)'; $('mgYtHint').hidden=false; } },
+    onState(s){ this.state=s; if(s===1){ $('mgYtHint').hidden=true; clearTimeout(this.hintT); } else if(s===0&&this.want){ try{ this.p.nextVideo(); }catch(e){} } },
+    hint(){ clearTimeout(this.hintT); this.hintT=setTimeout(()=>{ if(this.want&&this.state!==1){ $('mgYtHint').textContent='▶ 눌러서 음악 시작'; $('mgYtHint').hidden=false; } },2500); },
+    play(){ this.want=true; if(this.p){ try{ this.p.playVideo(); }catch(e){} this.hint(); } },
+    pause(){ this.want=false; clearTimeout(this.hintT); $('mgYtHint').hidden=true; if(this.p) try{ this.p.pauseVideo(); }catch(e){} },
+    hold(){ if(this.p) try{ this.p.pauseVideo(); }catch(e){} },
+    resume(){ if(this.want) this.play(); },
+    stop(){ this.pause(); $('mgYtBox').hidden=true; },
+  };
+
   // 게임 시계(T)에 맞춰 음악을 예약 — 리듬 게임의 노트와 박자가 정확히 맞아요
   const music={active:false,nextT:0,step:0,
-    start(t){ const g=E.game; this.active=!!(musicOn&&ac&&g.bpmAt); this.nextT=t; this.step=0; },
+    start(t){ const g=E.game;
+      if(E.useYT){ this.active=false; if(!g.musicManual) yt.play(); return; }
+      if(E.useMine){ this.active=false; if(!g.musicManual) player.play(); return; }
+      if(g.musicManual) return;   // 게임이 직접 켜고 끄는 경우(얼음 스텝)는 begin()에서 이미 켠 상태를 그대로 둠
+      this.active=!!(musicOn&&ac&&g.bpmAt); this.nextT=t; this.step=0; if(bus){ bus.gain.cancelScheduledValues(ac.currentTime); bus.gain.setValueAtTime(1,ac.currentTime); } },
+    // 게임이 직접 음악을 켜고 끔 (끌 때는 이미 예약된 소리까지 바로 조용하게)
+    set(on,T){ if(E.useYT){ on?yt.play():yt.pause(); return; }
+      if(E.useMine){ on?player.play():player.pause(); return; }
+      if(!(musicOn&&ac)) return; const now=ac.currentTime; bus.gain.cancelScheduledValues(now);
+      if(on){ bus.gain.setValueAtTime(1,now); if(!this.active){ this.active=true; this.nextT=T; this.step=0; } }
+      else { bus.gain.setValueAtTime(bus.gain.value,now); bus.gain.linearRampToValueAtTime(0,now+0.04); this.active=false; } },
     seek(t,step=0){ this.nextT=t; this.step=step; },
     tick(T){
       if(!this.active) return;
@@ -387,11 +524,11 @@ body.mg-open{overflow:hidden}
       while(this.nextT < T-0.05){ this.nextT+=60/g.bpmAt(this.nextT)/4; this.step++; }
       while(this.nextT < T+0.15){
         const bpm=g.bpmAt(this.nextT), at=ac.currentTime+(this.nextT-T);
-        playStep(this.step, Math.max(at,ac.currentTime), Math.round(g.intensityAt?g.intensityAt(this.nextT):0), bpm, g.musicStyle||'party');
+        curDest=bus; playStep(this.step, Math.max(at,ac.currentTime), Math.round(g.intensityAt?g.intensityAt(this.nextT):0), bpm, g.musicStyle||E.style||'party'); curDest=null;
         this.nextT+=60/bpm/4; this.step++;
       }
     },
-    stop(){ this.active=false; }
+    stop(){ this.active=false; player.stop(); yt.stop(); }
   };
 
   // ================= 엔진 =================
@@ -415,6 +552,8 @@ body.mg-open{overflow:hidden}
     hideBanner(){ if(!banner.hidden){ banner.hidden=true; stage.classList.remove('bannering'); } },
     setT(t,step){ E.T=t; music.seek(t,step||0); },
     tick, chime, colorTone, beep,
+    music(on){ music.set(on,E.T); },
+    whistle(){ if(!soundOn||!ac) return; const t=ac.currentTime; tone(2100,t,0.18,0.22,'sine'); tone(2100,t+0.22,0.34,0.22,'sine'); },
     pop(el){ el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); },
     finish(title,msg){ finish(title,msg); },
     // 기록 훅: 지시 하나 = 점프 1회, 단계·라운드가 끝날 때 unit()
@@ -476,6 +615,9 @@ body.mg-open{overflow:hidden}
     if(E.phase!=='run') return;
     E.T+=dt; E.played+=dt;
     music.tick(E.T);
+    if(E.useMine && E.game.bpmAt){ // 단계가 오를수록 내 음악도 조금씩 빠르게 (최대 1.3배)
+      const r=Math.max(1,Math.min(1.3,E.game.bpmAt(E.T)/E.game.bpmAt(0)));
+      if(Math.abs(player.el.playbackRate-r)>0.01) player.el.playbackRate=r; }
     E.game.update(E.T,dt);
   }
 
@@ -486,6 +628,10 @@ body.mg-open{overflow:hidden}
   function startGame(def,opts){
     E.def=def; E.opts=opts;
     const snd=opts.snd||'music'; soundOn=snd!=='off'; musicOn=snd==='music';
+    const bgm=opts.bgm||'dance';
+    E.useMine=musicOn && bgm==='mine' && player.urls.length>0;
+    E.useYT=musicOn && bgm==='yt' && !!yt.cfg;
+    E.style=bgm==='random'?['party','march','kids','electro'][rnd(4)]:bgm==='dance'?'party':STYLES[bgm]?bgm:'party';
     if(soundOn){ try{ initAudio(); }catch(e){ soundOn=false; musicOn=false; } }
     cancelAnimationFrame(E.raf); music.stop();
     body.innerHTML=''; body.className=''; api.hideBanner(); api.chip('');
@@ -495,6 +641,7 @@ body.mg-open{overflow:hidden}
     hideAll(); $('mgPlay').hidden=false;
     $('mgPrevBtn').hidden=$('mgNextBtn').hidden=!!H.hooks.noSkip;
     if(H.hooks.onStart) try{ H.hooks.onStart(summary(false)); }catch(e){ console.error(e); }
+    if(E.useYT) yt.start(yt.cfg);   // 시작 버튼을 누른 직후라 재생이 허용돼요 (준비 카운트 동안 음악이 먼저 나와요)
     E.phase=E.game.noCountdown?'run':'count'; E.count=3; E.T=0; bannerBig.textContent='';
     if(E.game.noCountdown){ E.game.begin&&E.game.begin(); music.start(0); }
     if(!H.hooks.noFullscreen) goFull(); keepAwake();
@@ -529,6 +676,8 @@ body.mg-open{overflow:hidden}
     if(!E.running) return;
     E.paused=!E.paused; $('mgPaused').hidden=!E.paused; $('mgPauseBtn').textContent=E.paused?'계속':'멈춤';
     if(ac){ if(E.paused) ac.suspend(); else ac.resume(); }
+    if(E.useMine){ if(E.paused) player.hold(); else player.resume(); }
+    if(E.useYT){ if(E.paused) yt.hold(); else yt.resume(); }
   }
   function skip(d){
     if(!E.running || H.hooks.noSkip) return;
@@ -1064,11 +1213,104 @@ body.mg-open{overflow:hidden}
     }
   };
 
-  const GAMES=[STROOP,MEMORY,RHYTHM,DIRGAME,QUIZ,ASSOC,TWIST];
+  // ================= 게임 8: 얼음 스텝 =================
+  const POSES=['한 발로 서기','두 팔 옆으로 쭉','쪼그려 앉기','양손 머리 위로','비행기 자세','까치발 들기','한 손으로 무릎 잡기','동상처럼 멋진 자세'];
+  const FREEZE={
+    id:'freeze', name:'얼음 스텝', grade:'전 학년', dur:'약 3~4분', lit:[0,1,2,3],
+    desc:'음악이 나오는 동안 매트 옆에서 신나게 춤추다가, 음악이 뚝 멈추면 나온 색 칸으로 뛰어가 "얼음!" 해요.',
+    how:['음악이 나오면 매트 밖에서 자유롭게 춤추거나 제자리 뛰기를 해요.','음악이 멈추고 호루라기가 울리면 화면의 색 칸으로 뛰어가요.','"얼음!"이 나오면 그 자리에서 움직이지 않고 버텨요. 보통부터는 얼음 자세 미션이 나와요.'],
+    options:[
+      {id:'diff',label:'난이도',choices:[['easy','쉬움 (매트 칸 표시 · 4초 안에)'],['normal','보통 (자세 미션 · 3초 안에)'],['hard','어려움 (두 색 = 두 발 · 2.5초 안에)']],def:'normal'},
+      {id:'rounds',label:'라운드 수',choices:[['6','6라운드'],['10','10라운드'],['14','14라운드']],def:'10'},
+    ],
+    create(o,api){
+      const D={easy:{dance:[6,10],go:4,hold:4,pose:false,two:false,hint:true},
+               normal:{dance:[4,9],go:3,hold:4,pose:true,two:false,hint:false},
+               hard:{dance:[3,7],go:2.5,hold:5,pose:true,two:true,hint:false}}[o.diff];
+      const R=+o.rounds, MELT=1.4;
+      api.body.className='s-freeze';
+      api.body.innerHTML='<div class="fz-big"></div><div class="fz-sub"></div><div class="fz-dots"><i></i><i></i><i></i><i></i></div>';
+      const big=api.body.querySelector('.fz-big'), sub=api.body.querySelector('.fz-sub'), dots=api.body.querySelector('.fz-dots');
+      const mat=makeMat(); if(D.hint) api.body.appendChild(mat.el); mat.el.hidden=true;
+      api.segments(R); api.chip('음악이 멈추면 색 칸으로!');
+      let r=0, phase='', p0=0, danceLen=0, targets=[], lastBeat=-1, lastSec=-1, prevKey='';
+      const bpmNow=()=>112+Math.min(r,9)*3;
+      function setDots(on){ dots.hidden=!on; }
+      function dance(T){
+        phase='dance'; p0=T; danceLen=D.dance[0]+Math.random()*(D.dance[1]-D.dance[0]); lastBeat=-1;
+        big.style.fontSize=''; big.textContent='춤춰요!'; sub.textContent='음악이 멈출 때까지 신나게!'; setDots(true); mat.el.hidden=true;
+        api.hud(`${r+1}라운드`,'/ '+R); api.right(`${r+1} / ${R}`); api.music(true);
+      }
+      function go(T){
+        phase='go'; p0=T; lastSec=-1; api.music(false); api.whistle(); setDots(false);
+        let t;
+        for(let n=0;n<20;n++){ const a=rnd(4); t=D.two?[a,(a+1+rnd(3))%4]:[a]; const key=t.slice().sort().join(); if(key!==prevKey) { prevKey=key; break; } }
+        targets=t; api.jump(t.length); big.style.fontSize=t.length>1?'min(14vw,30vh)':'';
+        big.innerHTML=t.map(c=>`<span style="color:${COLORS[c].css}">${COLORS[c].short}</span>`).join(' <span class="fz-plus">+</span> ');
+        sub.textContent=D.two?'두 발로 두 칸에!':'이 색 칸으로 뛰어가요!';
+        if(D.hint){ mat.el.hidden=false; mat.show(t.map(c=>({c,label:'여기!'}))); }
+        api.pop(big);
+      }
+      function freeze(T){
+        phase='freeze'; p0=T; lastSec=-1;
+        const withPose=D.pose && r>=1;
+        big.textContent='얼음!'; big.style.color='';
+        sub.textContent=withPose?POSES[rnd(POSES.length)]:'움직이지 마요!';
+        if(D.hint) mat.show(targets.map(c=>({c,label:'얼음'})));
+        api.pop(big); api.beep(1400,0.5,0.2,'triangle');
+      }
+      function melt(T){ phase='melt'; p0=T; big.textContent='땡!'; sub.textContent=r+1<R?'다시 춤출 준비!':'마지막 라운드 끝!'; mat.el.hidden=true; api.chime(); }
+      return {
+        bpmAt:()=>bpmNow(), intensityAt:()=>Math.min(9,2+r), musicManual:true,
+        readyNote:'매트 옆에 서서 음악을 기다려요!',
+        begin(){ r=0; dance(0); },
+        update(T){
+          const el=T-p0;
+          if(phase==='dance'){
+            const beat=Math.floor(el*bpmNow()/60);
+            if(beat!==lastBeat){ lastBeat=beat; const c=MAT[beat%4]; big.style.color=COLORS[c].css;
+              [...dots.children].forEach((d,i)=>d.className=i===beat%4?'on':''); }
+            if(el>=danceLen) go(T);
+            api.progress(r,0.6*el/danceLen);
+          } else if(phase==='go'){
+            const left=D.go-el, s=Math.ceil(left);
+            if(s!==lastSec){ lastSec=s; if(s>0){ api.beep(900,0.06,0.14,'square'); } }
+            if(left<=0) freeze(T);
+            api.progress(r,0.6+0.15*el/D.go);
+          } else if(phase==='freeze'){
+            const left=D.hold-el, s=Math.ceil(left);
+            if(s!==lastSec){ lastSec=s; }
+            if(left<=0) melt(T);
+            api.progress(r,0.75+0.2*el/D.hold);
+          } else if(phase==='melt' && el>=MELT){
+            api.unit(); r++; if(r>=R){ api.music(false); return api.finish('얼음 왕!',`${R}라운드를 모두 마쳤어요. 다리 쭉 펴고 쉬어요!`); }
+            dance(T);
+          }
+        },
+        skip(d){ r=Math.max(0,r+d); if(r>=R){ api.music(false); return api.finish('얼음 왕!',`${R}라운드를 모두 마쳤어요.`); } dance(E.T); },
+        destroy(){ api.music(false); }
+      };
+    }
+  };
+
+  const GAMES=[STROOP,MEMORY,RHYTHM,DIRGAME,QUIZ,ASSOC,TWIST,FREEZE];
   // 기록에 적을 난이도 이름
-  const LEVEL_KEY={stroop:'mode',memory:'diff',rhythm:'diff',dir:'diff',quiz:'set',assoc:'diff',twist:'diff'};
+  const LEVEL_KEY={stroop:'mode',memory:'diff',rhythm:'diff',dir:'diff',quiz:'set',assoc:'diff',twist:'diff',freeze:'diff'};
   GAMES.forEach(g=>{ g.levelOf=o=>{ const op=g.options.find(x=>x.id===LEVEL_KEY[g.id]); if(!op) return ''; const c=op.choices.find(c=>String(c[0])===String(o[op.id])); let s=c?c[1].replace(/\s*\(.*$/,''):''; if(g.id==='quiz'&&o.mlevel&&/add|times|muldiv/.test(o.set)) s+=' '+['','쉬움','보통','어려움'][+o.mlevel]; if(g.id==='stroop'&&o.easy==='on') s+=' · 이지'; return s; }; });
   const SOUND_OPT={id:'snd',label:'소리',choices:[['music','음악 + 효과음'],['fx','효과음만'],['off','끄기']],def:'music'};
+  // 게임별 배경 음악 선택지 — 리듬 스텝은 박자를 맞춰야 해서 기본 음악만, 퀴즈·트위스터는 잔잔한 음악이 기본
+  function musicOpts(g){
+    const calm=g.id==='quiz'||g.id==='twist';
+    const base=calm?[['calm','잔잔한 기본 음악']]:[['dance','신나는 댄스'],['march','행진곡'],['kids','동요풍'],['electro','전자음'],['random','매번 랜덤']];
+    const choices=g.id==='rhythm'?base:base.concat([['mine','내 음악 파일'],['yt','유튜브 링크']]);
+    return [
+      {id:'bgm',label:'배경 음악',choices,def:base[0][0],showIf:['snd','music'],
+       help:g.id==='rhythm'?'리듬 스텝은 블록이 박자에 맞게 떨어져야 해서 기본 음악만 쓸 수 있어요.':''},
+      {id:'tracks',type:'tracks',label:'내 음악 파일',showIf:['bgm','mine']},
+      {id:'yt',type:'yt',label:'유튜브 링크',showIf:['bgm','yt']},
+    ];
+  }
+  const allOpts=g=>[...g.options,SOUND_OPT,...musicOpts(g)];
 
   // ================= 화면: 설정 (게임 목록은 앱 화면이 담당) =================
   const store={ get(k){ try{ return JSON.parse(localStorage.getItem('matpg:'+k)||'null'); }catch(e){ return null; } },
@@ -1079,9 +1321,16 @@ body.mg-open{overflow:hidden}
     $('mgSTitle').textContent=g.name; $('mgSDesc').textContent=g.desc;
     $('mgSHow').innerHTML=g.how.map(h=>`<li>${h}</li>`).join('');
     const saved=store.get(g.id)||{}, hide=H.hooks.hideOptions||[];
-    const opts=[...g.options,SOUND_OPT].filter(op=>!hide.includes(op.id));
+    const opts=allOpts(g).filter(op=>!hide.includes(op.id));
     $('mgSOpts').innerHTML=opts.map(op=>{
       const id=`${g.id}-${op.id}`;
+      if(op.type==='tracks') return `<fieldset style="flex-basis:100%" data-show="bgm=mine"><legend>${op.label}</legend>
+        <div class="tracks" id="trackList"></div>
+        <label class="addbtn">+ 음악 파일 추가<input type="file" id="trackInput" accept="audio/*,.mp3,.m4a,.wav,.ogg" multiple hidden></label>
+        <p class="fhelp">MP3 같은 음악 파일을 여러 개 넣으면 섞어서 차례로 나와요. 이 기기의 브라우저에 저장돼서 다음에도 그대로 있고, 모든 게임에서 함께 써요. 단계가 오를수록 조금씩 빨라져요(최대 1.3배).</p></fieldset>`;
+      if(op.type==='yt') return `<fieldset style="flex-basis:100%" data-show="bgm=yt"><legend>${op.label}</legend>
+        <textarea id="ytInput" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/...&#10;재생목록 주소(list=...)도 돼요">${esc(store.get('yt')||'')}</textarea>
+        <p class="fhelp">유튜브 영상이나 재생목록 주소를 한 줄에 하나씩 넣어요. 여러 개면 섞어서 차례로 나오고, 모든 게임에서 함께 써요.<br>인터넷이 필요하고 화면 왼쪽 아래에 작은 플레이어가 나와요. 소리가 안 나면 플레이어의 ▶를 한 번 눌러 주세요. 광고가 붙거나 "다른 사이트 재생 금지"인 영상은 건너뛰어요.</p></fieldset>`;
       if(op.type==='textarea') return `<fieldset style="flex-basis:100%" data-show="${op.showIf?op.showIf.join('='):''}"><legend>${op.label}</legend>
         <textarea id="${id}" placeholder="${esc(op.placeholder||'')}">${esc(saved[op.id]||'')}</textarea><p class="fhelp">${op.help||''}</p></fieldset>`;
       let choices=op.choicesFn?op.choicesFn():op.choices;
@@ -1091,11 +1340,21 @@ body.mg-open{overflow:hidden}
       return `<fieldset data-show="${op.showIf?op.showIf.join('='):''}"><legend>${op.label}</legend><div class="seg">${choices.map(([v,l])=>
         `<label><input type="radio" name="${id}" id="${id}-${v}" value="${v}" ${String(v)===String(val)?'checked':''}><span>${l}</span></label>`).join('')}</div>${op.help?`<p class="fhelp">${op.help}</p>`:''}${op.helpFn?`<p class="fhelp" data-helpfn="${op.id}"></p>`:''}</fieldset>`;
     }).join('');
-    syncShow();
+    syncShow(); renderTracks();
+    const ti=$('trackInput'); if(ti) ti.addEventListener('change',async e=>{ for(const f of e.target.files) await TrackDB.add(f); e.target.value=''; $('mgSErr').hidden=true; renderTracks(); });
   }
+  async function renderTracks(){
+    const box=$('trackList'); if(!box) return;
+    const list=await TrackDB.all();
+    box.innerHTML=list.length?list.map(t=>`<div class="track"><span>${esc(t.name)}</span><button type="button" data-del="${t.id}" aria-label="${esc(t.name)} 빼기">빼기</button></div>`).join('')
+      :'<p class="fhelp" style="margin:0">아직 넣은 음악이 없어요.</p>';
+  }
+  $('mgSOpts').addEventListener('click',async e=>{ const b=e.target.closest('[data-del]'); if(!b) return;
+    const id=/^\d+$/.test(b.dataset.del)?+b.dataset.del:b.dataset.del; await TrackDB.del(id); renderTracks(); });
   function readOpts(){
     const o={}, hide=H.hooks.hideOptions||[];
-    [...cur.options,SOUND_OPT].forEach(op=>{ const id=`${cur.id}-${op.id}`;
+    allOpts(cur).forEach(op=>{ const id=`${cur.id}-${op.id}`;
+      if(op.type==='tracks'||op.type==='yt') return;
       if(hide.includes(op.id)){ o[op.id]=op.def??(op.choices?op.choices[0][0]:''); return; }
       if(op.type==='textarea') o[op.id]=$(id).value;
       else o[op.id]=(document.querySelector(`input[name="${id}"]:checked`)||{}).value; });
@@ -1104,12 +1363,22 @@ body.mg-open{overflow:hidden}
   function syncShow(){
     const o=readOpts();
     $('mgSOpts').querySelectorAll('[data-helpfn]').forEach(el=>{ const op=cur.options.find(x=>x.id===el.dataset.helpfn); el.innerHTML=op.helpFn(o); });
-    $('mgSOpts').querySelectorAll('[data-show]').forEach(fs=>{ const s=fs.dataset.show; if(!s) return; const [k,v]=s.split('='); fs.hidden=!v.split('|').includes(o[k]); });
+    $('mgSOpts').querySelectorAll('[data-show]').forEach(fs=>{ const s=fs.dataset.show; if(!s) return; const [k,v]=s.split('='); fs.hidden=!v.split('|').includes(o[k]) || (k==='bgm' && o.snd!=='music'); });
   }
   $('mgSOpts').addEventListener('change',syncShow);
-  function start(){
+  async function start(){
     const o=readOpts(); let err=cur.validate?cur.validate(o):'';
     if(!err && H.hooks.validate){ try{ err=H.hooks.validate(o)||''; }catch(e){ err=e.message; } }
+    if(!err && o.snd==='music' && o.bgm==='mine'){
+      const list=await TrackDB.all();
+      if(!list.length) err='"내 음악 파일"을 고르셨어요. 음악 파일을 한 개 이상 추가해 주세요.';
+      else player.load(list);
+    }
+    if(!err && o.snd==='music' && o.bgm==='yt'){
+      const txt=$('ytInput').value; store.set('yt',txt); const cfg=yt.parse(txt);
+      if(!cfg.ids.length && !cfg.list) err='"유튜브 링크"를 고르셨어요. 유튜브 영상이나 재생목록 주소를 한 줄 이상 넣어 주세요.';
+      else yt.cfg=cfg;
+    }
     if(err){ $('mgSErr').textContent=err; $('mgSErr').hidden=false; return; }
     $('mgSErr').hidden=true;
     store.set(cur.id,o); startGame(cur,o);

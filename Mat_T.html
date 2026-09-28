@@ -135,7 +135,7 @@ MODS.MAT.teacher = (function () {
         return '<tr class="row" data-sid="' + esc(s.학생ID) + '" style="cursor:pointer"><td class="rk' + (s.순위 && s.순위 <= 3 ? ' top' : '') + '">' + (s.순위 ? s.순위 : '-') + '</td>' +
           '<td class="name">' + (SEL.c ? '' : s.학년 + '-' + s.반 + ' ') + s.번호 + ' ' + esc(s.이름) + '</td><td>' + esc(시간표시(s.함께)) + '</td><td>' + esc(시간표시(s.연습)) + '</td><td><b>' + esc(시간표시(s.합계)) + '</b></td>' +
           '<td><div class="tbar"><i class="p" style="width:' + (s.함께 / max * 100).toFixed(1) + '%"></i><i class="s" style="width:' + (s.연습 / max * 100).toFixed(1) + '%"></i></div></td>' +
-          '<td>' + fmt(s.점프) + '</td><td>' + s.판수 + '</td><td>' + s.게임수 + '/7</td><td>' + (s.배지수 ? '<span class="tag sun"><i class="ti ti-award"></i>' + s.배지수 + '</span>' : '-') + '</td><td class="unit">' + esc(s.최근 ? String(s.최근).slice(5, 16) : '-') + '</td></tr>';
+          '<td>' + fmt(s.점프) + '</td><td>' + s.판수 + '</td><td>' + s.게임수 + '/8</td><td>' + (s.배지수 ? '<span class="tag sun"><i class="ti ti-award"></i>' + s.배지수 + '</span>' : '-') + '</td><td class="unit">' + esc(s.최근 ? String(s.최근).slice(5, 16) : '-') + '</td></tr>';
       }).join('');
       $('mtDEmpty').classList.toggle('hide', list.length > 0);
       qa('[data-sid]').forEach(function (tr) { tr.onclick = function () { openStudent(tr.getAttribute('data-sid')); }; });

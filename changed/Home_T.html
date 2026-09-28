@@ -18,7 +18,8 @@
 .mod-toggle b{display:block;letter-spacing:-.02em;}
 .mod-toggle small{color:var(--ink-3);font-size:12.5px;}
 .mod-toggle.off{opacity:.6;}
-.mod-toggle .sw{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-2);}
+.mod-toggle .sw{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-2);flex-shrink:0;white-space:nowrap;}
+.mod-toggle .txt{flex:1 1 auto;min-width:0;}
 .mod-toggle .sw input{width:20px;height:20px;accent-color:var(--brand);}
 .grade-picks{display:flex;gap:6px;flex-wrap:wrap;}
 .grade-picks label{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer;background:#fff;font-size:14px;font-weight:600;}
@@ -496,7 +497,7 @@ MODS.core.teacher = (function () {
       drawThemes(s.테마 || '민트');
       $('setMods').innerHTML = st.모듈목록.map(function (m) {
         return '<div class="mod-toggle' + (m.설치 ? '' : ' off') + '"><span class="ic" style="background:' + colorVar(m.색) + '"><i class="ti ti-' + m.아이콘 + '"></i></span>' +
-          '<div><b>' + esc(m.이름) + '</b><small>' + esc(m.설명) + (m.설치 ? '' : ' · 파일이 아직 없습니다 (Mod_… 와 …_T.html 을 넣으면 켜집니다)') + '</small></div>' +
+          '<div class="txt"><b>' + esc(m.이름) + '</b><small>' + esc(m.설명) + (m.설치 ? '' : ' · 파일이 아직 없습니다 (Mod_… 와 …_T.html 을 넣으면 켜집니다)') + '</small></div>' +
           '<label class="sw"><input type="checkbox" data-mod="' + m.key + '"' + (m.켜짐 ? ' checked' : '') + (m.설치 ? '' : ' disabled') + '>' + (m.설치 ? '사용' : '미설치') + '</label></div>';
       }).join('');
       var url = D.앱URL;
