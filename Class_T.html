@@ -983,6 +983,7 @@ MODS.CLASS.teacher = (function () {
   var TEAM_COLORS = ['coral', 'sky', 'violet', 'green', 'sun', 'blue', 'brand', 'warn'];
 
   function tmStudents() { return TM.data ? TM.data.학생 : []; }
+  function tmOrder(s) { return s ? ((s.학년 || 0) * 10000 + (s.반 || 0) * 100 + (s.번호 || 0)) : 0; }
   function tmStu(id) { return findOne(tmStudents(), function (s) { return s.학생ID === id; }); }
   function tmRound() {
     var F = TM.data && TM.data.체력; if (!F || !F.사용) return null;
@@ -1091,7 +1092,7 @@ MODS.CLASS.teacher = (function () {
     return best.map(function (t, i) {
       var ids = [];
       t.u.forEach(function (ui) { units[ui].m.forEach(function (mi) { ids.push(mi); }); });
-      ids.sort(function (a, b) { return stu[a].번호 - stu[b].번호; });
+      ids.sort(function (a, b) { return tmOrder(stu[a]) - tmOrder(stu[b]); });
       return { 이름: tmTeamName(i), 학생: ids.map(function (mi) { return { 학생ID: stu[mi].학생ID, 주장: TM.captains.indexOf(stu[mi].학생ID) >= 0 }; }) };
     });
   }
@@ -1104,23 +1105,41 @@ MODS.CLASS.teacher = (function () {
         '<div class="panel"><div class="panel-body"><div class="empty"><i class="ti ti-users"></i><strong>학생 명단이 비어 있습니다</strong>공통 학생 명단에 학년·반·번호·이름·성별을 등록해 주세요.<br><button class="mini soft" data-go="students" style="margin-top:10px"><i class="ti ti-users"></i>학생 명단</button></div></div></div>';
       return;
     }
-    if (!TM.cls || keys.indexOf(TM.cls) < 0) TM.cls = keys[0];
+    var sel = tmKeys().filter(function (k) { return keys.indexOf(k) >= 0; });
+    if (!sel.length) sel = [keys[0]];
+    TM.cls = sel.join(',');
     box.innerHTML = '<div class="page-head"><h2>팀·모둠 짜기</h2><span class="sub">성별과 체력(PAPS 등급)이 고르게 섞이도록 팀이나 모둠을 나눕니다. 나눈 뒤에 학생을 끌어서 옮길 수 있고, 저장하면 학생 화면에도 보여 줄 수 있습니다.</span></div>' +
-      '<div class="bar"><div class="field"><label>반</label><select id="tmCls">' + keys.map(function (k) { return '<option value="' + k + '"' + (k === TM.cls ? ' selected' : '') + '>' + esc(classLabel(k)) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="bar"><div class="field" style="flex:1;min-width:200px"><label>반 <span class="unit">— 여러 반을 고르면 합쳐서 나눕니다</span></label><div class="chks" id="tmClsBox">' + keys.map(function (k) { return '<button class="pill' + (sel.indexOf(k) >= 0 ? ' on' : '') + '" data-tmcls="' + k + '">' + esc(classLabel(k)) + '</button>'; }).join('') + '</div></div>' +
         '<div class="seg" style="align-self:flex-end"><button class="seg-b' + (TM.tab === 'make' ? ' on' : '') + '" data-tmtab="make"><i class="ti ti-users-group"></i> 나누기</button><button class="seg-b' + (TM.tab === 'saved' ? ' on' : '') + '" data-tmtab="saved"><i class="ti ti-folder"></i> 저장한 팀 <span id="tmSavedN"></span></button></div></div>' +
       '<div id="tmBody"><div class="panel"><div class="panel-body"><span class="unit">불러오는 중…</span></div></div></div>';
-    $('tmCls').onchange = function () { TM.cls = this.value; TM.data = null; tmClear(); tmLoad(); };
+    qa('[data-tmcls]').forEach(function (b) { b.onclick = function () {
+      var k = b.getAttribute('data-tmcls'), cur = tmKeys(), i = cur.indexOf(k);
+      if (i >= 0) { if (cur.length === 1) { toast('반은 하나 이상 골라야 합니다.', 'warn'); return; } cur.splice(i, 1); } else cur.push(k);
+      if (TM.teams && !confirm('반을 바꾸면 지금 나눈 결과가 사라집니다. 계속할까요?')) return;
+      TM.cls = sortKeys(cur).join(','); TM.data = null; tmClear(); renderTeams();
+    }; });
     qa('[data-tmtab]').forEach(function (b) { b.onclick = function () { TM.tab = b.getAttribute('data-tmtab'); renderTeams(); }; });
     tmLoad();
   }
+  function tmKeys() { return TM.cls ? String(TM.cls).split(',').filter(Boolean) : []; }
+  function tmMulti() { return tmKeys().length > 1; }
+  function tmClsLabel() { var ks = tmKeys(); if (ks.length === 1) return classLabel(ks[0]); var g = {}; ks.forEach(function (k) { var p = k.split('-'); (g[p[0]] = g[p[0]] || []).push(p[1]); }); return Object.keys(g).sort(function (a, b) { return a - b; }).map(function (gr) { return gr + '학년 ' + g[gr].join('·') + '반'; }).join(' + '); }
   function tmClear() { TM.saved = null; TM.teams = null; TM.setId = null; TM.name = ''; TM.open = false; TM.together = []; TM.apart = []; TM.captains = []; TM.pick = null; TM.round = null; TM.events = null; }
   function tmLoad() {
     if (TM.data && TM.data.cls === TM.cls) { tmDraw(); return; }
-    var p = TM.cls.split('-');
-    api('class_t_teamData', TOKEN, p[0], p[1]).then(function (r) { r.cls = TM.cls; TM.data = r; tmDraw(); }).catch(handleErr);
+    api('class_t_teamData', TOKEN, TM.cls).then(function (r) { r.cls = TM.cls; TM.data = r; tmDraw(); }).catch(handleErr);
+  }
+  /** 저장한 묶음을 결과 칸으로 불러옵니다 (자료를 받은 뒤에) */
+  function tmApplySet(s) {
+    TM.setId = s.id; TM.name = s.이름; TM.open = s.공개; TM.mode = s.방식; TM.n = s.수; TM.fit = !!s.종목.length && !!(TM.data.체력 && TM.data.체력.사용); TM.events = s.종목.length ? s.종목.slice() : null;
+    var known = {}; tmStudents().forEach(function (x) { known[x.학생ID] = 1; });
+    TM.teams = s.팀.map(function (t) { return { 이름: t.이름, 학생: t.학생.filter(function (m) { return known[m.학생ID]; }).map(function (m) { return { 학생ID: m.학생ID, 주장: m.주장 }; }) }; });
+    TM.captains = []; TM.teams.forEach(function (t) { t.학생.forEach(function (m) { if (m.주장) TM.captains.push(m.학생ID); }); });
+    TM.together = []; TM.apart = []; TM.pick = null; TM.saved = null;
   }
   function tmDraw() {
     if (!$('tmBody')) return;
+    if (TM.pending) { var ps = TM.pending; TM.pending = null; tmApplySet(ps); }
     $('tmSavedN').textContent = TM.data.묶음.length ? '(' + TM.data.묶음.length + ')' : '';
     if (TM.tab === 'saved') { tmDrawSaved(); return; }
     var stu = tmStudents(), F = TM.data.체력, round = tmRound();
@@ -1178,7 +1197,7 @@ MODS.CLASS.teacher = (function () {
   }
   function tmPairBox(kind, title, icon) {
     var stu = tmStudents();
-    var opts = '<option value="">학생…</option>' + stu.map(function (s) { return '<option value="' + s.학생ID + '">' + s.번호 + ' ' + esc(s.이름) + '</option>'; }).join('');
+    var multi = tmMulti(), opts = '<option value="">학생…</option>' + stu.map(function (s) { return '<option value="' + s.학생ID + '">' + (multi ? s.학년 + '-' + s.반 + ' ' : '') + s.번호 + ' ' + esc(s.이름) + '</option>'; }).join('');
     return '<div class="tm-cbox"><b><i class="ti ti-' + icon + '"></i>' + title + '</b>' +
       '<div class="chks">' + TM[kind].map(function (p, i) { var a = tmStu(p[0]), b = tmStu(p[1]); return '<span class="tag ' + (kind === 'together' ? 'green' : 'warn') + '">' + esc(a ? a.이름 : '?') + ' + ' + esc(b ? b.이름 : '?') + ' <button class="x" data-tmdel-' + kind + '="' + i + '" title="빼기">×</button></span>'; }).join('') + '</div>' +
       '<div class="tm-pair"><select id="tmA_' + kind + '">' + opts + '</select><span class="unit">+</span><select id="tmB_' + kind + '">' + opts + '</select><button class="mini soft" id="tmAdd_' + kind + '"><i class="ti ti-plus"></i>추가</button></div></div>';
@@ -1200,7 +1219,7 @@ MODS.CLASS.teacher = (function () {
     var allN = tmStudents().length, placed = {}; TM.teams.forEach(function (t) { t.학생.forEach(function (m) { placed[m.학생ID] = 1; }); });
     var missing = tmStudents().filter(function (s) { return !placed[s.학생ID]; });
     box.innerHTML =
-      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-users-group"></i>' + esc(classLabel(TM.cls)) + ' · ' + K + '개 ' + (TM.mode === '모둠인원' ? '모둠' : '팀') + '</h3><div class="spacer"></div>' +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-users-group"></i>' + esc(tmClsLabel()) + ' · ' + K + '개 ' + (TM.mode === '모둠인원' ? '모둠' : '팀') + '</h3><div class="spacer"></div>' +
         '<span class="unit" id="tmPickHint">' + (TM.pick ? '<b>' + esc((tmStu(TM.pick) || {}).이름 || '') + '</b> 학생을 옮길 팀의 <b>여기로</b> 버튼을 누르세요' : '') + '</span></div>' +
         '<div class="panel-body">' +
           '<div class="tm-teams">' + TM.teams.map(function (t, i) {
@@ -1212,7 +1231,7 @@ MODS.CLASS.teacher = (function () {
               '<div class="tm-list">' + t.학생.map(function (m) {
                 var s = tmStu(m.학생ID) || { 이름: '?', 번호: '', 성별: '' }, sc = SC[m.학생ID] || {};
                 return '<div class="tm-stu' + (m.주장 ? ' cap' : '') + (TM.pick === m.학생ID ? ' pick' : '') + (s.성별 === '남' ? ' m' : s.성별 === '여' ? ' f' : '') + '" draggable="true" data-tmstu="' + m.학생ID + '" data-tmfrom="' + i + '">' +
-                  '<span class="no">' + esc(s.번호) + '</span><span class="nm">' + esc(s.이름) + '</span>' +
+                  '<span class="no">' + (tmMulti() ? esc((s.학년 || '') + '-' + (s.반 || '') + ' ') : '') + esc(s.번호) + '</span><span class="nm">' + esc(s.이름) + '</span>' +
                   (showFit ? '<span class="sc' + (sc.추정 ? ' est' : '') + '" title="' + (sc.추정 ? 'PAPS 자료가 없어 반 평균으로 계산' : '체력 점수') + '">' + (sc.점수 || 0).toFixed(1) + '</span>' : '') +
                   '<button class="star" data-tmstar="' + m.학생ID + '" title="' + (m.주장 ? '주장 해제' : '주장으로') + '"><i class="ti ti-star' + (m.주장 ? '-filled' : '') + '"></i></button></div>';
               }).join('') + (t.학생.length ? '' : '<div class="unit" style="padding:8px">비어 있음</div>') + '</div></div>';
@@ -1250,7 +1269,7 @@ MODS.CLASS.teacher = (function () {
     TM.teams[from].학생 = TM.teams[from].학생.filter(function (m) { return m.학생ID !== id; });
     if (mem.주장 && TM.teams[to].학생.some(function (m) { return m.주장; })) { mem.주장 = false; toast('옮긴 팀에 이미 주장이 있어 주장 표시를 뺐습니다.'); }
     TM.teams[to].학생.push(mem);
-    TM.teams[to].학생.sort(function (a, b) { return ((tmStu(a.학생ID) || {}).번호 || 0) - ((tmStu(b.학생ID) || {}).번호 || 0); });
+    TM.teams[to].학생.sort(function (a, b) { return tmOrder(tmStu(a.학생ID)) - tmOrder(tmStu(b.학생ID)); });
     TM.captains = []; TM.teams.forEach(function (t) { t.학생.forEach(function (m) { if (m.주장) TM.captains.push(m.학생ID); }); });
     TM.pick = null;
     var warn = tmCheck();
@@ -1276,8 +1295,7 @@ MODS.CLASS.teacher = (function () {
   }
   function tmSave() {
     if (!TM.teams) return;
-    var p = TM.cls.split('-');
-    var set = { id: TM.setId, 학년: p[0], 반: p[1], 이름: TM.name.trim(), 방식: TM.mode, 수: TM.n, 종목: TM.fit ? tmEvents() : [], 공개: TM.open,
+    var set = { id: TM.setId, 반들: tmKeys(), 이름: TM.name.trim(), 방식: TM.mode, 수: TM.n, 종목: TM.fit ? tmEvents() : [], 공개: TM.open,
                 팀: TM.teams.map(function (t) { return { 이름: t.이름, 학생: t.학생 }; }) };
     setStatus('tmSaveStatus', '저장 중…');
     api('class_t_saveTeams', TOKEN, set).then(function (r) {
@@ -1291,18 +1309,18 @@ MODS.CLASS.teacher = (function () {
   function tmPrint() { if (TM.teams) tmPrintSet(TM.name.trim(), TM.mode, TM.teams); }
   /** 팀 묶음 인쇄. teams = [{이름, 학생:[{학생ID, 이름?, 주장}]}] */
   function tmPrintSet(name, mode, teams) {
-    var title = name || (classLabel(TM.cls) + ' ' + (mode === '모둠인원' ? '모둠' : '팀')), S = D.설정;
-    var html = '<div class="tm-paper"><h1>' + esc(title) + '</h1><div class="sub">' + esc((S.학교명 ? S.학교명 + ' · ' : '') + classLabel(TM.cls)) + ' · ' + kdate(today()) + '</div>' +
+    var title = name || (tmClsLabel() + ' ' + (mode === '모둠인원' ? '모둠' : '팀')), S = D.설정, multi = tmMulti();
+    var html = '<div class="tm-paper"><h1>' + esc(title) + '</h1><div class="sub">' + esc((S.학교명 ? S.학교명 + ' · ' : '') + tmClsLabel()) + ' · ' + kdate(today()) + '</div>' +
       '<div class="tm-pgrid" style="grid-template-columns:repeat(' + Math.min(4, teams.length) + ',1fr)">' + teams.map(function (t) {
-        return '<div class="tm-pteam"><h2>' + esc(t.이름) + ' <small>' + t.학생.length + '명</small></h2><ol>' + t.학생.map(function (m) { var s = tmStu(m.학생ID) || {}; return '<li>' + esc(s.이름 || m.이름 || '') + (m.주장 ? ' <b>★주장</b>' : '') + '</li>'; }).join('') + '</ol></div>';
+        return '<div class="tm-pteam"><h2>' + esc(t.이름) + ' <small>' + t.학생.length + '명</small></h2><ol>' + t.학생.map(function (m) { var s = tmStu(m.학생ID) || {}; return '<li>' + (multi && s.학년 ? '<small>' + s.학년 + '-' + s.반 + '</small> ' : '') + esc(s.이름 || m.이름 || '') + (m.주장 ? ' <b>★주장</b>' : '') + '</li>'; }).join('') + '</ol></div>';
       }).join('') + '</div></div>';
     printPapers(html, teams.length > 3 ? 'landscape' : 'portrait');
   }
   function tmDrawSaved() {
     var list = TM.data.묶음;
-    $('tmBody').innerHTML = '<div class="panel"><div class="panel-head"><h3><i class="ti ti-folder"></i>' + esc(classLabel(TM.cls)) + ' 저장한 팀</h3><div class="spacer"></div><span class="unit">공개를 켜면 학생 첫 화면에 "우리 팀" 카드가 보입니다 (한 학생에게는 가장 최근에 저장한 공개 팀 하나만)</span></div>' +
+    $('tmBody').innerHTML = '<div class="panel"><div class="panel-head"><h3><i class="ti ti-folder"></i>' + esc(tmClsLabel()) + ' 저장한 팀</h3><div class="spacer"></div><span class="unit">공개를 켜면 학생 첫 화면에 "우리 팀" 카드가 보입니다 (한 학생에게는 가장 최근에 저장한 공개 팀 하나만)</span></div>' +
       '<div class="panel-body">' + (list.length ? '<div class="tm-saved">' + list.map(function (s, i) {
-        return '<div class="tm-sv"><div class="tm-sv-h"><b>' + esc(s.이름) + '</b><span class="unit">' + esc(String(s.저장 || '').slice(0, 16)) + ' · ' + s.팀.length + '개 ' + (s.방식 === '모둠인원' ? '모둠(' + s.수 + '명씩)' : '팀') + (s.종목.length ? ' · 체력 기준 ' + s.종목.length + '종목' : '') + '</span>' +
+        return '<div class="tm-sv"><div class="tm-sv-h"><b>' + esc(s.이름) + '</b><span class="unit">' + esc(String(s.저장 || '').slice(0, 16)) + (s.반들 && s.반들.length > 1 ? ' · ' + esc(s.반들.join(', ')) : '') + ' · ' + s.팀.length + '개 ' + (s.방식 === '모둠인원' ? '모둠(' + s.수 + '명씩)' : '팀') + (s.종목.length ? ' · 체력 기준 ' + s.종목.length + '종목' : '') + '</span>' +
           '<div class="spacer"></div><label class="chk sm' + (s.공개 ? ' on' : '') + '"><input type="checkbox" data-tmpub="' + i + '"' + (s.공개 ? ' checked' : '') + '><span>학생에게 보이기</span></label>' +
           '<button class="mini soft" data-tmprint="' + i + '"><i class="ti ti-printer"></i>인쇄</button><button class="mini soft" data-tmload="' + i + '"><i class="ti ti-pencil"></i>불러와 고치기</button><button class="mini danger" data-tmrm="' + i + '"><i class="ti ti-trash"></i></button></div>' +
           '<div class="tm-sv-b">' + s.팀.map(function (t, ti) { return '<div class="tm-sv-t"><span class="dot ' + ({ brand: 'mint', warn: 'coral', green: 'mint' }[TEAM_COLORS[ti % TEAM_COLORS.length]] || TEAM_COLORS[ti % TEAM_COLORS.length]) + '"></span><b>' + esc(t.이름) + '</b> ' + t.학생.map(function (m) { return esc(m.이름) + (m.주장 ? '★' : ''); }).join(', ') + '</div>'; }).join('') + '</div></div>';
@@ -1310,12 +1328,10 @@ MODS.CLASS.teacher = (function () {
     qa('[data-tmpub]').forEach(function (c) { c.onchange = function () { var s = list[Number(c.getAttribute('data-tmpub'))]; api('class_t_publishTeams', TOKEN, s.id, c.checked).then(function (r) { s.공개 = r.공개; toast(r.공개 ? '학생 화면에 보입니다.' : '학생 화면에서 감췄습니다.'); }).catch(handleErr); }; });
     qa('[data-tmprint]').forEach(function (b) { b.onclick = function () { var s = list[Number(b.getAttribute('data-tmprint'))]; tmPrintSet(s.이름, s.방식, s.팀.map(function (t) { return { 이름: t.이름, 학생: t.학생 }; })); }; });
     qa('[data-tmload]').forEach(function (b) { b.onclick = function () {
-      var s = list[Number(b.getAttribute('data-tmload'))];
-      TM.setId = s.id; TM.name = s.이름; TM.open = s.공개; TM.mode = s.방식; TM.n = s.수; TM.fit = !!s.종목.length && !!(TM.data.체력 && TM.data.체력.사용); TM.events = s.종목.length ? s.종목.slice() : null;
-      var known = {}; tmStudents().forEach(function (x) { known[x.학생ID] = 1; });
-      TM.teams = s.팀.map(function (t) { return { 이름: t.이름, 학생: t.학생.filter(function (m) { return known[m.학생ID]; }).map(function (m) { return { 학생ID: m.학생ID, 주장: m.주장 }; }) }; });
-      TM.captains = []; TM.teams.forEach(function (t) { t.학생.forEach(function (m) { if (m.주장) TM.captains.push(m.학생ID); }); });
-      TM.together = []; TM.apart = []; TM.pick = null; TM.tab = 'make'; renderTeams();
+      var s = list[Number(b.getAttribute('data-tmload'))], ks = (s.반들 && s.반들.length) ? s.반들.join(',') : TM.cls;
+      TM.tab = 'make'; TM.pending = s;
+      if (ks !== TM.cls) { TM.cls = ks; TM.data = null; tmClear(); TM.pending = s; }
+      renderTeams();
     }; });
     qa('[data-tmrm]').forEach(function (b) { b.onclick = function () {
       var s = list[Number(b.getAttribute('data-tmrm'))];

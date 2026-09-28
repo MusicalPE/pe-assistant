@@ -1,9 +1,15 @@
 {
-  "version": "1.7.1",
-  "libraryVersion": 18,
+  "version": "1.7.2",
+  "libraryVersion": 19,
   "date": "2026-09-23",
-  "notes": "팀·모둠 짜기: 저장 뒤 결과 칸 비우기(바로 새로 나누기), 저장한 팀 목록에 인쇄.",
+  "notes": "팀·모둠 짜기: 여러 반을 합쳐서 나누기.",
   "history": [
+    {
+      "version": "1.7.2",
+      "lib": 19,
+      "date": "2026-09-23",
+      "notes": "팀·모둠 짜기: 반을 여러 개 골라 합쳐서 나눌 수 있습니다(학년·반 합반 수업). 합친 팀은 학생 이름 앞에 반이 붙고, 저장한 팀에는 어느 반을 합쳤는지 표시됩니다."
+    },
     {
       "version": "1.7.1",
       "lib": 18,
@@ -75,8 +81,8 @@
     {
       "name": "Class_T.html",
       "type": "HTML",
-      "sha256": "1fea056ece8605d2",
-      "bytes": 134719
+      "sha256": "d67fa10a36d22b0a",
+      "bytes": 136519
     },
     {
       "name": "Club_T.html",
@@ -87,8 +93,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "b0103783547a380b",
-      "bytes": 57634
+      "sha256": "7da9d8b97e4a9a03",
+      "bytes": 57918
     },
     {
       "name": "Eval_S.html",
@@ -153,8 +159,8 @@
     {
       "name": "Mod_Class.gs",
       "type": "SERVER_JS",
-      "sha256": "fc3f944519a514ce",
-      "bytes": 37408
+      "sha256": "2019ec6a68f80bed",
+      "bytes": 38737
     },
     {
       "name": "Mod_Club.gs",

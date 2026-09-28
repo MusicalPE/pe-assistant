@@ -12,7 +12,7 @@
  *   수업_계획   : 계획ID, 학년도, 학년, 차시, 단원, 주제, 내용, 준비물, 장소, 날짜, 대상반, 수정일시
  *   수업_기록   : 기록ID, 학년도, 날짜, 교시, 학년, 반, 계획ID, 연결, 메모, 저장일시   (한 차시 수업이 한 줄)
  *   수업_출석   : 기록ID, 날짜, 교시, 학년, 반, 학생ID, 이름, 상태, 특이사항        (출석이 아니거나 특이사항이 있는 학생만)
- *   수업_팀     : 팀세트ID, 학년도, 학년, 반, 이름, 방식, 수, 종목, 공개, 저장일시     (팀·모둠 짜기 결과 한 묶음이 한 줄. 방식 = 팀수|모둠인원)
+ *   수업_팀     : 팀세트ID, 학년도, 학년, 반, 이름, 방식, 수, 종목, 공개, 저장일시, 반들 (팀·모둠 짜기 결과 한 묶음이 한 줄. 방식 = 팀수|모둠인원. 반들 = "5-1,5-2" 처럼 합친 반 목록)
  *   수업_팀원   : 팀세트ID, 팀, 팀이름, 학생ID, 이름, 주장                              (그 묶음의 학생 배정)
  *
  * 기록ID 는 "날짜|교시|학년-반" 입니다. 같은 날 같은 교시 같은 반은 한 건입니다.
@@ -25,7 +25,7 @@ var CLASS_H = {
   계획:   ['계획ID', '학년도', '학년', '차시', '단원', '주제', '내용', '준비물', '장소', '날짜', '대상반', '수정일시'],
   기록:   ['기록ID', '학년도', '날짜', '교시', '학년', '반', '계획ID', '연결', '메모', '저장일시'],
   출석:   ['기록ID', '날짜', '교시', '학년', '반', '학생ID', '이름', '상태', '특이사항'],
-  팀:     ['팀세트ID', '학년도', '학년', '반', '이름', '방식', '수', '종목', '공개', '저장일시'],
+  팀:     ['팀세트ID', '학년도', '학년', '반', '이름', '방식', '수', '종목', '공개', '저장일시', '반들'],
   팀원:   ['팀세트ID', '팀', '팀이름', '학생ID', '이름', '주장']
 };
 var CLASS_색 = '#ECEAFF';
@@ -498,7 +498,9 @@ function class_팀전체_() {
       if (str_(r.학년도) && str_(r.학년도) !== 학년도) return;
       var id = str_(r.팀세트ID); if (!id) return;
       var n = Math.max(1, Math.min(60, num_(r.수) || 1));
-      var set = { id: id, 학년: num_(r.학년) || 0, 반: num_(r.반) || 0, 이름: str_(r.이름), 방식: str_(r.방식) === '모둠인원' ? '모둠인원' : '팀수',
+      var 반들 = 목록_(r.반들);
+      if (!반들.length && num_(r.학년) && num_(r.반)) 반들 = [num_(r.학년) + '-' + num_(r.반)];
+      var set = { id: id, 학년: num_(r.학년) || 0, 반: num_(r.반) || 0, 반들: 반들, 이름: str_(r.이름), 방식: str_(r.방식) === '모둠인원' ? '모둠인원' : '팀수',
                   수: n, 종목: 목록_(r.종목), 공개: bool_(r.공개), 저장: 시각문자_(r.저장일시), 팀: [] };
       map[id] = set; list.push(set);
     });
@@ -558,31 +560,49 @@ function class_체력자료_(학생들) {
   return out;
 }
 
-/** 팀 짜기 화면 자료: 그 반 학생 + 체력 등급 + 저장된 묶음 */
-function class_t_teamData(token, 학년, 반) {
+/** "5-1,5-2" | ['5-1','5-2'] | (학년, 반) → ['5-1','5-2'] */
+function class_반키들_(a, b) {
+  var list = Array.isArray(a) ? a : (num_(a) && num_(b) ? [num_(a) + '-' + num_(b)] : String(a || '').split(','));
+  var out = [], seen = {};
+  list.forEach(function (k) {
+    var p = String(k).trim().split('-'), g = num_(p[0]), c = num_(p[1]);
+    if (!g || !c || seen[g + '-' + c]) return;
+    seen[g + '-' + c] = true; out.push(g + '-' + c);
+  });
+  return out.sort(function (x, y) { var p = x.split('-').map(Number), q = y.split('-').map(Number); return (p[0] - q[0]) || (p[1] - q[1]); });
+}
+/** 여러 반 학생을 반·번호순으로 */
+function class_반들학생_(keys) {
+  var out = [];
+  keys.forEach(function (k) { var p = k.split('-'); out = out.concat(class_반학생_(p[0], p[1])); });
+  return out;
+}
+/** 팀 짜기 화면 자료: 고른 반(여러 반 가능) 학생 + 체력 등급 + 저장된 묶음. keys = "5-1,5-2" 또는 (학년, 반) */
+function class_t_teamData(token, keys, 반) {
   교사확인_(token);
-  var g = num_(학년), c = num_(반);
-  var 학생 = (g && c) ? class_반학생_(g, c).map(function (s) { return { 학생ID: s.학생ID, 번호: s.번호, 이름: s.이름, 성별: s.성별 || '' }; }) : [];
-  var 묶음 = class_팀전체_().filter(function (t) { return !g || (t.학년 === g && t.반 === c); });
+  var ks = class_반키들_(keys, 반);
+  var 학생 = class_반들학생_(ks).map(function (s) { return { 학생ID: s.학생ID, 학년: s.학년, 반: s.반, 번호: s.번호, 이름: s.이름, 성별: s.성별 || '' }; });
+  var 묶음 = class_팀전체_().filter(function (t) { return !ks.length || t.반들.some(function (k) { return ks.indexOf(k) >= 0; }); });
   return { 학생: 학생, 체력: class_체력자료_(학생), 묶음: 묶음 };
 }
 
-/** 팀 묶음 저장. set = { id?, 학년, 반, 이름, 방식:'팀수'|'모둠인원', 수, 종목:[], 공개, 팀:[{이름, 학생:[{학생ID, 주장}]}] } */
+/** 팀 묶음 저장. set = { id?, 반들:['5-1','5-2'] (또는 학년, 반), 이름, 방식:'팀수'|'모둠인원', 수, 종목:[], 공개, 팀:[{이름, 학생:[{학생ID, 주장}]}] } */
 function class_t_saveTeams(token, set) {
   교사확인_(token);
   set = set || {};
-  var g = num_(set.학년), c = num_(set.반);
-  if (!g || !c) throw new Error('학년·반이 없습니다.');
+  var ks = class_반키들_(set.반들 && set.반들.length ? set.반들 : set.학년, set.반);
+  if (!ks.length) throw new Error('학년·반이 없습니다.');
+  var first = ks[0].split('-'), g = Number(first[0]), c = Number(first[1]);
   var 팀 = (set.팀 || []).map(function (t, i) {
     return { 이름: str_(t.이름) || (i + 1) + '팀', 학생: (t.학생 || []).map(function (m) { return { 학생ID: str_(typeof m === 'string' ? m : m.학생ID), 주장: !!(m && m.주장) }; }).filter(function (m) { return m.학생ID; }) };
   }).filter(function (t) { return t.학생.length; });
   if (팀.length < 1) throw new Error('팀에 학생이 없습니다.');
   var 이름표 = {};
-  class_반학생_(g, c).forEach(function (s) { 이름표[s.학생ID] = s.이름; });
+  class_반들학생_(ks).forEach(function (s) { 이름표[s.학생ID] = s.이름; });
   var id = str_(set.id) || makeId_('TM'), 지금 = 지금_();
   var fields = { 팀세트ID: id, 학년도: class_학년도_(), 학년: g, 반: c, 이름: str_(set.이름) || (지금.slice(5, 10).replace('-', '/') + ' 팀'),
                  방식: str_(set.방식) === '모둠인원' ? '모둠인원' : '팀수', 수: Math.max(1, Math.min(60, num_(set.수) || 팀.length)),
-                 종목: (set.종목 || []).map(String).join(','), 공개: set.공개 ? 'Y' : 'N', 저장일시: 지금 };
+                 종목: (set.종목 || []).map(String).join(','), 공개: set.공개 ? 'Y' : 'N', 저장일시: 지금, 반들: ks.join(',') };
   return withLock_(function () {
     var have = rows_(CLASS.팀).filter(function (r) { return str_(r.팀세트ID) === id; })[0];
     if (have) setCells_(CLASS.팀, CLASS_H.팀, have._row, fields);
