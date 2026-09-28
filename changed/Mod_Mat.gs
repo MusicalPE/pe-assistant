@@ -11,7 +11,8 @@
  *              시작시각, 끝시각, 진행시간, 인정시간, 점프, 인정점프, 확인단계, 전체단계, 완주(완주|중간 종료|진행 중), 저장일시
  *              (한 판이 한 줄. 단계마다 중간 저장하므로 같은 기록ID 줄을 덮어씀)
  *   MAT_짝   : 학년도, 학년, 반, 학생ID, 이름, 짝ID, 짝이름, 등록일시     (교사가 배정한 짝. 3인 조는 A→B, B→C, C→A 처럼 원형으로)
- *   MAT_문제 : 문제ID, 상태(대기|승인|버림), 출처(AI|교사|학생), 학년군, 영역, 문제, 정답, 오답1, 오답2, 오답3, 해설, 제안자ID, 제안자, 등록일시
+ *   MAT_문제 : 문제ID, 상태(대기|승인|버림), 출처(AI|교사|학생), 학년군, 영역, 문제, 정답, 오답1, 오답2, 오답3, 해설, 제안자ID, 제안자, 등록일시, 교과
+ *              (교과 = 체육·국어·수학·사회·과학·영어·도덕·기타, 영역은 체육일 때만 운동·스포츠·표현 — 2022 개정 교육과정)
  * 배지는 시트에 따로 두지 않고 누적에서 계산합니다 (줄넘기 모듈과 같은 방식).
  *******************************************************/
 
@@ -20,15 +21,24 @@ var MAT_H = {
   기록: ['기록ID', '학년도', '학생ID', '학년', '반', '번호', '이름', '구분', '짝ID', '짝이름', '게임', '난이도', '시작시각', '끝시각',
          '진행시간', '인정시간', '점프', '인정점프', '확인단계', '전체단계', '완주', '저장일시'],
   짝:   ['학년도', '학년', '반', '학생ID', '이름', '짝ID', '짝이름', '등록일시'],
-  문제: ['문제ID', '상태', '출처', '학년군', '영역', '문제', '정답', '오답1', '오답2', '오답3', '해설', '제안자ID', '제안자', '등록일시']
+  문제: ['문제ID', '상태', '출처', '학년군', '영역', '문제', '정답', '오답1', '오답2', '오답3', '해설', '제안자ID', '제안자', '등록일시', '교과']
 };
 var MAT_색 = '#FFE8D6';
 var MAT_게임 = [
   ['stroop', '색깔 스트룹'], ['memory', '기억력 스텝'], ['rhythm', '리듬 스텝'], ['dir', '방향 점프'],
   ['quiz', '퀴즈 점프'], ['assoc', '연상 점프'], ['twist', '손발 트위스터']
 ];
-var MAT_영역 = ['건강', '도전', '경쟁', '표현', '안전'];
-var MAT_학년군 = ['1-2', '3-4', '5-6'];
+var MAT_교과 = ['체육', '국어', '수학', '사회', '과학', '영어', '도덕', '기타'];
+var MAT_영역 = ['운동', '스포츠', '표현'];          // 체육과 영역 (2022 개정 교육과정)
+var MAT_옛영역 = { '건강': '운동', '도전': '스포츠', '경쟁': '스포츠', '안전': '운동' };   // 예전 판 문제의 영역 이름 바꿔 읽기
+var MAT_학년군 = ['1~2', '3~4', '5~6'];     // '5-6' 은 시트가 날짜로 바꿔 버려서 물결(~)로 씁니다
+/** 시트 값 → '5~6'. 예전에 '5-6' 으로 저장돼 날짜(5월 6일)로 굳은 값도 되돌립니다 */
+function mat_학년군정리_(v) {
+  if (v instanceof Date) { var k = (v.getMonth() + 1) + '~' + v.getDate(); return MAT_학년군.indexOf(k) >= 0 ? k : ''; }
+  var t = str_(v).replace(/\s/g, '').replace('-', '~').replace('학년', '');
+  if (/^\d{4}~/.test(t)) { var m = t.match(/(\d{4})~(\d{2})~(\d{2})/); if (m) t = Number(m[2]) + '~' + Number(m[3]); }
+  return MAT_학년군.indexOf(t) >= 0 ? t : '';
+}
 var MAT_구분 = ['함께', '연습', '수업'];
 var MAT_GEMINI_ERR_KEY = 'MAT_GEMINI_LAST_ERROR';
 
@@ -71,6 +81,7 @@ function mat_hooks_() {
       만듦 = 만듦.concat(시트준비_(MAT.기록, MAT_H.기록, { 색: MAT_색 }));
       만듦 = 만듦.concat(시트준비_(MAT.짝, MAT_H.짝, { 색: MAT_색 }));
       만듦 = 만듦.concat(시트준비_(MAT.문제, MAT_H.문제, { 색: MAT_색 }));
+      ensureColumns_(MAT.문제, MAT_H.문제);   // 예전 판 시트에 교과 열 보충
       var put = {}, 있음 = {};
       rows_(SHEET.설정).forEach(function (r) { 있음[str_(r.항목)] = true; });
       mat_기본설정_().forEach(function (r) { if (!있음['매트.' + r[0]]) put['매트.' + r[0]] = r[1]; });
@@ -253,15 +264,17 @@ function mat_짝표_() {
 /* ================= 문제 은행 ================= */
 
 function mat_문제객체_(r) {
-  return { id: str_(r.문제ID), 상태: str_(r.상태) || '대기', 출처: str_(r.출처), 학년군: str_(r.학년군), 영역: str_(r.영역), 문제: str_(r.문제), 정답: str_(r.정답),
+  var 영역 = str_(r.영역); if (MAT_옛영역[영역]) 영역 = MAT_옛영역[영역];
+  var 교과 = str_(r.교과) || (영역 ? '체육' : '');
+  return { id: str_(r.문제ID), 상태: str_(r.상태) || '대기', 출처: str_(r.출처), 학년군: mat_학년군정리_(r.학년군), 교과: 교과, 영역: 교과 === '체육' ? 영역 : '', 문제: str_(r.문제), 정답: str_(r.정답),
            오답: [str_(r.오답1), str_(r.오답2), str_(r.오답3)].filter(Boolean), 해설: str_(r.해설), 제안자ID: str_(r.제안자ID), 제안자: str_(r.제안자), 등록: 시각문자_(r.등록일시) };
 }
-/** 승인된 문제를 게임 엔진 형식으로: [문제, 정답, 오답1, 오답2, 오답3, 해설, 학년군] */
+/** 승인된 문제를 게임 엔진 형식으로: [문제, 정답, 오답1, 오답2, 오답3, 해설, 학년군, 교과] */
 function mat_승인문제_(해설표시) {
   return rows_(MAT.문제).filter(function (r) { return str_(r.상태) === '승인' && str_(r.문제) && str_(r.정답); }).map(function (r) {
     var q = mat_문제객체_(r), row = [q.문제, q.정답].concat(q.오답.slice(0, 3));
     while (row.length < 5) row.push('');
-    row.push(해설표시 ? q.해설 : ''); row.push(q.학년군);
+    row.push(해설표시 ? q.해설 : ''); row.push(q.학년군); row.push(q.교과 || '');
     return row;
   });
 }
@@ -270,8 +283,11 @@ function mat_문제정리_(q) {
   var 오답 = (Array.isArray(q.오답) ? q.오답 : [q.오답1, q.오답2, q.오답3]).map(function (x) { return str_(x).slice(0, 40); }).filter(function (x) { return x && x !== 정답; });
   오답 = 오답.filter(function (x, i) { return 오답.indexOf(x) === i; }).slice(0, 3);
   if (!문제 || !정답 || !오답.length) return null;
+  var 교과 = MAT_교과.indexOf(str_(q.교과)) >= 0 ? str_(q.교과) : '';
+  var 영역 = str_(q.영역); if (MAT_옛영역[영역]) 영역 = MAT_옛영역[영역];
+  if (!교과 && MAT_영역.indexOf(영역) >= 0) 교과 = '체육';
   return { 문제: 문제, 정답: 정답, 오답1: 오답[0] || '', 오답2: 오답[1] || '', 오답3: 오답[2] || '', 해설: str_(q.해설).slice(0, 120),
-           학년군: MAT_학년군.indexOf(str_(q.학년군)) >= 0 ? str_(q.학년군) : '', 영역: MAT_영역.indexOf(str_(q.영역)) >= 0 ? str_(q.영역) : '' };
+           학년군: mat_학년군정리_(q.학년군), 교과: 교과, 영역: 교과 === '체육' && MAT_영역.indexOf(영역) >= 0 ? 영역 : '' };
 }
 function mat_문제추가_(list, 출처, 상태, 제안자ID, 제안자) {
   var 지금 = 지금_(), rows = [], 있음 = {};
@@ -279,7 +295,7 @@ function mat_문제추가_(list, 출처, 상태, 제안자ID, 제안자) {
   (list || []).forEach(function (q) {
     var c = mat_문제정리_(q); if (!c) return;
     var key = c.문제.replace(/\s+/g, ''); if (있음[key]) return; 있음[key] = true;
-    rows.push({ 문제ID: makeId_('Q') + Math.floor(Math.random() * 900 + 100), 상태: 상태, 출처: 출처, 학년군: c.학년군, 영역: c.영역, 문제: c.문제, 정답: c.정답,
+    rows.push({ 문제ID: makeId_('Q') + Math.floor(Math.random() * 900 + 100), 상태: 상태, 출처: 출처, 학년군: c.학년군, 교과: c.교과, 영역: c.영역, 문제: c.문제, 정답: c.정답,
                 오답1: c.오답1, 오답2: c.오답2, 오답3: c.오답3, 해설: c.해설, 제안자ID: 제안자ID || '', 제안자: 제안자 || '', 등록일시: 지금 });
   });
   appendRows_(MAT.문제, MAT_H.문제, rows);
@@ -290,15 +306,18 @@ function mat_문제추가_(list, 출처, 상태, 제안자ID, 제안자) {
 function mat_gemini키_() {
   try { return (typeof ROPE_GEMINI_KEY !== 'undefined' ? 속성_(ROPE_GEMINI_KEY) : 속성_('GEMINI_KEY')) || ''; } catch (e) { return ''; }
 }
-function mat_gemini문제_(학년군, 영역, 주제, 개수) {
+function mat_gemini문제_(학년군, 교과, 영역, 주제, 개수) {
   var key = mat_gemini키_();
   if (!key) throw new Error('Gemini API 키가 없습니다. 줄넘기 → 설정의 AI 응원 문구 칸에 키를 넣어 주세요.');
   if (typeof rope_gemini호출_ !== 'function') throw new Error('줄넘기 모듈(Mod_Rope.gs)이 있어야 AI 문제를 받을 수 있습니다.');
   개수 = Math.max(1, Math.min(20, num_(개수) || 10));
   var 기존 = rows_(MAT.문제).filter(function (r) { return str_(r.상태) !== '버림'; }).map(function (r) { return str_(r.문제); }).slice(-60);
-  var 학년설명 = { '1-2': '초등학교 1~2학년 (쉬운 낱말, 짧은 문장)', '3-4': '초등학교 3~4학년', '5-6': '초등학교 5~6학년' }[학년군] || '초등학생';
-  var prompt = '너는 초등학교 체육 교사를 돕는 출제 도우미야. 아래 조건으로 체육 수업용 4지선다 퀴즈를 ' + 개수 + '개 만들어 줘.\n' +
-    '- 대상: ' + 학년설명 + '\n- 영역: ' + (영역 || '체육 전반') + '\n' + (주제 ? '- 오늘 수업 주제: ' + 주제 + ' (이 주제에 맞는 문제로)\n' : '') +
+  var 학년설명 = { '1~2': '초등학교 1~2학년 (쉬운 낱말, 짧은 문장)', '3~4': '초등학교 3~4학년', '5~6': '초등학교 5~6학년' }[학년군] || '초등학생';
+  교과 = 교과 || '체육';
+  var 범위 = 교과 === '체육' ? '체육과 (2022 개정 교육과정 기준) ' + (영역 ? 영역 + ' 영역' : '운동·스포츠·표현 영역 전반')
+           : 교과 === '기타' ? '초등 교과 전반(상식 포함)' : 교과 + '과 — 그 학년군 교육과정에서 배우는 내용';
+  var prompt = '너는 초등학교 교사를 돕는 출제 도우미야. 매트 4칸으로 답을 고르는 체육 시간 퀴즈 활동에 쓸 4지선다 문제를 ' + 개수 + '개 만들어 줘.\n' +
+    '- 대상: ' + 학년설명 + '\n- 교과·범위: ' + 범위 + '\n' + (주제 ? '- 오늘 주제/단원: ' + 주제 + ' (이 주제에 맞는 문제로)\n' : '') +
     '- 문제는 40자 이내, 보기는 각 12자 이내로 짧게. 정답 1개, 오답 3개. 오답은 그럴듯하지만 분명히 틀린 것.\n' +
     '- 사실이 확실한 내용만. 규칙·기록은 널리 알려진 것만.\n- 한 줄 해설은 30자 이내.\n' +
     (기존.length ? '- 아래 문제와 같거나 비슷한 문제는 내지 마:\n' + 기존.map(function (q) { return '  · ' + q; }).join('\n') + '\n' : '') +
@@ -315,7 +334,7 @@ function mat_gemini문제_(학년군, 영역, 주제, 개수) {
   if (!m) throw new Error('AI 응답에서 문제 목록을 읽지 못했습니다: ' + String(text).slice(0, 120));
   var arr;
   try { arr = JSON.parse(m[0]); } catch (e) { throw new Error('AI 응답(JSON)을 읽지 못했습니다: ' + String(text).slice(0, 120)); }
-  return arr.map(function (x) { return { 문제: x.q, 정답: x.a, 오답: x.w || [], 해설: x.e, 학년군: 학년군, 영역: 영역 }; });
+  return arr.map(function (x) { return { 문제: x.q, 정답: x.a, 오답: x.w || [], 해설: x.e, 학년군: 학년군, 교과: 교과, 영역: 교과 === '체육' ? 영역 : '' }; });
 }
 
 /* ================= 저장 ================= */
@@ -425,7 +444,7 @@ function mat_t_boot(token) {
   rows_(MAT.문제).forEach(function (r) { var st = str_(r.상태) || '대기'; 문제수[st] = (문제수[st] || 0) + 1; });
   var err = ''; try { err = 속성_(MAT_GEMINI_ERR_KEY) || ''; } catch (e) {}
   return { 설정: s, 게임이름: MAT_게임, 학급목록: 학급목록, 문제수: 문제수, gemini여부: !!mat_gemini키_(), geminiError: err,
-           문제: mat_승인문제_(s.해설표시), 오늘: 오늘_(), 영역: MAT_영역, 학년군: MAT_학년군 };
+           문제: mat_승인문제_(s.해설표시), 오늘: 오늘_(), 교과: MAT_교과, 영역: MAT_영역, 학년군: MAT_학년군 };
 }
 
 /** 학급 현황 (학년·반 0 = 전체) */
@@ -538,11 +557,11 @@ function mat_t_setQuestion(token, id, patch) {
     if (!have) throw new Error('문제를 찾지 못했습니다.');
     var f = {};
     if (patch.상태 !== undefined) { if (['대기', '승인', '버림'].indexOf(str_(patch.상태)) < 0) throw new Error('상태가 잘못되었습니다.'); f.상태 = str_(patch.상태); }
-    if (patch.문제 !== undefined || patch.정답 !== undefined || patch.오답 !== undefined || patch.해설 !== undefined || patch.학년군 !== undefined || patch.영역 !== undefined) {
+    if (patch.문제 !== undefined || patch.정답 !== undefined || patch.오답 !== undefined || patch.해설 !== undefined || patch.학년군 !== undefined || patch.영역 !== undefined || patch.교과 !== undefined) {
       var cur = mat_문제객체_(have);
       var c = mat_문제정리_({ 문제: patch.문제 !== undefined ? patch.문제 : cur.문제, 정답: patch.정답 !== undefined ? patch.정답 : cur.정답,
                               오답: patch.오답 !== undefined ? patch.오답 : cur.오답, 해설: patch.해설 !== undefined ? patch.해설 : cur.해설,
-                              학년군: patch.학년군 !== undefined ? patch.학년군 : cur.학년군, 영역: patch.영역 !== undefined ? patch.영역 : cur.영역 });
+                              학년군: patch.학년군 !== undefined ? patch.학년군 : cur.학년군, 교과: patch.교과 !== undefined ? patch.교과 : cur.교과, 영역: patch.영역 !== undefined ? patch.영역 : cur.영역 });
       if (!c) throw new Error('문제·정답·오답을 모두 써 주세요.');
       Object.keys(c).forEach(function (k) { f[k] = c[k]; });
     }
@@ -565,21 +584,21 @@ function mat_t_deleteQuestions(token, ids) {
   var set = {}; (ids || []).forEach(function (id) { set[str_(id)] = true; });
   return withLock_(function () { var n = 행지우기_(MAT.문제, function (o) { return set[str_(o.문제ID)] === true; }); return { ok: true, 지움: n }; });
 }
-/** 교사가 직접 넣기 (바로 승인). list = [{문제, 정답, 오답:[], 해설, 학년군, 영역}] 또는 "문제 / 정답 / 오답 / 오답" 줄글 */
-function mat_t_addQuestions(token, list, 학년군, 영역) {
+/** 교사가 직접 넣기 (바로 승인). list = [{문제, 정답, 오답:[], 해설, 학년군, 교과, 영역}] 또는 "문제 / 정답 / 오답 / 오답" 줄글 */
+function mat_t_addQuestions(token, list, 학년군, 교과, 영역) {
   교사확인_(token);
   if (typeof list === 'string') {
     list = list.split(/\n/).map(function (l) { return l.split(/[\/|]/).map(function (s) { return s.trim(); }).filter(Boolean); })
       .filter(function (r) { return r.length >= 3; }).map(function (r) { return { 문제: r[0], 정답: r[1], 오답: r.slice(2, 5), 해설: r[5] || '' }; });
   }
-  (list || []).forEach(function (q) { if (!q.학년군) q.학년군 = 학년군; if (!q.영역) q.영역 = 영역; });
+  (list || []).forEach(function (q) { if (!q.학년군) q.학년군 = 학년군; if (!q.교과) q.교과 = 교과; if (!q.영역) q.영역 = 영역; });
   var n = withLock_(function () { return mat_문제추가_(list, '교사', '승인', '', ''); });
   return { ok: true, 추가: n };
 }
 /** AI 에서 문제 받기 → 검토 대기로 넣기 */
-function mat_t_genQuestions(token, 학년군, 영역, 주제, 개수) {
+function mat_t_genQuestions(token, 학년군, 교과, 영역, 주제, 개수) {
   교사확인_(token);
-  var list = mat_gemini문제_(MAT_학년군.indexOf(str_(학년군)) >= 0 ? str_(학년군) : '', MAT_영역.indexOf(str_(영역)) >= 0 ? str_(영역) : '', str_(주제).slice(0, 60), 개수);
+  var list = mat_gemini문제_(mat_학년군정리_(학년군), MAT_교과.indexOf(str_(교과)) >= 0 ? str_(교과) : '체육', MAT_영역.indexOf(str_(영역)) >= 0 ? str_(영역) : '', str_(주제).slice(0, 60), 개수);
   var n = withLock_(function () { return mat_문제추가_(list, 'AI', '대기', '', ''); });
   return { ok: true, 받음: list.length, 추가: n };
 }

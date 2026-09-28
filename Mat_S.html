@@ -73,7 +73,7 @@
         <div class="field" style="margin-bottom:10px"><label>문제</label><input type="text" id="msQ" maxlength="120" placeholder="예: 농구에서 한 팀은 몇 명이 경기해요?"></div>
         <div class="grid g2" style="margin-bottom:10px"><div class="field"><label>정답</label><input type="text" id="msA" maxlength="40" placeholder="5명"></div><div class="field"><label>오답 1</label><input type="text" id="msW1" maxlength="40" placeholder="4명"></div></div>
         <div class="grid g2" style="margin-bottom:10px"><div class="field"><label>오답 2</label><input type="text" id="msW2" maxlength="40" placeholder="6명"></div><div class="field"><label>오답 3 (선택)</label><input type="text" id="msW3" maxlength="40" placeholder="7명"></div></div>
-        <div class="field" style="margin-bottom:10px"><label>한 줄 설명 (선택)</label><input type="text" id="msE" maxlength="120" placeholder="정답이 나올 때 함께 보여 줄 설명"></div>
+        <div class="grid g2" style="margin-bottom:10px"><div class="field"><label>교과</label><select id="msSubj"><option>체육</option><option>국어</option><option>수학</option><option>사회</option><option>과학</option><option>영어</option><option>도덕</option><option>기타</option></select></div><div class="field"><label>한 줄 설명 (선택)</label><input type="text" id="msE" maxlength="120" placeholder="정답이 나올 때 함께 보여 줄 설명"></div></div>
         <div class="savebar"><span class="status" id="msQStatus"></span><div class="spacer"></div><button id="msQSend"><i class="ti ti-send"></i>선생님께 보내기</button></div>
       </div>
     </div>
@@ -112,6 +112,7 @@ MODS.MAT.student = (function () {
     if (!fn) return;
     if (!D) { load(fn); return; }
     fn();
+    if (p === 'games') load(renderGames);   // 게임 화면에 올 때마다 새로 받아 옴 (선생님이 방금 승인한 문제·짝 배정 반영)
   }
   function 시간표시(초) { 초 = Math.round(초 || 0); var m = Math.floor(초 / 60), s = 초 % 60; if (m >= 60) return Math.floor(m / 60) + '시간 ' + (m % 60) + '분'; return m ? m + '분' + (s ? ' ' + s + '초' : '') : s + '초'; }
   function gname(id) { var g = findOne(D.게임이름, function (x) { return x[0] === id; }); return g ? g[1] : id; }
@@ -249,7 +250,7 @@ MODS.MAT.student = (function () {
     if (!D.설정.학생제안) { $('mat_sp_propose').innerHTML = '<div class="page-head"><h2>퀴즈 문제 내기</h2></div><div class="panel"><div class="panel-body"><div class="empty"><i class="ti ti-bulb-off"></i><strong>지금은 문제 내기가 꺼져 있어요</strong></div></div></div>'; return; }
     renderMyQ();
     $('msQSend').onclick = function () {
-      var q = { 문제: $('msQ').value.trim(), 정답: $('msA').value.trim(), 오답: [$('msW1').value.trim(), $('msW2').value.trim(), $('msW3').value.trim()].filter(Boolean), 해설: $('msE').value.trim() };
+      var q = { 문제: $('msQ').value.trim(), 정답: $('msA').value.trim(), 오답: [$('msW1').value.trim(), $('msW2').value.trim(), $('msW3').value.trim()].filter(Boolean), 해설: $('msE').value.trim(), 교과: $('msSubj').value };
       if (!q.문제 || !q.정답 || q.오답.length < 2) { setStatus('msQStatus', '문제, 정답, 오답 2개까지는 꼭 써 주세요.', 'err'); return; }
       setStatus('msQStatus', '보내는 중…');
       api('mat_s_proposeQuestion', TOKEN, q).then(function (r) {
@@ -262,7 +263,7 @@ MODS.MAT.student = (function () {
     var list = (D.내제안 || []).slice().reverse();
     $('msMyQ').innerHTML = list.length ? list.map(function (q) {
       var st = q.상태 === '승인' ? '<span class="tag brand">문제 은행에 들어갔어요</span>' : q.상태 === '버림' ? '<span class="tag warn">이번엔 안 쓰기로 했어요</span>' : '<span class="tag sun">선생님 확인 중</span>';
-      return '<div class="q"><div style="flex:1"><b>' + esc(q.문제) + '</b><div class="unit">정답 ' + esc(q.정답) + ' · 오답 ' + esc(q.오답.join(', ')) + '</div></div>' + st + '</div>';
+      return '<div class="q"><div style="flex:1"><b>' + esc(q.문제) + '</b><div class="unit">' + esc(q.교과 || '') + ' · 정답 ' + esc(q.정답) + ' · 오답 ' + esc(q.오답.join(', ')) + '</div></div>' + st + '</div>';
     }).join('') : '<div class="unit">아직 낸 문제가 없어요.</div>';
   }
 

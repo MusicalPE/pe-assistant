@@ -275,28 +275,33 @@ MODS.MAT.teacher = (function () {
   /* ================= 문제 은행 ================= */
   function renderBank() {
     var box = P('Bank'), n = B.문제수;
-    box.innerHTML = '<div class="page-head"><h2>퀴즈 문제 은행</h2><span class="sub">퀴즈 점프의 "문제 은행"에 나올 문제입니다. AI·학생이 낸 문제는 <b>승인</b>해야 학생에게 나옵니다.</span></div>' +
+    box.innerHTML = '<div class="page-head"><h2>퀴즈 문제 은행</h2><span class="sub">퀴즈 점프의 "문제 은행"에 나올 문제입니다. 체육뿐 아니라 국어·수학·사회·과학·영어 문제도 넣을 수 있고, AI·학생이 낸 문제는 <b>승인</b>해야 학생에게 나옵니다.</span></div>' +
       '<div class="grid g2" style="margin-bottom:14px">' +
         '<div class="panel" style="margin:0"><div class="panel-head"><h3><i class="ti ti-sparkles"></i>AI 에서 문제 받기</h3></div><div class="panel-body">' +
           (B.gemini여부 ? '' : '<div class="note sun"><i class="ti ti-key"></i><div>Gemini API 키가 없습니다. <b>줄넘기 → 줄넘기 설정 → AI 응원 문구</b>에 키를 넣으면 여기서도 씁니다.</div></div>') +
-          '<div class="grid g2" style="margin-bottom:8px"><div class="field"><label>학년군</label><select id="mtBGrp">' + B.학년군.map(function (g) { return '<option value="' + g + '">' + g.replace('-', '~') + '학년</option>'; }).join('') + '</select></div>' +
-          '<div class="field"><label>영역</label><select id="mtBArea"><option value="">체육 전반</option>' + B.영역.map(function (a) { return '<option>' + a + '</option>'; }).join('') + '</select></div></div>' +
-          '<div class="grid g2" style="margin-bottom:8px"><div class="field"><label>오늘 수업 주제 (선택)</label><input type="text" id="mtBTopic" maxlength="60" placeholder="예: 피구 규칙, 줄넘기 2단 뛰기"></div><div class="field"><label>개수</label><select id="mtBN"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></div></div>' +
+          '<div class="grid g3" style="margin-bottom:8px"><div class="field"><label>학년군</label><select id="mtBGrp">' + B.학년군.map(function (g) { return '<option value="' + g + '">' + g + '학년</option>'; }).join('') + '</select></div>' +
+          '<div class="field"><label>교과</label><select id="mtBSubj">' + B.교과.map(function (a) { return '<option>' + a + '</option>'; }).join('') + '</select></div>' +
+          '<div class="field" id="mtBAreaBox"><label>체육 영역</label><select id="mtBArea"><option value="">전체 (운동·스포츠·표현)</option>' + B.영역.map(function (a) { return '<option>' + a + '</option>'; }).join('') + '</select></div></div>' +
+          '<div class="grid g2" style="margin-bottom:8px"><div class="field"><label>오늘 주제·단원 (선택)</label><input type="text" id="mtBTopic" maxlength="60" placeholder="예: 피구 규칙 · 분수의 덧셈 · 우리 고장의 옛 이야기"></div><div class="field"><label>개수</label><select id="mtBN"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></div></div>' +
           '<div class="savebar" style="padding:8px 0 0;border:0;position:static"><span class="status" id="mtBGenStatus">' + (B.geminiError ? '최근 오류: ' + esc(B.geminiError) : '') + '</span><div class="spacer"></div><button id="mtBGen"' + (B.gemini여부 ? '' : ' disabled') + '><i class="ti ti-sparkles"></i>문제 받기</button></div>' +
         '</div></div>' +
         '<div class="panel" style="margin:0"><div class="panel-head"><h3><i class="ti ti-pencil-plus"></i>직접 넣기</h3><span class="unit">바로 승인됩니다</span></div><div class="panel-body">' +
-          '<div class="grid g2" style="margin-bottom:8px"><div class="field"><label>학년군</label><select id="mtBGrp2"><option value="">구분 없음</option>' + B.학년군.map(function (g) { return '<option value="' + g + '">' + g.replace('-', '~') + '학년</option>'; }).join('') + '</select></div><div class="field"><label>영역</label><select id="mtBArea2"><option value="">-</option>' + B.영역.map(function (a) { return '<option>' + a + '</option>'; }).join('') + '</select></div></div>' +
+          '<div class="grid g3" style="margin-bottom:8px"><div class="field"><label>학년군</label><select id="mtBGrp2"><option value="">구분 없음</option>' + B.학년군.map(function (g) { return '<option value="' + g + '">' + g + '학년</option>'; }).join('') + '</select></div>' +
+          '<div class="field"><label>교과</label><select id="mtBSubj2">' + B.교과.map(function (a) { return '<option>' + a + '</option>'; }).join('') + '</select></div>' +
+          '<div class="field" id="mtBAreaBox2"><label>체육 영역</label><select id="mtBArea2"><option value="">-</option>' + B.영역.map(function (a) { return '<option>' + a + '</option>'; }).join('') + '</select></div></div>' +
           '<textarea id="mtBText" style="min-height:96px" placeholder="한 줄에 한 문제: 문제 / 정답 / 오답 / 오답 / 오답 / 해설(선택)\n농구는 한 팀에 몇 명? / 5명 / 4명 / 6명 / 7명 / 코트에 5명이 뛰어요"></textarea>' +
           '<div class="savebar" style="padding:8px 0 0;border:0;position:static"><span class="status" id="mtBAddStatus"></span><div class="spacer"></div><button id="mtBAdd"><i class="ti ti-plus"></i>넣기</button></div>' +
         '</div></div></div>' +
       '<div class="panel"><div class="panel-head"><div class="seg" id="mtBTabs">' + ['대기', '승인', '버림'].map(function (s) { return '<button class="seg-b' + (BANK.상태 === s ? ' on' : '') + '" data-bst="' + s + '">' + (s === '대기' ? '검토 대기' : s === '승인' ? '승인됨' : '버림') + ' <span class="unit">' + (n[s] || 0) + '</span></button>'; }).join('') + '</div><div class="spacer"></div>' +
         '<label class="chk sm"><input type="checkbox" id="mtBAll"><span>모두 선택</span></label><button class="mini soft" id="mtBOk"><i class="ti ti-check"></i>승인</button><button class="mini ghost" id="mtBNo"><i class="ti ti-x"></i>버림</button><button class="mini danger" id="mtBDel"><i class="ti ti-trash"></i>삭제</button></div>' +
-        '<div class="scroll-x"><table><thead><tr><th></th><th>문제 · 보기</th><th>학년군</th><th>영역</th><th>출처</th><th>등록</th><th></th></tr></thead><tbody id="mtBRows"></tbody></table></div><div class="empty hide" id="mtBEmpty"><i class="ti ti-bulb"></i><strong>문제가 없습니다</strong></div></div>';
+        '<div class="scroll-x"><table><thead><tr><th></th><th>문제 · 보기</th><th>학년군</th><th>교과 · 영역</th><th>출처</th><th>등록</th><th></th></tr></thead><tbody id="mtBRows"></tbody></table></div><div class="empty hide" id="mtBEmpty"><i class="ti ti-bulb"></i><strong>문제가 없습니다</strong></div></div>';
+    var areaToggle = function (subj, box) { $(box).style.visibility = $(subj).value === '체육' ? '' : 'hidden'; };
+    $('mtBSubj').onchange = function () { areaToggle('mtBSubj', 'mtBAreaBox'); }; $('mtBSubj2').onchange = function () { areaToggle('mtBSubj2', 'mtBAreaBox2'); };
     qa('[data-bst]').forEach(function (b) { b.onclick = function () { BANK.상태 = b.getAttribute('data-bst'); qa('[data-bst]').forEach(function (x) { x.classList.toggle('on', x === b); }); loadBank(); }; });
     $('mtBGen').onclick = function () {
       setStatus('mtBGenStatus', 'AI 에서 문제를 받는 중… (10~20초)');
       $('mtBGen').disabled = true;
-      api('mat_t_genQuestions', TOKEN, $('mtBGrp').value, $('mtBArea').value, $('mtBTopic').value.trim(), Number($('mtBN').value)).then(function (r) {
+      api('mat_t_genQuestions', TOKEN, $('mtBGrp').value, $('mtBSubj').value, $('mtBSubj').value === '체육' ? $('mtBArea').value : '', $('mtBTopic').value.trim(), Number($('mtBN').value)).then(function (r) {
         $('mtBGen').disabled = false; setStatus('mtBGenStatus', r.받음 + '개를 받아 ' + r.추가 + '개를 검토 대기에 넣었습니다' + (r.받음 > r.추가 ? ' (겹치는 문제 ' + (r.받음 - r.추가) + '개 제외)' : '') + '.', 'ok');
         BANK.상태 = '대기'; refreshCounts(function () { renderBank(); });
       }).catch(function (e) { $('mtBGen').disabled = false; setStatus('mtBGenStatus', (e && e.message) || String(e), 'err'); });
@@ -304,7 +309,7 @@ MODS.MAT.teacher = (function () {
     $('mtBAdd').onclick = function () {
       var t = $('mtBText').value.trim(); if (!t) { setStatus('mtBAddStatus', '문제를 써 주세요.', 'err'); return; }
       setStatus('mtBAddStatus', '넣는 중…');
-      api('mat_t_addQuestions', TOKEN, t, $('mtBGrp2').value, $('mtBArea2').value).then(function (r) { $('mtBText').value = ''; setStatus('mtBAddStatus', r.추가 + '개를 넣었습니다.', 'ok'); BANK.상태 = '승인'; refreshCounts(function () { renderBank(); }); }).catch(function (e) { setStatus('mtBAddStatus', (e && e.message) || String(e), 'err'); });
+      api('mat_t_addQuestions', TOKEN, t, $('mtBGrp2').value, $('mtBSubj2').value, $('mtBSubj2').value === '체육' ? $('mtBArea2').value : '').then(function (r) { $('mtBText').value = ''; setStatus('mtBAddStatus', r.추가 + '개를 넣었습니다.', 'ok'); BANK.상태 = '승인'; refreshCounts(function () { renderBank(); }); }).catch(function (e) { setStatus('mtBAddStatus', (e && e.message) || String(e), 'err'); });
     };
     $('mtBAll').onchange = function () { qa('[data-qsel]').forEach(function (c) { c.checked = $('mtBAll').checked; }); };
     var bulk = function (fn) { var ids = qa('[data-qsel]:checked').map(function (c) { return c.getAttribute('data-qsel'); }); if (!ids.length) { toast('문제를 골라 주세요.', 'warn'); return; } fn(ids); };
@@ -319,7 +324,7 @@ MODS.MAT.teacher = (function () {
       BANK.list = list;
       $('mtBRows').innerHTML = list.map(function (q) {
         return '<tr class="qrow"><td><input type="checkbox" data-qsel="' + esc(q.id) + '"></td><td><div class="qq">' + esc(q.문제) + '</div><div class="qa">정답 <b>' + esc(q.정답) + '</b> · 오답 ' + esc(q.오답.join(', ')) + (q.해설 ? '<br><i class="ti ti-message"></i> ' + esc(q.해설) : '') + '</div></td>' +
-          '<td>' + esc(q.학년군 ? q.학년군.replace('-', '~') + '학년' : '-') + '</td><td>' + esc(q.영역 || '-') + '</td><td>' + (q.출처 === '학생' ? '<span class="tag sky">학생 ' + esc(q.제안자) + '</span>' : q.출처 === 'AI' ? '<span class="tag violet">AI</span>' : '<span class="tag">교사</span>') + '</td><td class="unit">' + esc(String(q.등록).slice(5, 16)) + '</td>' +
+          '<td>' + esc(q.학년군 ? q.학년군 + '학년' : '-') + '</td><td>' + esc((q.교과 || '-') + (q.영역 ? ' · ' + q.영역 : '')) + '</td><td>' + (q.출처 === '학생' ? '<span class="tag sky">학생 ' + esc(q.제안자) + '</span>' : q.출처 === 'AI' ? '<span class="tag violet">AI</span>' : '<span class="tag">교사</span>') + '</td><td class="unit">' + esc(String(q.등록).slice(5, 16)) + '</td>' +
           '<td style="white-space:nowrap"><button class="mini ghost" data-qedit="' + esc(q.id) + '"><i class="ti ti-pencil"></i></button>' + (q.상태 !== '승인' ? '<button class="mini soft" data-qok="' + esc(q.id) + '"><i class="ti ti-check"></i></button>' : '') + (q.상태 !== '버림' ? '<button class="mini ghost" data-qno="' + esc(q.id) + '"><i class="ti ti-x"></i></button>' : '') + '</td></tr>';
       }).join('');
       $('mtBEmpty').classList.toggle('hide', list.length > 0);
@@ -335,10 +340,12 @@ MODS.MAT.teacher = (function () {
       '<div class="grid g2" style="margin-bottom:8px"><div class="field"><label>정답</label><input type="text" id="mtQa" value="' + esc(q.정답) + '"></div><div class="field"><label>오답 1</label><input type="text" id="mtQw1" value="' + esc(q.오답[0] || '') + '"></div></div>' +
       '<div class="grid g2" style="margin-bottom:8px"><div class="field"><label>오답 2</label><input type="text" id="mtQw2" value="' + esc(q.오답[1] || '') + '"></div><div class="field"><label>오답 3</label><input type="text" id="mtQw3" value="' + esc(q.오답[2] || '') + '"></div></div>' +
       '<div class="field" style="margin-bottom:8px"><label>해설</label><input type="text" id="mtQe" value="' + esc(q.해설) + '" maxlength="120"></div>' +
-      '<div class="grid g2"><div class="field"><label>학년군</label><select id="mtQg"><option value="">구분 없음</option>' + B.학년군.map(function (g) { return '<option value="' + g + '"' + (q.학년군 === g ? ' selected' : '') + '>' + g.replace('-', '~') + '학년</option>'; }).join('') + '</select></div><div class="field"><label>영역</label><select id="mtQr"><option value="">-</option>' + B.영역.map(function (a) { return '<option' + (q.영역 === a ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select></div></div>',
+      '<div class="grid g3"><div class="field"><label>학년군</label><select id="mtQg"><option value="">구분 없음</option>' + B.학년군.map(function (g) { return '<option value="' + g + '"' + (q.학년군 === g ? ' selected' : '') + '>' + g + '학년</option>'; }).join('') + '</select></div>' +
+      '<div class="field"><label>교과</label><select id="mtQs">' + B.교과.map(function (a) { return '<option' + (q.교과 === a ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select></div>' +
+      '<div class="field"><label>체육 영역</label><select id="mtQr"><option value="">-</option>' + B.영역.map(function (a) { return '<option' + (q.영역 === a ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select></div></div>',
       foot: '<span class="status" id="mtQStatus"></span><div class="spacer"></div><button id="mtQSave"><i class="ti ti-device-floppy"></i>저장' + (q.상태 === '대기' ? ' + 승인' : '') + '</button>' });
     $('mtQSave').onclick = function () {
-      var patch = { 문제: $('mtQq').value, 정답: $('mtQa').value, 오답: [$('mtQw1').value, $('mtQw2').value, $('mtQw3').value], 해설: $('mtQe').value, 학년군: $('mtQg').value, 영역: $('mtQr').value };
+      var patch = { 문제: $('mtQq').value, 정답: $('mtQa').value, 오답: [$('mtQw1').value, $('mtQw2').value, $('mtQw3').value], 해설: $('mtQe').value, 학년군: $('mtQg').value, 교과: $('mtQs').value, 영역: $('mtQs').value === '체육' ? $('mtQr').value : '' };
       if (q.상태 === '대기') patch.상태 = '승인';
       setStatus('mtQStatus', '저장 중…');
       api('mat_t_setQuestion', TOKEN, q.id, patch).then(function () { closeModal(); toast('저장했습니다.'); refreshCounts(function () { renderBank(); }); }).catch(function (e) { setStatus('mtQStatus', (e && e.message) || String(e), 'err'); });

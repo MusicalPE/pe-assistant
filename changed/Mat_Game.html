@@ -206,6 +206,7 @@
 #matOverlay .mg-peer:active{transform:translateX(-50%) translateY(5px);box-shadow:0 3px 0 #b8940c}
 #matOverlay .mg-peer.ok{background:var(--green);color:#fff;box-shadow:0 8px 0 #1d8a3a;animation:none}
 @keyframes mgpop{from{transform:translateX(-50%) scale(.6);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+#matOverlay .pic .n .two-feet{display:inline-block;font-family:var(--ui);font-size:.42em;font-weight:800;background:var(--yellow);color:#15130a;border-radius:99px;padding:.15em .6em;vertical-align:middle;margin-left:.3em}
 #matOverlay .mg-done{width:min(760px,100%);display:flex;flex-direction:column;gap:12px;align-items:center}
 #matOverlay .mg-done .stats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 #matOverlay .mg-done .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 18px;min-width:120px;text-align:center}
@@ -637,7 +638,7 @@ body.mg-open{overflow:hidden}
           if(phase==='intro'){ if(el>=D.intro){ api.hideBanner(); go('show',T); cap.textContent='잘 보세요!'; mat.show([]); setSlots(seq.length,0); } }
           else if(phase==='show'){
             const k=Math.floor((el-0.5)/cfg.show), inOn=el>=0.5 && ((el-0.5)%cfg.show)<cfg.show*0.7;
-            const key=inOn?k:-1-k;
+            const key=inOn?k:-1000-k;
             if(k<seq.length && key!==shown){ shown=key;
               if(inOn){ mat.show([{c:seq[k]}]); api.colorTone(seq[k]); setSlots(seq.length,k+1); } else mat.show([]); }
             if(el>=D.show){ go('ready',T); mat.show(null); cap.textContent='따라 밟아요!'; setSlots(seq.length,0); api.beep(660,0.2,0.2,'triangle'); }
@@ -879,7 +880,8 @@ body.mg-open{overflow:hidden}
     how:['생각 시간이 끝나면 정답 칸만 밝게 남아요. 틀린 친구도 바로 정답 칸으로 옮겨요.','덧셈·뺄셈은 저학년, 구구단은 중학년, 곱셈·나눗셈은 고학년에게 맞아요.','"직접 입력"을 고르면 선생님이 문제를 써 넣을 수 있어요.'],
     options:[
       {id:'set',label:'문제 종류',choices:[['add','덧셈·뺄셈'],['times','구구단'],['muldiv','곱셈·나눗셈'],['pe','체육 상식'],['bank','문제 은행 (선생님 문제)'],['custom','직접 입력']],def:'times'},
-      {id:'bankGroup',label:'문제 은행 학년군',choices:[['all','전체'],['1-2','1~2학년'],['3-4','3~4학년'],['5-6','5~6학년']],def:'all',showIf:['set','bank']},
+      {id:'bankGroup',label:'문제 은행 학년군',choices:[['all','전체'],['1~2','1~2학년'],['3~4','3~4학년'],['5~6','5~6학년']],def:'all',showIf:['set','bank']},
+      {id:'bankSubject',label:'문제 은행 교과',choices:[['all','전체']],choicesFn:()=>[['all','전체']].concat(H.bank.map(q=>q[7]||'').filter((v,i,a)=>v&&a.indexOf(v)===i).map(v=>[v,v])),def:'all',showIf:['set','bank']},
       {id:'mlevel',label:'수학 난이도',choices:[['1','쉬움'],['2','보통'],['3','어려움']],def:'2',showIf:['set','add|times|muldiv'],
        helpFn:o=>{ const t=MATH_RANGE[o.set]; if(!t) return ''; const [name,rng,ex]=t[(+o.mlevel||2)-1];
          return `<b style="color:var(--ink)">${name}</b> · ${rng}<br>예: ${ex}`; }},
@@ -890,7 +892,7 @@ body.mg-open{overflow:hidden}
        placeholder:'사과는 영어로? / apple / banana / grape / melon\n우리 학교 이름은? / 양화분교 / 봉동초 / 전주초\n한 발로 5초 버티기 성공하면? / 박수 / 점프 / 앉기'},
     ],
     validate(o){
-      if(o.set==='bank') return bankList(o).length?'':'문제 은행에 승인된 문제가 아직 없어요. 다른 종류를 골라 주세요.';
+      if(o.set==='bank'){ if(bankList(o).length) return ''; return H.bank.length?'고른 학년군·교과에 맞는 승인 문제가 없어요. 학년군·교과를 "전체"로 해 보세요.':'문제 은행에 승인된 문제가 아직 없어요. 다른 종류를 골라 주세요.'; }
       if(o.set!=='custom') return '';
       const rows=parseCustom(o.custom); return rows.length?'':'직접 입력 칸에 "문제 / 정답 / 오답" 형식으로 한 줄 이상 써 주세요.';
     },
@@ -943,7 +945,7 @@ body.mg-open{overflow:hidden}
       };
     }
   };
-  function bankList(o){ const g=o.bankGroup||'all'; return H.bank.filter(q=>g==='all'||!q[6]||q[6]===g).map(q=>q.slice(0,6)); }
+  function bankList(o){ const g=o.bankGroup||'all', sj=o.bankSubject||'all'; return H.bank.filter(q=>(g==='all'||!q[6]||q[6]===g)&&(sj==='all'||(q[7]||'')===sj)).map(q=>q.slice(0,6)); }
   function parseCustom(txt){
     return String(txt||'').split(/\n/).map(l=>l.split(/[\/|]/).map(s=>s.trim()).filter(Boolean)).filter(r=>r.length>=3).map(r=>r.slice(0,5));
   }
@@ -955,31 +957,39 @@ body.mg-open{overflow:hidden}
     ['🐳','고래',2],['🌊','파도',2],['💧','물방울',2],['👖','청바지',2],['🐬','돌고래',2],['🦋','파란 나비',2],['🧢','파란 모자',2],
     ['🍎','사과',3],['🍓','딸기',3],['🍅','토마토',3],['🌶️','고추',3],['🚒','소방차',3],['🍒','체리',3],['❤️','하트',3],
   ];
+  // 한 물건에 색이 두 가지 → 두 발로 두 칸 (노랑 0 · 초록 1 · 파랑 2 · 빨강 3)
+  const ITEMS2=[
+    ['🍉','수박',[1,3]],['🌍','지구',[2,1]],['🌷','튤립',[3,1]],['🌹','장미',[3,1]],['🎄','크리스마스 트리',[1,3]],['🍍','파인애플',[0,1]],
+    ['🏖️','바닷가',[2,0]],['🇰🇷','태극기',[3,2]],['🦜','앵무새',[3,1]],['🐠','열대어',[0,2]],['🌻','해바라기 꽃과 줄기',[0,1]],['🚦','신호등',[3,1]],
+    ['🍋','레몬과 잎',[0,1]],['🐝','꿀벌',[0,3]],['🌈','무지개 끝',[3,2]],['🥝','키위',[1,3]],['🍑','복숭아',[0,3]],['🧜','인어',[2,1]],
+  ];
   const ASSOC={
     id:'assoc', name:'연상 점프', grade:'1~2학년 추천', dur:'4분', lit:[0,2],
     desc:'글씨 대신 그림이 나와요. 바나나를 보면 노랑, 개구리를 보면 초록처럼 떠오르는 색 칸을 밟아요.',
-    how:['글을 아직 잘 못 읽는 친구도 할 수 있어요.','8단계 × 30초. 단계가 오를수록 그림이 빨리 바뀌고 작아져요.','어려움에서는 그림 2개가 동시에 나와서 두 발로 두 칸을 밟아요.'],
+    how:['글을 아직 잘 못 읽는 친구도 할 수 있어요.','8단계 × 30초. 단계가 오를수록 그림이 빨리 바뀌고 작아져요.','어려움에서는 그림 2개가 동시에 나와서 두 발로 두 칸을 밟아요.','"두 가지 색 물건"을 넣으면 수박(초록+빨강)처럼 색이 둘인 물건이 나와요. 그때는 두 발로 두 칸!'],
     options:[
       {id:'diff',label:'난이도',choices:[['easy','쉬움 (매트에 칸 표시)'],['normal','보통'],['hard','어려움 (2개 동시)']],def:'easy'},
       {id:'speed',label:'전체 속도',choices:[['1.25','천천히'],['1','보통'],['0.8','빠르게']],def:'1'},
+      {id:'multi',label:'두 가지 색 물건',choices:[['off','안 넣기'],['on','넣기 (수박 → 초록+빨강, 두 발로 두 칸)']],def:'off'},
     ],
     create(o,api){
       const GAPS=[3.6,3.2,2.9,2.6,2.3,2.0,1.8,1.6], LS=30, NL=8, BN=2.5, TOTAL=NL*LS, speed=+o.speed;
+      const POOL=(o.multi==='on'?ITEMS.concat(ITEMS2):ITEMS).map(it=>({e:it[0],n:it[1],cs:Array.isArray(it[2])?it[2]:[it[2]]}));
       const easy=o.diff==='easy', two=o.diff==='hard', lvAt=t=>Math.min(NL-1,Math.floor(t/LS));
       api.body.className='s-assoc'+(easy?' easy':'');
       api.body.innerHTML='<div class="pics'+(two?' two':'')+'"></div>';
       const pics=api.body.querySelector('.pics'), mat=makeMat('hintmat'); if(easy) api.body.appendChild(mat.el);
       api.segments(NL); api.chip('그림을 보고 떠오르는 색 밟기');
       let lvl=-1, nextAt=0, prevKey='', recent=[];
-      function pickItem(avoidC){
-        for(let n=0;n<80;n++){ const it=ITEMS[rnd(ITEMS.length)]; if(avoidC.includes(it[2])||recent.includes(it[1])) continue; recent.push(it[1]); if(recent.length>8) recent.shift(); return it; }
-        return ITEMS.find(it=>!avoidC.includes(it[2]));
+      function pickItem(avoidC, single){
+        for(let n=0;n<80;n++){ const it=POOL[rnd(POOL.length)]; if((single&&it.cs.length>1)||it.cs.some(c=>avoidC.includes(c))||recent.includes(it.n)) continue; recent.push(it.n); if(recent.length>8) recent.shift(); return it; }
+        return POOL.find(it=>!it.cs.some(c=>avoidC.includes(c))&&(!single||it.cs.length===1));
       }
       function show(){
         let its;
-        for(let n=0;n<30;n++){ const a=pickItem([]); its=two?[a,pickItem([a[2]])]:[a]; const key=its.map(i=>i[2]).sort().join(); if(key!==prevKey||n>20){ prevKey=key; break; } recent.pop(); }
-        pics.innerHTML=its.map(it=>`<div class="pic"><div class="e">${it[0]}</div><div class="n">${it[1]}</div></div>`).join('');
-        if(easy) mat.show(its.map(it=>({c:it[2],label:'여기!'})));
+        for(let n=0;n<30;n++){ const a=pickItem([]); its=(two&&a.cs.length===1)?[a,pickItem(a.cs,true)]:[a]; const key=its.map(i=>i.cs.join('+')).sort().join(); if(key!==prevKey||n>20){ prevKey=key; break; } recent.pop(); }
+        pics.innerHTML=its.map(it=>`<div class="pic"><div class="e">${it.e}</div><div class="n">${it.n}${it.cs.length>1?' <small class="two-feet">두 발!</small>':''}</div></div>`).join('');
+        if(easy) mat.show(its.flatMap(it=>it.cs.map(c=>({c,label:'여기!'}))));
         api.pop(pics); api.tick(); api.jump();
       }
       return {
@@ -1074,7 +1084,7 @@ body.mg-open{overflow:hidden}
       const id=`${g.id}-${op.id}`;
       if(op.type==='textarea') return `<fieldset style="flex-basis:100%" data-show="${op.showIf?op.showIf.join('='):''}"><legend>${op.label}</legend>
         <textarea id="${id}" placeholder="${esc(op.placeholder||'')}">${esc(saved[op.id]||'')}</textarea><p class="fhelp">${op.help||''}</p></fieldset>`;
-      let choices=op.choices;
+      let choices=op.choicesFn?op.choicesFn():op.choices;
       if(op.id==='set' && !H.bank.length) choices=choices.filter(c=>c[0]!=='bank');
       if(op.id==='set' && hide.includes('custom')) choices=choices.filter(c=>c[0]!=='custom');
       let val=saved[op.id]??op.def??choices[0][0]; if(!choices.some(c=>String(c[0])===String(val))) val=op.def??choices[0][0];
