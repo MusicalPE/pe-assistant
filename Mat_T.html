@@ -135,7 +135,7 @@ MODS.MAT.teacher = (function () {
         return '<tr class="row" data-sid="' + esc(s.학생ID) + '" style="cursor:pointer"><td class="rk' + (s.순위 && s.순위 <= 3 ? ' top' : '') + '">' + (s.순위 ? s.순위 : '-') + '</td>' +
           '<td class="name">' + (SEL.c ? '' : s.학년 + '-' + s.반 + ' ') + s.번호 + ' ' + esc(s.이름) + '</td><td>' + esc(시간표시(s.함께)) + '</td><td>' + esc(시간표시(s.연습)) + '</td><td><b>' + esc(시간표시(s.합계)) + '</b></td>' +
           '<td><div class="tbar"><i class="p" style="width:' + (s.함께 / max * 100).toFixed(1) + '%"></i><i class="s" style="width:' + (s.연습 / max * 100).toFixed(1) + '%"></i></div></td>' +
-          '<td>' + fmt(s.점프) + '</td><td>' + s.판수 + '</td><td>' + s.게임수 + '/8</td><td>' + (s.배지수 ? '<span class="tag sun"><i class="ti ti-award"></i>' + s.배지수 + '</span>' : '-') + '</td><td class="unit">' + esc(s.최근 ? String(s.최근).slice(5, 16) : '-') + '</td></tr>';
+          '<td>' + fmt(s.점프) + '</td><td>' + s.판수 + '</td><td>' + s.게임수 + '/10</td><td>' + (s.배지수 ? '<span class="tag sun"><i class="ti ti-award"></i>' + s.배지수 + '</span>' : '-') + '</td><td class="unit">' + esc(s.최근 ? String(s.최근).slice(5, 16) : '-') + '</td></tr>';
       }).join('');
       $('mtDEmpty').classList.toggle('hide', list.length > 0);
       qa('[data-sid]').forEach(function (tr) { tr.onclick = function () { openStudent(tr.getAttribute('data-sid')); }; });
@@ -230,6 +230,7 @@ MODS.MAT.teacher = (function () {
     var box = P('Lesson'), list = window.MATGAME ? MATGAME.list() : [];
     box.innerHTML = '<div class="page-head"><h2>수업 모드</h2><span class="sub">프로젝터로 틀어 놓고 반 전체가 한 판을 합니다. 끝나면 출석한 학생 전체의 <b>수업</b> 기록으로 한 번에 저장할 수 있습니다 (안 해도 됩니다).</span></div>' +
       '<div class="note"><i class="ti ti-keyboard"></i><div>게임 중 <kbd>Space</kbd> 멈춤/계속 · <kbd>→</kbd> 다음 단계 · <kbd>←</kbd> 이전 · <kbd>F</kbd> 전체화면 · <kbd>Esc</kbd> 그만하기. 마우스를 움직이면 오른쪽 아래에 조작 버튼이 나옵니다.</div></div>' +
+      (window.MATGAME ? '' : '<div class="note" style="background:#FDECEC;border-color:#F3B4B4"><i class="ti ti-alert-circle"></i><div><b>게임 엔진(Mat_Game.html)을 불러오지 못했어요.</b> ' + (window.MATGAME_ERROR ? '오류: ' + esc(String(window.MATGAME_ERROR).split('\n')[0]) : 'Apps Script 편집기에서 Mat_Game.html 파일이 있는지, 끝까지 붙여넣어졌는지 확인해 주세요.') + '</div></div>') +
       (LESSON.sum ? lessonSaveHTML() : '') +
       '<div class="lesson-cards">' + list.map(function (g) {
         return '<button class="lcard" data-lg="' + g.id + '"><h4>' + esc(g.name) + MATGAME.glyph(g.id) + '</h4><p>' + esc(g.desc) + '</p><div class="unit">' + esc(g.grade) + ' · ' + esc(g.dur) + '</div></button>';
@@ -261,6 +262,7 @@ MODS.MAT.teacher = (function () {
   function nowStr() { var d = new Date(), p = function (n) { return ('0' + n).slice(-2); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
   function openLesson(id) {
     var startedAt = '';
+    if (!window.MATGAME) { toast('게임 화면을 불러오지 못했어요. ' + (window.MATGAME_ERROR ? '(' + String(window.MATGAME_ERROR).split('\n')[0] + ')' : 'Mat_Game.html 파일이 빠졌거나 덜 붙여넣어졌는지 확인해 주세요.'), 'warn'); return; }
     MATGAME.setBank(B.문제 || []);
     MATGAME.open(id, {
       onStart: function () { startedAt = nowStr(); },
@@ -354,7 +356,7 @@ MODS.MAT.teacher = (function () {
 
   /* ================= 설정 ================= */
   function renderSettings() {
-    var s = B.설정, box = P('Settings'), games = MATGAME ? MATGAME.list() : [];
+    var s = B.설정, box = P('Settings'), games = window.MATGAME ? MATGAME.list() : (B.게임이름 || []).map(function (g) { return { id: g[0], name: g[1] }; });
     box.innerHTML = '<div class="page-head"><h2>매트 설정</h2><span class="sub">짝 정하는 방식, 누적 기준, 학생에게 보여 줄 게임, 배지 기준.</span></div>' +
       '<div class="panel"><div class="panel-head"><h3><i class="ti ti-users"></i>짝 · 누적 기준</h3></div><div class="panel-body">' +
         '<div class="grid g3" style="margin-bottom:12px">' +

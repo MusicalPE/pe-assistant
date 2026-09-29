@@ -49,7 +49,7 @@
 #matOverlay h1 .c3{color:var(--green)}
 #matOverlay h1 .c4{color:var(--blue)}
 #matOverlay .sub{margin:.5em 0 0;color:var(--muted);font-size:clamp(14px,1.5vw,18px);max-width:60ch}
-#matOverlay .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;width:min(1100px,100%)}
+#matOverlay .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;width:min(1100px,100%)}
 #matOverlay .card{display:flex;flex-direction:column;gap:10px;text-align:left;background:var(--panel);border:1px solid var(--line);
     border-radius:12px;padding:18px 18px 16px;color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
 #matOverlay .card:hover{border-color:#566079;background:var(--panel2)}
@@ -116,9 +116,9 @@
 #matOverlay .pop{animation:pop .22s cubic-bezier(.2,.9,.3,1.3)}
 #matOverlay /* 유튜브 작은 플레이어 (왼쪽 아래) */
   .ytbox{position:absolute;left:16px;bottom:calc(clamp(10px,1.6vh,16px) + 28px);z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px}
-#matOverlay .ytbox .frame{width:200px;height:113px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#000;opacity:.9}
+#matOverlay .ytbox .frame{width:132px;height:74px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#000;opacity:.9}
 #matOverlay .ytbox .frame iframe{display:block;width:100%;height:100%;border:0}
-#matOverlay .ythint{background:var(--yellow);color:#15130a;font-weight:800;font-size:14px;border-radius:99px;padding:6px 12px;animation:pop .3s;text-align:center;max-width:220px;line-height:1.4}
+#matOverlay .ythint{background:var(--yellow);color:#15130a;font-weight:800;font-size:13px;border-radius:99px;padding:5px 10px;animation:pop .3s;text-align:center;max-width:200px;line-height:1.4}
 @keyframes pop{from{transform:scale(.72);opacity:.2}to{transform:scale(1);opacity:1}}
 #matOverlay /* 스트룹 */
   .s-stroop{flex-direction:column;gap:3.5vh}
@@ -177,6 +177,46 @@
 #matOverlay .tw-hold{display:flex;align-items:center;gap:1.4vw;color:var(--muted);font-weight:700;font-size:clamp(18px,3.4vh,36px)}
 #matOverlay .tw-hold b{font-family:var(--display);font-weight:400;font-size:min(12vh,9vw);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
 #matOverlay .s-twist .mat4{width:min(56vh,42vw)}
+#matOverlay /* 색깔 점프 (기본) */
+  .bs-wrap{position:absolute;inset:0;display:flex;z-index:0}
+#matOverlay .bs-half{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;background:#000}
+#matOverlay .s-basic.two .bs-half+.bs-half{border-left:1.2vh solid #000}
+#matOverlay .bs-half b{font-family:var(--display);font-weight:400;line-height:1;font-size:min(24vw,40vh)}
+#matOverlay .s-basic.two .bs-half b{font-size:min(13vw,30vh)}
+#matOverlay .bs-half small{font-family:var(--display);font-size:clamp(28px,6vh,72px);line-height:1;opacity:.85}
+#matOverlay .bs-mini{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:min(16vh,16vw);aspect-ratio:1;padding:6px;background:rgba(0,0,0,.55);border-radius:8px}
+#matOverlay .bs-mini i{background:rgba(255,255,255,.18);border-radius:3px}
+#matOverlay .bs-mini i.on{background:#fff}
+#matOverlay .bs-half.flash{animation:bsin .14s ease-out}
+@keyframes bsin{from{filter:brightness(.1)}to{filter:none}}
+#matOverlay #mgPlay.fullbleed .hud,#matOverlay #mgPlay.fullbleed .bar{position:relative;z-index:2}
+#matOverlay #mgPlay.fullbleed .hud-l,#matOverlay #mgPlay.fullbleed .hud-r,#matOverlay #mgPlay.fullbleed .chip{background:rgba(0,0,0,.62);border-radius:12px;padding:.18em .45em;color:var(--ink)}
+#matOverlay #mgPlay.fullbleed .chip{border-radius:99px;padding:.35em .9em}
+#matOverlay #mgPlay.fullbleed #mgBanner{z-index:3}
+#matOverlay .card.feat{grid-column:1/-1;flex-direction:row;align-items:center;gap:22px;position:relative;padding:22px 24px}
+#matOverlay .card.feat .card-top{flex-direction:row-reverse;justify-content:flex-end;gap:18px}
+#matOverlay .card.feat .glyph{width:72px;border-width:4px}
+#matOverlay .card.feat h3{font-size:34px}
+#matOverlay .card.feat p{max-width:60ch}
+#matOverlay .card.feat .meta{margin-top:0;margin-left:auto;flex:none}
+#matOverlay .feat-tag{position:absolute;top:-11px;left:20px;background:var(--yellow);color:#15130a;font-weight:700;font-size:12.5px;border-radius:99px;padding:3px 10px}
+@media (max-width:760px){#matOverlay .card.feat{flex-direction:column;align-items:flex-start}
+#matOverlay .card.feat .meta{margin-left:0}}
+#matOverlay /* 용암 매트 */
+  .s-lava{flex-direction:column;gap:2.2vh}
+#matOverlay .lv-title{font-family:var(--display);font-size:clamp(30px,7.5vh,90px);line-height:1;white-space:nowrap}
+#matOverlay .s-lava.nomap .lv-title{font-size:clamp(44px,15vh,170px)}
+#matOverlay .lv-note{font-family:var(--display);font-size:clamp(22px,4.6vh,56px);line-height:1;color:var(--muted)}
+#matOverlay .s-lava .mat4{width:min(56vh,72vw)}
+#matOverlay .lv-mat i.safe{opacity:1}
+#matOverlay .lv-mat i.lava{background:radial-gradient(circle at 30% 35%,#ffd23a 0,#ff7a1a 18%,#c22a00 45%,#3a0800 75%) 0 0/220% 220%;
+    box-shadow:inset 0 0 0 1.1vh var(--c);animation:lavaflow 1.8s ease-in-out infinite alternate}
+#matOverlay .lv-mat i.lava b{background:#1a0400;color:#ffb23a;border:2px solid #ff7a1a}
+@keyframes lavaflow{from{background-position:0 0}to{background-position:100% 100%}}
+#matOverlay .lv-mat.warn{outline:1vh solid #fff;animation:lvwarn .2s steps(2) infinite}
+@keyframes lvwarn{50%{outline-color:transparent}}
+
+@media (prefers-reduced-motion:reduce){#matOverlay .lv-mat i.lava,#matOverlay .lv-mat.warn{animation:none}}
 #matOverlay /* 얼음 스텝 */
   .s-freeze{flex-direction:column;gap:2.6vh}
 #matOverlay .fz-big{font-family:var(--display);font-size:min(24vw,34vh);line-height:1;white-space:nowrap}
@@ -216,6 +256,9 @@
 #matOverlay .start:hover{filter:brightness(1.05)}
 #matOverlay textarea{font:inherit}
 /* 앱이 붙이는 것: 시작 전 추가 칸(함께/연습·짝) · 짝 확인 버튼 · 끝 화면 추가 칸 */
+/* 색깔 점프 전체 화면: 색 판을 스테이지가 아니라 화면(#mgPlay) 전체에 깔기 */
+#matOverlay #mgPlay.fullbleed .stage,#matOverlay #mgPlay.fullbleed #mgBody{position:static}
+#matOverlay #mgPlay.fullbleed #mgBanner{position:absolute;inset:0}
 #matOverlay .mg-extra{width:min(900px,100%);display:flex;flex-direction:column;gap:14px}
 #matOverlay .mg-extra .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 #matOverlay .mg-extra .box b{font-size:15px}
@@ -302,6 +345,7 @@ body.mg-open{overflow:hidden}
 
 </div>
 <script>
+try {
 
 (() => {
   // ================= 공통 =================
@@ -360,8 +404,9 @@ body.mg-open{overflow:hidden}
     if(lp){ const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=lp; node=g.connect(f); }
     node.connect(dst()); o.start(t); o.stop(t+dur+0.03);
   }
-  function beep(freq,dur=0.09,vol=0.18,type='sine'){ if(soundOn&&ac&&ac.state==='running') tone(freq,ac.currentTime,dur,vol,type); }
-  const chime=()=>[660,880,1175].forEach((f,i)=>setTimeout(()=>beep(f,0.16,0.2,'triangle'),i*110));
+  const fxBoost=()=>E.useYT||E.useMine?1.8:1;   // 유튜브·내 음악 파일이 나올 때는 효과음이 묻히지 않게 키움
+  function beep(freq,dur=0.09,vol=0.18,type='sine'){ if(soundOn&&ac&&ac.state==='running') tone(freq,ac.currentTime,dur,Math.min(0.5,vol*fxBoost()),type); }
+  const chime=()=>{ yt.duck(900); [660,880,1175].forEach((f,i)=>setTimeout(()=>beep(f,0.16,0.2,'triangle'),i*110)); };
   const tick=()=>beep(musicOn&&E.game&&E.game.bpmAt?1320:880,0.06,0.13,'triangle');
   const COLOR_NOTE=[76,79,84,72]; // 노랑 E5, 초록 G5, 파랑 C6, 빨강 C5
   const colorTone=c=>beep(mtof(COLOR_NOTE[c]),0.35,0.22,'triangle');
@@ -471,30 +516,37 @@ body.mg-open{overflow:hidden}
   };
   player.el.addEventListener('ended',()=>{ if(!player.urls.length) return; player.i=(player.i+1)%player.urls.length; player.el.src=player.urls[player.i]; if(player.want) player.el.play().catch(()=>{}); });
 
-  // 유튜브 링크 — 공식 IFrame Player API로 화면 구석의 작은 플레이어에 재생/정지만 맡겨요.
+  // 유튜브 링크 — 화면 구석의 작은 삽입 플레이어에 재생/정지만 맡겨요.
   // 소리를 직접 다룰 수는 없어서(박자·페이드 불가) 리듬 스텝에서는 못 쓰고, 인터넷이 있어야 해요.
-  const yt={p:null,api:null,cfg:null,want:false,state:-1,hintT:0,
+  const yt={p:null,cfg:null,want:false,state:-1,hintT:0,vol:65,duckT:0,
+    // 효과음이 나는 동안 유튜브 소리를 잠깐 줄였다가 되돌려요
+    duck(ms){ if(!E.useYT||!this.p) return; this.p.setVolume(22); clearTimeout(this.duckT); this.duckT=setTimeout(()=>{ if(this.p) this.p.setVolume(this.vol); },ms); },
     parse(txt){ const ids=[],lists=[];
       String(txt||'').split(/\s+/).forEach(s=>{ if(!s) return;
         const l=s.match(/[?&]list=([\w-]+)/); if(l){ lists.push(l[1]); return; }
         const m=s.match(/(?:youtu\.be\/|[?&]v=|shorts\/|embed\/|live\/)([\w-]{11})/)||(/^[\w-]{11}$/.test(s)?[0,s]:null); if(m) ids.push(m[1]); });
       return {ids:[...new Set(ids)],list:lists[0]||''}; },
-    ensure(){ if(this.api) return this.api;
-      this.api=new Promise((res,rej)=>{ if(window.YT&&YT.Player) return res();
-        const prev=window.onYouTubeIframeAPIReady; window.onYouTubeIframeAPIReady=()=>{ prev&&prev(); res(); };
-        const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; s.onerror=()=>rej(new Error('load')); document.head.appendChild(s);
-        setTimeout(()=>rej(new Error('timeout')),8000); }).catch(e=>{ this.api=null; throw e; });
-      return this.api; },
-    async open(){ await this.ensure(); if(this.p) return this.p;
-      const el=$('mgYtPlayer');
-      this.p=await new Promise(res=>{ const p=new YT.Player(el,{width:200,height:113,playerVars:{playsinline:1,rel:0,controls:1,iv_load_policy:3,disablekb:1},
-        events:{onReady:()=>res(p),onStateChange:e=>this.onState(e.data),onError:()=>{ try{ p.nextVideo(); }catch(x){} }}}); });
+    // 유튜브 삽입 프레임을 직접 만들고 postMessage 로 재생/정지를 보내요 (공식 IFrame API 와 같은 통신 방식, 외부 스크립트 불필요)
+    open(){ if(this.p) return this.p;
+      const el=$('mgYtPlayer'), f=document.createElement('iframe'), self=this;
+      f.id=el.id; f.width=132; f.height=74; f.allow='autoplay; encrypted-media; picture-in-picture'; f.setAttribute('allowfullscreen',''); f.setAttribute('referrerpolicy','strict-origin-when-cross-origin'); el.replaceWith(f);
+      const post=(func,args)=>{ try{ f.contentWindow.postMessage(JSON.stringify({event:'command',func,args:args||[]}),'*'); }catch(e){} };
+      window.addEventListener('message',e=>{ if(e.source!==f.contentWindow) return; let d; try{ d=typeof e.data==='string'?JSON.parse(e.data):e.data; }catch(x){ return; } if(!d) return;
+        if(d.event==='onReady'){ post('addEventListener',['onStateChange']); post('setLoop',[true]); post('setVolume',[self.vol]); }
+        else if(d.event==='onStateChange') self.onState(+d.info);
+        else if(d.event==='infoDelivery'&&d.info&&d.info.playerState!=null) self.onState(+d.info.playerState);
+        else if(d.event==='onError'){ post('nextVideo'); } });
+      const BASE='https:'+'/'+'/www.youtube.com/embed/', Q='enablejsapi=1&playsinline=1&rel=0&iv_load_policy=3&autoplay=1&loop=1&disablekb=1';
+      this.p={ frame:f,
+        load(cfg){ const ids=shuffle(cfg.ids);
+          f.src=cfg.list?BASE+'videoseries?list='+encodeURIComponent(cfg.list)+'&'+Q:BASE+ids[0]+'?'+Q+'&playlist='+ids.join(',');
+          f.onload=()=>{ try{ f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*'); }catch(e){} }; },
+        playVideo:()=>post('playVideo'), pauseVideo:()=>post('pauseVideo'), nextVideo:()=>post('nextVideo'), setVolume:v=>post('setVolume',[v]) };
       return this.p; },
-    async start(cfg){ this.cfg=cfg; this.want=true; $('mgYtBox').hidden=false; $('mgYtHint').hidden=true;
-      try{ const p=await this.open(); if(!this.want) return;
-        if(cfg.list) p.loadPlaylist({list:cfg.list,listType:'playlist'}); else p.loadPlaylist(shuffle(cfg.ids));
-        try{ p.setLoop(true); }catch(e){} this.hint();
-      }catch(e){ $('mgYtHint').textContent='유튜브를 불러오지 못했어요 (인터넷 연결 확인)'; $('mgYtHint').hidden=false; } },
+    start(cfg){ this.cfg=cfg; this.want=true; this.state=-1; $('mgYtBox').hidden=false; $('mgYtHint').hidden=true;
+      if(location.protocol==='file:'){ $('mgYtHint').textContent='파일로 직접 연 화면에서는 유튜브가 재생을 막아요 (오류 153). "내 음악 파일"을 써 주세요'; $('mgYtHint').hidden=false; return; }
+      try{ this.open().load(cfg); this.hint(); }
+      catch(e){ $('mgYtHint').textContent='유튜브를 불러오지 못했어요 (인터넷 연결 확인)'; $('mgYtHint').hidden=false; } },
     onState(s){ this.state=s; if(s===1){ $('mgYtHint').hidden=true; clearTimeout(this.hintT); } else if(s===0&&this.want){ try{ this.p.nextVideo(); }catch(e){} } },
     hint(){ clearTimeout(this.hintT); this.hintT=setTimeout(()=>{ if(this.want&&this.state!==1){ $('mgYtHint').textContent='▶ 눌러서 음악 시작'; $('mgYtHint').hidden=false; } },2500); },
     play(){ this.want=true; if(this.p){ try{ this.p.playVideo(); }catch(e){} this.hint(); } },
@@ -509,8 +561,9 @@ body.mg-open{overflow:hidden}
     start(t){ const g=E.game;
       if(E.useYT){ this.active=false; if(!g.musicManual) yt.play(); return; }
       if(E.useMine){ this.active=false; if(!g.musicManual) player.play(); return; }
-      if(g.musicManual) return;   // 게임이 직접 켜고 끄는 경우(얼음 스텝)는 begin()에서 이미 켠 상태를 그대로 둠
-      this.active=!!(musicOn&&ac&&g.bpmAt); this.nextT=t; this.step=0; if(bus){ bus.gain.cancelScheduledValues(ac.currentTime); bus.gain.setValueAtTime(1,ac.currentTime); } },
+      if(bus){ bus.gain.cancelScheduledValues(ac.currentTime); bus.gain.setValueAtTime(1,ac.currentTime); }
+      if(g.musicManual){ this.active=false; return; }   // 얼음 스텝처럼 게임이 직접 켜고 끄는 경우: begin()에서 켬
+      this.active=!!(musicOn&&ac&&g.bpmAt); this.nextT=t; this.step=0; },
     // 게임이 직접 음악을 켜고 끔 (끌 때는 이미 예약된 소리까지 바로 조용하게)
     set(on,T){ if(E.useYT){ on?yt.play():yt.pause(); return; }
       if(E.useMine){ on?player.play():player.pause(); return; }
@@ -553,7 +606,7 @@ body.mg-open{overflow:hidden}
     setT(t,step){ E.T=t; music.seek(t,step||0); },
     tick, chime, colorTone, beep,
     music(on){ music.set(on,E.T); },
-    whistle(){ if(!soundOn||!ac) return; const t=ac.currentTime; tone(2100,t,0.18,0.22,'sine'); tone(2100,t+0.22,0.34,0.22,'sine'); },
+    whistle(){ if(!soundOn||!ac) return; yt.duck(1200); const t=ac.currentTime, v=Math.min(0.5,0.22*fxBoost()); tone(2100,t,0.18,v,'sine'); tone(2100,t+0.22,0.34,v,'sine'); },
     pop(el){ el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); },
     finish(title,msg){ finish(title,msg); },
     // 기록 훅: 지시 하나 = 점프 1회, 단계·라운드가 끝날 때 unit()
@@ -609,7 +662,7 @@ body.mg-open{overflow:hidden}
     if(E.phase==='count'){
       E.count-=dt; const n=Math.ceil(E.count);
       if(n>0){ if(bannerBig.textContent!==String(n)){ api.banner(String(n), E.game.readyNote||'매트 위에 올라가 준비!', COLORS[MAT[((3-n)%4+4)%4]].css); beep(520,0.12,0.2,'triangle'); } }
-      else { E.phase='run'; api.hideBanner(); E.T=0; E.game.begin&&E.game.begin(); music.start(0); }
+      else { E.phase='run'; api.hideBanner(); E.T=0; music.start(0); E.game.begin&&E.game.begin(); }
       return;
     }
     if(E.phase!=='run') return;
@@ -634,7 +687,7 @@ body.mg-open{overflow:hidden}
     E.style=bgm==='random'?['party','march','kids','electro'][rnd(4)]:bgm==='dance'?'party':STYLES[bgm]?bgm:'party';
     if(soundOn){ try{ initAudio(); }catch(e){ soundOn=false; musicOn=false; } }
     cancelAnimationFrame(E.raf); music.stop();
-    body.innerHTML=''; body.className=''; api.hideBanner(); api.chip('');
+    $('mgPlay').classList.remove('fullbleed'); body.innerHTML=''; body.className=''; api.hideBanner(); api.chip('');
     $('mgHudR').textContent=''; $('mgPaused').hidden=true; E.paused=false; $('mgPauseBtn').textContent='멈춤';
     E.played=0; E.units=[]; E.uStart=0; E.uJumps=0; E.jumps=0; E.pending=null; clearTimeout(E.peerTimer); $('mgPeerBtn').hidden=true; E.startedAt=new Date();
     E.game=def.create(opts,api);
@@ -643,7 +696,7 @@ body.mg-open{overflow:hidden}
     if(H.hooks.onStart) try{ H.hooks.onStart(summary(false)); }catch(e){ console.error(e); }
     if(E.useYT) yt.start(yt.cfg);   // 시작 버튼을 누른 직후라 재생이 허용돼요 (준비 카운트 동안 음악이 먼저 나와요)
     E.phase=E.game.noCountdown?'run':'count'; E.count=3; E.T=0; bannerBig.textContent='';
-    if(E.game.noCountdown){ E.game.begin&&E.game.begin(); music.start(0); }
+    if(E.game.noCountdown){ music.start(0); E.game.begin&&E.game.begin(); }
     if(!H.hooks.noFullscreen) goFull(); keepAwake();
     E.running=true; E.last=performance.now(); E.raf=requestAnimationFrame(loop);
   }
@@ -681,8 +734,9 @@ body.mg-open{overflow:hidden}
   }
   function skip(d){
     if(!E.running || H.hooks.noSkip) return;
-    if(E.phase==='count'){ E.phase='run'; api.hideBanner(); E.T=0; E.game.begin&&E.game.begin(); music.start(0); if(d<0) return; }
+    if(E.phase==='count'){ E.phase='run'; api.hideBanner(); E.T=0; music.start(0); E.game.begin&&E.game.begin(); E.game.update(0,0); if(d<0) return; }
     E.game.skip&&E.game.skip(d);
+    if(E.running && E.phase==='run') E.game.update(E.T,0); // 연속으로 눌러도 단계가 하나씩 정확히 넘어가게
   }
 
   // ================= 게임 1: 색깔 스트룹 =================
@@ -1239,7 +1293,7 @@ body.mg-open{overflow:hidden}
       function dance(T){
         phase='dance'; p0=T; danceLen=D.dance[0]+Math.random()*(D.dance[1]-D.dance[0]); lastBeat=-1;
         big.style.fontSize=''; big.textContent='춤춰요!'; sub.textContent='음악이 멈출 때까지 신나게!'; setDots(true); mat.el.hidden=true;
-        api.hud(`${r+1}라운드`,'/ '+R); api.right(`${r+1} / ${R}`); api.music(true);
+        api.hud(`${r+1}라운드`,'/ '+R); api.right(`${r+1} / ${R}`); api.music(true); api.beep(784,0.12,0.2,'triangle'); setTimeout(()=>api.beep(1047,0.16,0.2,'triangle'),130);
       }
       function go(T){
         phase='go'; p0=T; lastSec=-1; api.music(false); api.whistle(); setDots(false);
@@ -1293,9 +1347,124 @@ body.mg-open{overflow:hidden}
     }
   };
 
-  const GAMES=[STROOP,MEMORY,RHYTHM,DIRGAME,QUIZ,ASSOC,TWIST,FREEZE];
+  // ================= 게임 0: 색깔 점프 (가장 기본) =================
+  const BASIC={
+    id:'basic', name:'색깔 점프', grade:'전 학년', dur:'4분', lit:[3,0,1,2], featured:true,
+    desc:'화면 전체가 한 가지 색으로 바뀌면 그 색 칸으로 점프해요. 매트 게임을 처음 할 때 가장 먼저 해 보는 기본 게임이에요.',
+    how:['8단계 × 30초. 단계가 오를수록 색이 빨리 바뀌어요.','"2개"를 고르면 화면이 반으로 나뉘어요. 왼쪽 색은 왼발, 오른쪽 색은 오른발로 밟아요.','글자 없이 색만 나와요. 처음 하는 친구는 "매트 위치 그림"을 켜 주세요.'],
+    options:[
+      {id:'mode',label:'한 번에 나오는 색',choices:[['1','1개 (화면 전체)'],['2','2개 (화면 반반 · 왼발/오른발)']]},
+      {id:'diff',label:'빠르기',choices:[['easy','천천히'],['normal','보통'],['hard','빠르게']],def:'normal'},
+      {id:'hint',label:'매트 위치 그림',choices:[['off','숨기기'],['on','보이기']]},
+    ],
+    create(o,api){
+      const GAPS={easy:[3.0,2.7,2.4,2.2,2.0,1.8,1.6,1.4],normal:[2.5,2.2,1.9,1.7,1.5,1.3,1.1,0.95],hard:[2.0,1.7,1.5,1.3,1.1,0.95,0.85,0.75]}[o.diff];
+      const two=o.mode==='2', LS=30, NL=8, BN=2.5, TOTAL=NL*LS, lvAt=t=>Math.min(NL-1,Math.floor(t/LS));
+      api.body.className='s-basic'+(two?' two':'');
+      const half=side=>`<div class="bs-half">${two?`<small>${side}</small>`:''}${o.hint==='on'?'<div class="bs-mini"><i></i><i></i><i></i><i></i></div>':''}</div>`;
+      api.body.innerHTML=`<div class="bs-wrap">${two?half('왼발')+half('오른발'):half('')}</div>`;
+      const halves=[...api.body.querySelectorAll('.bs-half')];
+      $('mgPlay').classList.add('fullbleed');
+      api.segments(NL); api.chip(two?'왼쪽 색은 왼발, 오른쪽 색은 오른발':'화면 색 칸으로 점프');
+      let lvl=-1, nextAt=0, prev=[];
+      function paint(el,c){
+        el.style.background=COLORS[c].css; el.style.color=COLORS[c].text;
+        
+        const mini=el.querySelector('.bs-mini'); if(mini) [...mini.children].forEach((i,p)=>i.className=MAT[p]===c?'on':'');
+        el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      }
+      function blank(){ halves.forEach(el=>{ el.style.background='#000'; }); }
+      function show(){
+        let cs;
+        for(let n=0;n<40;n++){
+          cs=two?[rnd(4),rnd(4)]:[rnd(4)];
+          if(two && cs[0]===cs[1]) continue;
+          if(cs.some((c,i)=>c===prev[i])) continue; // 같은 자리에 같은 색이 연달아 나오지 않게
+          break;
+        }
+        prev=cs; cs.forEach((c,i)=>paint(halves[i],c)); api.tick(); api.jump(cs.length);
+      }
+      return {
+        bpmAt:t=>100+lvAt(t)*8, intensityAt:t=>lvAt(t)+1,
+        begin(){ lvl=-1; blank(); },
+        update(T){
+          if(T>=TOTAL){ api.unit(); return api.finish('잘 뛰었어요!',`${NL}단계를 모두 마쳤어요!`); }
+          const li=lvAt(T);
+          if(li!==lvl){ if(lvl>=0) api.unit(); lvl=li; api.hud(`${li+1}단계`,'/ '+NL); if(li>0){ api.banner(`${li+1}단계`,li===NL-1?'마지막 단계! 최고 속도로!':'조금 더 빨라져요',COLORS[MAT[li%4]].css); api.chime(); } }
+          const t=T-li*LS;
+          if(li>0 && t<BN){ nextAt=li*LS+BN; }
+          else { api.hideBanner(); if(T>=nextAt){ show(); nextAt=T+GAPS[li]*(two?1.2:1); } }
+          api.right(fmt(TOTAL-T)); api.progress(li,t/LS);
+        },
+        skip(d){ const i=lvl+d; if(i>=NL) return api.finish('잘 뛰었어요!',`${NL}단계를 모두 마쳤어요!`); api.setT(Math.max(0,i)*LS); nextAt=0; },
+        destroy(){ $('mgPlay').classList.remove('fullbleed'); }
+      };
+    }
+  };
+
+  // ================= 게임 9: 용암 매트 =================
+  const LAVA={
+    id:'lava', name:'용암 매트', grade:'전 학년', dur:'4분', lit:[1,2],
+    desc:'용암으로 변한 칸은 밟으면 안 돼요! 안전한 칸에서 계속 콩콩 뛰다가, 용암이 바뀌면 재빨리 옮겨요.',
+    how:['멈추지 말고 안전한 칸 위에서 계속 콩콩 뛰어요.','1~4단계는 매트 그림에 용암이 보여요. 5단계부터는 그림 없이 "용암: 빨강"처럼 글자만 나오고, 7단계부터는 글자 색도 사라져요.','용암은 1~2칸이라 안전한 칸이 늘 2~3개예요. 남은 칸만 보고 뛸 수 없어서 스스로 판단해야 해요.'],
+    options:[
+      {id:'diff',label:'용암이 바뀌는 빠르기',choices:[['easy','천천히 (5초→3초)'],['normal','보통 (4초→2.2초)'],['hard','빠르게 (3.2초→1.6초)']],def:'normal'},
+    ],
+    create(o,api){
+      const GAPS={easy:[5,4.6,4.2,4.4,4,3.6,3.4,3],normal:[4,3.6,3.2,3.4,3,2.6,2.5,2.2],hard:[3.2,2.8,2.5,2.7,2.3,2,1.8,1.6]}[o.diff];
+      // 단계별: 용암 칸 수(0 = 1~2칸 무작위), 매트 그림, 글자 색
+      const STAGE=[{n:1,map:1,ink:1},{n:1,map:1,ink:1},{n:2,map:1,ink:1},{n:2,map:1,ink:1},
+                   {n:0,map:0,ink:1},{n:0,map:0,ink:1},{n:2,map:0,ink:0},{n:2,map:0,ink:0}];
+      const COUNT=STAGE.map(x=>x.n||2), LS=30, NL=8, BN=2.5, TOTAL=NL*LS, WARN=0.7, lvAt=t=>Math.min(NL-1,Math.floor(t/LS));
+      api.body.className='s-lava';
+      api.body.innerHTML='<div class="lv-title"></div>';
+      const title=api.body.querySelector('.lv-title'), mat=makeMat('lv-mat'); api.body.appendChild(mat.el);
+      const note=document.createElement('div'); note.className='lv-note'; api.body.appendChild(note);
+      api.segments(NL); api.chip('안전한 칸에서 계속 콩콩!');
+      let lvl=-1, nextAt=0, lava=[], warned=false;
+      function sizzle(){ if(!soundOn||!ac||ac.state!=='running') return; const t=ac.currentTime; noise(t,0.35,0.25,'highpass',2500); tone(90,t,0.3,0.25,'sawtooth',300); }
+      function draw(){
+        mat.cells.forEach(cell=>{ const c=+cell.dataset.c, hot=lava.includes(c);
+          cell.className=hot?'lava':'safe'; const b=cell.querySelector('b'); b.hidden=false;
+          b.textContent=hot?`${COLORS[c].short} 용암`:'안전'; });
+        const st=STAGE[lvl];
+        title.innerHTML='용암: '+lava.map(c=>`<span style="color:${st.ink?COLORS[c].css:'var(--ink)'}">${COLORS[c].short}</span>`).join(' · ');
+        mat.el.hidden=!st.map; api.body.classList.toggle('nomap',!st.map);
+        note.textContent=!st.map?'매트 그림이 없어요! 글자를 보고 피해요':lava.length===2?'안전한 두 칸 사이를 오가며 콩콩!':'용암만 피해서 콩콩!';
+      }
+      function change(){
+        const n=STAGE[lvl].n||(1+rnd(2)); let next;
+        for(let k=0;k<40;k++){ next=shuffle([0,1,2,3]).slice(0,n).sort(); if(next.join()!==lava.join()) break; }
+        lava=next; draw(); api.pop(mat.el); sizzle(); mat.el.classList.remove('warn'); warned=false; api.jump();
+      }
+      return {
+        bpmAt:t=>104+lvAt(t)*6, intensityAt:t=>lvAt(t)+1,
+        readyNote:'매트 위에 올라가 준비!',
+        begin(){ lvl=-1; lava=[]; },
+        update(T){
+          if(T>=TOTAL){ api.unit(); return api.finish('용암 탈출!',`${NL}단계를 모두 버텼어요. 다리 쭉 펴고 쉬어요!`); }
+          const li=lvAt(T);
+          if(li!==lvl){ if(lvl>=0) api.unit(); lvl=li; api.hud(`${li+1}단계`,'/ '+NL);
+            if(li>0){ const a=STAGE[li-1], b=STAGE[li];
+              const msg=a.map&&!b.map?'이제 매트 그림 없이 글자만 나와요!':a.ink&&!b.ink?'글자 색도 사라져요! 글자만 읽고 피해요':(b.n===2&&a.n===1)?'용암이 2칸으로 늘어나요!':'용암이 더 빨리 바뀌어요';
+              api.banner(`${li+1}단계`,msg,'#FF7A1A'); api.chime(); } }
+          const t=T-li*LS;
+          if(li>0 && t<BN){ nextAt=li*LS+BN; }
+          else {
+            api.hideBanner();
+            if(!warned && lava.length && T>=nextAt-WARN){ warned=true; mat.el.classList.add('warn'); api.beep(620,0.12,0.14,'square'); }
+            if(T>=nextAt){ change(); nextAt=T+GAPS[li]; }
+          }
+          api.right(fmt(TOTAL-T)); api.progress(li,t/LS);
+        },
+        skip(d){ const i=lvl+d; if(i>=NL) return api.finish('용암 탈출!',`${NL}단계를 모두 버텼어요.`); api.setT(Math.max(0,i)*LS); nextAt=0; }
+      };
+    }
+  };
+
+  const GAMES=[BASIC,STROOP,MEMORY,RHYTHM,DIRGAME,QUIZ,ASSOC,TWIST,FREEZE,LAVA];
   // 기록에 적을 난이도 이름
-  const LEVEL_KEY={stroop:'mode',memory:'diff',rhythm:'diff',dir:'diff',quiz:'set',assoc:'diff',twist:'diff',freeze:'diff'};
+  const LEVEL_KEY={basic:'diff',stroop:'mode',memory:'diff',rhythm:'diff',dir:'diff',quiz:'set',assoc:'diff',twist:'diff',freeze:'diff',lava:'diff'};
   GAMES.forEach(g=>{ g.levelOf=o=>{ const op=g.options.find(x=>x.id===LEVEL_KEY[g.id]); if(!op) return ''; const c=op.choices.find(c=>String(c[0])===String(o[op.id])); let s=c?c[1].replace(/\s*\(.*$/,''):''; if(g.id==='quiz'&&o.mlevel&&/add|times|muldiv/.test(o.set)) s+=' '+['','쉬움','보통','어려움'][+o.mlevel]; if(g.id==='stroop'&&o.easy==='on') s+=' · 이지'; return s; }; });
   const SOUND_OPT={id:'snd',label:'소리',choices:[['music','음악 + 효과음'],['fx','효과음만'],['off','끄기']],def:'music'};
   // 게임별 배경 음악 선택지 — 리듬 스텝은 박자를 맞춰야 해서 기본 음악만, 퀴즈·트위스터는 잔잔한 음악이 기본
@@ -1326,11 +1495,11 @@ body.mg-open{overflow:hidden}
       const id=`${g.id}-${op.id}`;
       if(op.type==='tracks') return `<fieldset style="flex-basis:100%" data-show="bgm=mine"><legend>${op.label}</legend>
         <div class="tracks" id="trackList"></div>
-        <label class="addbtn">+ 음악 파일 추가<input type="file" id="trackInput" accept="audio/*,.mp3,.m4a,.wav,.ogg" multiple hidden></label>
+        <label class="addbtn">+ 음악 파일 추가<input type="file" id="trackInput" accept=".mp3,.m4a,.wav,.ogg,.aac,.flac,audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,audio/ogg,audio/aac,audio/flac" multiple hidden></label>
         <p class="fhelp">MP3 같은 음악 파일을 여러 개 넣으면 섞어서 차례로 나와요. 이 기기의 브라우저에 저장돼서 다음에도 그대로 있고, 모든 게임에서 함께 써요. 단계가 오를수록 조금씩 빨라져요(최대 1.3배).</p></fieldset>`;
       if(op.type==='yt') return `<fieldset style="flex-basis:100%" data-show="bgm=yt"><legend>${op.label}</legend>
-        <textarea id="ytInput" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/...&#10;재생목록 주소(list=...)도 돼요">${esc(store.get('yt')||'')}</textarea>
-        <p class="fhelp">유튜브 영상이나 재생목록 주소를 한 줄에 하나씩 넣어요. 여러 개면 섞어서 차례로 나오고, 모든 게임에서 함께 써요.<br>인터넷이 필요하고 화면 왼쪽 아래에 작은 플레이어가 나와요. 소리가 안 나면 플레이어의 ▶를 한 번 눌러 주세요. 광고가 붙거나 "다른 사이트 재생 금지"인 영상은 건너뛰어요.</p></fieldset>`;
+        <textarea id="ytInput" placeholder="www.youtube.com/watch?v=...&#10;youtu.be/...&#10;재생목록 주소(list=...)도 돼요">${esc(store.get('yt')||'')}</textarea>
+        <p class="fhelp">유튜브 영상이나 재생목록 주소를 한 줄에 하나씩 넣어요. 여러 개면 섞어서 차례로 나오고, 모든 게임에서 함께 써요.<br>인터넷이 필요하고 화면 왼쪽 아래에 작은 플레이어가 나와요. 소리가 안 나면 플레이어의 ▶를 한 번 눌러 주세요. 오프라인판처럼 파일로 연 화면에서는 유튜브가 재생을 막으니(오류 153) 그때는 "내 음악 파일"을 쓰세요. 광고가 붙거나 "다른 사이트 재생 금지"인 영상은 건너뛰어요.</p></fieldset>`;
       if(op.type==='textarea') return `<fieldset style="flex-basis:100%" data-show="${op.showIf?op.showIf.join('='):''}"><legend>${op.label}</legend>
         <textarea id="${id}" placeholder="${esc(op.placeholder||'')}">${esc(saved[op.id]||'')}</textarea><p class="fhelp">${op.help||''}</p></fieldset>`;
       let choices=op.choicesFn?op.choicesFn():op.choices;
@@ -1426,7 +1595,7 @@ body.mg-open{overflow:hidden}
   }
   function setPeer(on, name){ H.hooks.peer=!!on; H.hooks.peerName=name||''; }
   function doneHTML(html){ $('mgDoneExtra').innerHTML=html||''; }
-  function list(){ return GAMES.map(g=>({id:g.id,name:g.name,grade:g.grade,dur:g.dur,desc:g.desc,how:g.how,lit:g.lit})); }
+  function list(){ return GAMES.map(g=>({id:g.id,name:g.name,grade:g.grade,dur:g.dur,desc:g.desc,how:g.how,lit:g.lit,featured:!!g.featured})); }
   const glyph=g=>`<span class="mat4 glyph mg-glyph" aria-hidden="true">${MAT.map(c=>`<i style="--c:${COLORS[c].hex}" class="${g.lit.includes(c)?'':'off'}"></i>`).join('')}</span>`;
   window.MATGAME={ open, close:toHub, setPeer, doneHTML, list, glyph:(id)=>{ const g=GAMES.find(x=>x.id===id); return g?glyph(g):''; },
     setBank:(rows)=>{ H.bank=Array.isArray(rows)?rows:[]; }, isOpen:()=>!OV.classList.contains('hide'), running:()=>E.running,
@@ -1434,4 +1603,5 @@ body.mg-open{overflow:hidden}
     _advance:(sec)=>{ if(E.running&&E.phase==='run'){ E.T+=sec; E.played+=sec; } } };   // 시험용: 게임 시간을 앞으로
 })();
 
+} catch (e) { window.MATGAME_ERROR = String((e && e.stack) || e); console.error('Mat_Game 로드 오류', e); }
 </script>
