@@ -212,6 +212,16 @@ MODS.ROPE.student = (function () {
   }
 
   /* ================= 오늘 줄넘기 ================= */
+  /* 판정기 창에서 돌아오면 기록을 다시 불러옴 (카메라로 뛰기 뒤 3시간 안) */
+  var G_camOpened = 0, G_camReloading = false;
+  function camReturn() {
+    if (!G_camOpened || Date.now() - G_camOpened > 3 * 3600 * 1000 || G_camReloading) return;
+    if (!(CURRENT && CURRENT.mod === 'ROPE') || document.hidden) return;
+    G_camReloading = true;
+    api('rope_s_boot', TOKEN).then(function (d) { D = d; G_camReloading = false; if (CURRENT && CURRENT.mod === 'ROPE' && CURRENT.page === 'home') { renderHome(); var n = (D.기록 || []).filter(function (r) { return r.날짜 === D.오늘 && r.입력자 === '카메라'; }).length; if (n) toast('카메라 기록을 불러왔어요.'); } }).catch(function () { G_camReloading = false; });
+  }
+  window.addEventListener('focus', camReturn);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) camReturn(); });
   function renderHome() {
     var y = D.요약, s = D.설정, 오늘 = D.오늘;
     var 오늘대기 = D.기록.filter(function (r) { return r.날짜 === 오늘 && r.상태 === '대기'; }).reduce(function (a, r) { return a + r.횟수; }, 0);
@@ -245,7 +255,8 @@ MODS.ROPE.student = (function () {
       if (s.종류사용 && !TYPE) { setStatus('rsSaveStatus', '먼저 어떤 줄넘기를 할지 골라 주세요.', 'err'); return; }
       var u = camUrl + (camUrl.indexOf('?') >= 0 ? '&' : '?') + 'app=' + encodeURIComponent(D.앱URL) + '&t=' + encodeURIComponent(TOKEN) + (TYPE ? '&kind=' + encodeURIComponent(TYPE) : '');
       var w = window.open(u, '_blank'); if (!w) { setStatus('rsSaveStatus', '새 창이 막혔어요. 팝업을 허용해 주세요.', 'err'); return; }
-      setStatus('rsSaveStatus', '판정기 창에서 뛰고 "끝내고 기록하기"를 누르면 여기에 기록돼요. 돌아와서 새로고침하면 보여요.', '');
+      setStatus('rsSaveStatus', '판정기 창에서 뛰고 "끝내고 기록하기"를 누르면 여기에 기록돼요. 이 화면으로 돌아오면 자동으로 새로 불러와요.', '');
+      G_camOpened = Date.now();
     };
     // 짝 체크: 같은 반 친구 고르기
     $('rsPeerBox').classList.toggle('hide', !s.짝체크);

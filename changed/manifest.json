@@ -1,9 +1,15 @@
 {
-  "version": "2.3.0",
-  "libraryVersion": 32,
+  "version": "2.3.1",
+  "libraryVersion": 33,
   "date": "2026-09-29",
-  "notes": "v2.3.0",
+  "notes": "v2.3.1",
   "history": [
+    {
+      "version": "2.3.1",
+      "lib": 33,
+      "date": "2026-09-29",
+      "notes": "줄넘기 \"카메라로 뛰기\" 뒤 판정기 창에서 앱으로 돌아오면 기록을 자동으로 다시 불러옵니다(새로고침 안 해도 오늘 내 기록·원 그래프에 바로 반영)."
+    },
     {
       "version": "2.3.0",
       "lib": 32,
@@ -117,8 +123,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "a49221e9451f50e3",
-      "bytes": 63964
+      "sha256": "98d638d7f011f568",
+      "bytes": 64228
     },
     {
       "name": "Eval_S.html",
@@ -267,8 +273,8 @@
     {
       "name": "Rope_S.html",
       "type": "HTML",
-      "sha256": "0f87ee466d411eb8",
-      "bytes": 36340
+      "sha256": "26b589f35cb6ec03",
+      "bytes": 37306
     },
     {
       "name": "Rope_T.html",
