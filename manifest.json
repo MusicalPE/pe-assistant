@@ -1,9 +1,15 @@
 {
-  "version": "2.3.1",
-  "libraryVersion": 33,
+  "version": "2.3.2",
+  "libraryVersion": 34,
   "date": "2026-09-29",
-  "notes": "v2.3.1",
+  "notes": "v2.3.2",
   "history": [
+    {
+      "version": "2.3.2",
+      "lib": 34,
+      "date": "2026-09-29",
+      "notes": "색깔 매트 놀이터 점프 배지가 \"함께 점프 5001000\"처럼 하나로 붙어 나오던 것 수정 — 설정 시트가 \"500,1000\"을 숫자 5,001,000 으로 바꿔 읽던 문제. 설정 값 칸을 글자 서식으로 저장하고, 이미 그렇게 저장된 학교는 기본값(500·1000회)으로 읽습니다."
+    },
     {
       "version": "2.3.1",
       "lib": 33,
@@ -123,8 +129,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "98d638d7f011f568",
-      "bytes": 64228
+      "sha256": "acfab8ce51e49b9f",
+      "bytes": 64826
     },
     {
       "name": "Eval_S.html",
@@ -237,8 +243,8 @@
     {
       "name": "Mod_Mat.gs",
       "type": "SERVER_JS",
-      "sha256": "5084f05dd7dbdb57",
-      "bytes": 52457
+      "sha256": "c66d7d96940c79c9",
+      "bytes": 52686
     },
     {
       "name": "Mod_Paps.gs",

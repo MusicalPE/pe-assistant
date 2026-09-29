@@ -186,7 +186,10 @@ function mat_설정_() {
   }
   // 학생 화면의 순서는 항상 MAT_게임 순서(색깔 점프가 맨 앞)
   게임 = MAT_게임.map(function (x) { return x[0]; }).filter(function (g) { return 게임.indexOf(g) >= 0; });
-  var 숫자목록 = function (v, 기본) { var a = 목록_(v).map(Number).filter(function (n) { return n > 0; }).sort(function (a, b) { return a - b; }); return a.length ? a : 기본; };
+  // 시트가 "500,1000" 을 숫자 5001000 으로 바꿔 저장한 경우(쉼표를 천 단위 구분으로 읽음)는 기본값으로 되돌림
+  var 숫자목록 = function (v, 기본) { var a = 목록_(v).map(Number).filter(function (n) { return n > 0; }).sort(function (a, b) { return a - b; });
+    if (a.length === 1 && a[0] >= 100000 && 기본.length > 1) return 기본;
+    return a.length ? a : 기본; };
   return {
     짝방식: out.짝방식 === '교사' ? '교사' : '학생',
     최소시간: Math.max(0, num_(out.최소시간) === null ? 30 : num_(out.최소시간)),
