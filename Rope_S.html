@@ -253,7 +253,7 @@ MODS.ROPE.student = (function () {
     $('rsCamBox').classList.toggle('hide', !camUrl);
     $('rsCam').onclick = function () {
       if (s.종류사용 && !TYPE) { setStatus('rsSaveStatus', '먼저 어떤 줄넘기를 할지 골라 주세요.', 'err'); return; }
-      var u = camUrl + (camUrl.indexOf('?') >= 0 ? '&' : '?') + 'app=' + encodeURIComponent(D.앱URL) + '&t=' + encodeURIComponent(TOKEN) + (TYPE ? '&kind=' + encodeURIComponent(TYPE) : '');
+      var u = camUrl + (camUrl.indexOf('?') >= 0 ? '&' : '?') + 'app=' + encodeURIComponent(D.앱URL) + '&t=' + encodeURIComponent(TOKEN) + '&sens=' + (s.판정기민감도 || 10) + (TYPE ? '&kind=' + encodeURIComponent(TYPE) : '');
       var w = window.open(u, '_blank'); if (!w) { setStatus('rsSaveStatus', '새 창이 막혔어요. 팝업을 허용해 주세요.', 'err'); return; }
       setStatus('rsSaveStatus', '판정기 창에서 뛰고 "끝내고 기록하기"를 누르면 여기에 기록돼요. 이 화면으로 돌아오면 자동으로 새로 불러와요.', '');
       G_camOpened = Date.now();

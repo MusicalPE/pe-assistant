@@ -1,9 +1,15 @@
 {
-  "version": "2.3.2",
-  "libraryVersion": 34,
+  "version": "2.3.3",
+  "libraryVersion": 35,
   "date": "2026-09-29",
-  "notes": "v2.3.2",
+  "notes": "v2.3.3",
   "history": [
+    {
+      "version": "2.3.3",
+      "lib": 35,
+      "date": "2026-09-29",
+      "notes": "줄넘기 카메라 판정기 v0.5 에 맞춤 — 판정기 민감도를 줄넘기 설정(6~16)에서 선생님이 정하고 학생은 못 바꿈. 판정기는 이제 머리부터 발까지 다 보일 때만 세고(앉아서 들썩이거나 너무 가까이 서면 \"뒤로 물러서요\"), 엉덩이·머리·발이 같이 떴을 때만 1회."
+    },
     {
       "version": "2.3.2",
       "lib": 34,
@@ -129,8 +135,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "acfab8ce51e49b9f",
-      "bytes": 64826
+      "sha256": "095f276a886f6550",
+      "bytes": 65231
     },
     {
       "name": "Eval_S.html",
@@ -255,8 +261,8 @@
     {
       "name": "Mod_Rope.gs",
       "type": "SERVER_JS",
-      "sha256": "2fe64334904c84f1",
-      "bytes": 53984
+      "sha256": "6dcfcbfee09e4c20",
+      "bytes": 54414
     },
     {
       "name": "PAPS_Data.gs",
@@ -279,14 +285,14 @@
     {
       "name": "Rope_S.html",
       "type": "HTML",
-      "sha256": "26b589f35cb6ec03",
-      "bytes": 37306
+      "sha256": "c559964310b3efde",
+      "bytes": 37348
     },
     {
       "name": "Rope_T.html",
       "type": "HTML",
-      "sha256": "fd0261cd6f1f3329",
-      "bytes": 40716
+      "sha256": "b4d4e9b2c6d97d3c",
+      "bytes": 41559
     },
     {
       "name": "Updater.gs",
