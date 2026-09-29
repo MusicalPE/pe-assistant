@@ -67,7 +67,8 @@ function rope_기본설정_() {
     ['종류',         ROPE_기본종류, '줄넘기 종류 목록 (쉼표로 구분, 최대 20개). 위에서부터 순서대로 선택지·그래프에 나옴'],
     ['판정기주소',   'https://musicalpe.github.io/jump-rope-checker/', '카메라 줄넘기 판정기 페이지 주소 (https). 비우면 학생 화면에 "카메라로 뛰기" 버튼이 안 나옴'],
     ['판정기최소',   '10',   '판정기가 보낸 기록을 받을 최소 횟수 (그보다 적으면 기록하지 않음)'],
-    ['판정기민감도', '10',   '판정기 민감도 6~16 (작을수록 살짝 떠도 셈, 클수록 높이 떠야 셈). 학생은 못 바꿈']
+    ['판정기민감도', '10',   '판정기 민감도 6~16 (작을수록 살짝 떠도 셈, 클수록 높이 떠야 셈). 학생은 못 바꿈'],
+    ['체력합산',     'N',    'Y 면 건강체력교실에서 카메라로 뛴 줄넘기도 줄넘기 기록에 함께 넣음 (한 운동이 두 모듈에 기록됨)']
   ];
 }
 
@@ -174,6 +175,7 @@ function rope_설정_() {
     판정기주소: /^https:\/\//.test(str_(out.판정기주소)) ? str_(out.판정기주소) : '',
     판정기최소: Math.max(1, Math.min(1000, num_(out.판정기최소) || 10)),
     판정기민감도: Math.max(6, Math.min(16, num_(out.판정기민감도) || 10)),
+    체력합산: str_(out.체력합산).toUpperCase() === 'Y',
     학년도: str_(all.학년도)
   };
 }
@@ -555,6 +557,7 @@ function rope_t_saveSettings(token, map) {
   if (map.판정기주소 !== undefined) { var u = str_(map.판정기주소); if (u && !/^https:\/\//.test(u)) throw new Error('판정기 주소는 https:// 로 시작해야 해요.'); put['줄넘기.판정기주소'] = u || ' '; }
   if (map.판정기최소 !== undefined) put['줄넘기.판정기최소'] = String(Math.max(1, Math.min(1000, num_(map.판정기최소) || 10)));
   if (map.판정기민감도 !== undefined) put['줄넘기.판정기민감도'] = String(Math.max(6, Math.min(16, num_(map.판정기민감도) || 10)));
+  if (map.체력합산 !== undefined) put['줄넘기.체력합산'] = map.체력합산 ? 'Y' : 'N';
   if (map.종류 !== undefined) {
     var 목록 = rope_종류정리_(map.종류);
     if (!목록.length && map.종류사용 !== false) throw new Error('줄넘기 종류를 한 개 이상 적어 주세요. (종류를 쓰지 않으려면 "종류 고르기"를 끄세요)');
@@ -648,6 +651,17 @@ function rope_x_who(p) {
   rope_기록전체_().forEach(function (r) { if (r.학생ID === me.학생ID && r.날짜 === 오늘 && r.상태 === '확인') 오늘합 += r.횟수; });
   return { 이름: me.이름, 학년: me.학년, 반: me.반, 번호: me.번호, 오늘: 오늘합, 하루목표: s.하루목표, 최소: s.판정기최소, 최대: s.한번최대횟수,
            종류: s.종류사용 ? s.종류 : [], 학교명: str_(설정_().학교명) };
+}
+/** 건강체력교실에서 카메라로 뛴 것을 줄넘기 기록에도 (설정 줄넘기.체력합산 = Y 일 때). 실패해도 조용히 */
+function rope_체력합산_(me, n, 메모) {
+  try {
+    var s = rope_설정_(); if (!s.체력합산) return false;
+    if (!모듈상태_().ROPE || !rope_hooks_().학생참여(me.학생ID)) return false;
+    if (n < s.판정기최소 || n > s.한번최대횟수) return false;
+    var 종류 = s.종류사용 && s.종류.length ? s.종류[0] : '';
+    rope_기록추가_(me.학생ID, 오늘_(), 지금_().slice(11), n, '확인', '카메라', '건강체력교실 · ' + 메모, 종류);
+    return true;
+  } catch (e) { return false; }
 }
 /** 판정기가 보낸 결과를 기록으로. p = { t, count, sec?, hand?, norope?, kind?, ver? } — 카메라가 센 횟수라 바로 확인 상태 */
 function rope_x_save(p) {

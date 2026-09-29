@@ -1,9 +1,15 @@
 {
-  "version": "2.3.3",
-  "libraryVersion": 35,
+  "version": "2.4.0",
+  "libraryVersion": 36,
   "date": "2026-09-29",
-  "notes": "v2.3.3",
+  "notes": "v2.4.0",
   "history": [
+    {
+      "version": "2.4.0",
+      "lib": 36,
+      "date": "2026-09-29",
+      "notes": "건강체력교실에 카메라 줄넘기 — 운동 기록에서 \"집에서 · 줄넘기\"를 고르면 \"카메라로 뛰기\" 버튼이 나오고, 판정기가 센 횟수가 건강체력교실 기록(가정·줄넘기·바로 확인·포인트 계산)으로 들어옵니다. 줄넘기 설정의 \"건강체력교실에서 카메라로 뛴 줄넘기도 줄넘기 기록에 함께 넣기\" 스위치를 켜면 줄넘기 누적·배지에도 잡힙니다(기본은 꺼짐). 판정기 v0.6 필요."
+    },
     {
       "version": "2.3.3",
       "lib": 35,
@@ -135,8 +141,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "095f276a886f6550",
-      "bytes": 65231
+      "sha256": "b9774a4c0264975d",
+      "bytes": 65786
     },
     {
       "name": "Eval_S.html",
@@ -171,8 +177,8 @@
     {
       "name": "Fit_S.html",
       "type": "HTML",
-      "sha256": "a3888bbc0747c6bb",
-      "bytes": 34494
+      "sha256": "6db147ba3fe918d8",
+      "bytes": 36588
     },
     {
       "name": "Fit_T.html",
@@ -237,8 +243,8 @@
     {
       "name": "Mod_Fit.gs",
       "type": "SERVER_JS",
-      "sha256": "6d47291f00d45575",
-      "bytes": 62793
+      "sha256": "46264f9b7b506693",
+      "bytes": 67101
     },
     {
       "name": "Mod_Fms.gs",
@@ -261,8 +267,8 @@
     {
       "name": "Mod_Rope.gs",
       "type": "SERVER_JS",
-      "sha256": "6dcfcbfee09e4c20",
-      "bytes": 54414
+      "sha256": "adcc6528e42644f4",
+      "bytes": 55435
     },
     {
       "name": "PAPS_Data.gs",
@@ -291,8 +297,8 @@
     {
       "name": "Rope_T.html",
       "type": "HTML",
-      "sha256": "b4d4e9b2c6d97d3c",
-      "bytes": 41559
+      "sha256": "35123629f655933e",
+      "bytes": 42002
     },
     {
       "name": "Updater.gs",

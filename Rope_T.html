@@ -154,6 +154,7 @@
         <div class="grid g3" style="margin-bottom:12px">
           <div class="field" style="grid-column:span 2"><label>판정기 주소 (https · 비우면 버튼 숨김)</label><input type="text" id="rpSetCamUrl" placeholder="https://…/jump-rope-checker/"></div>
           <div class="field"><label>기록할 최소 횟수</label><input type="number" id="rpSetCamMin" min="1" max="1000"></div>
+          <div class="field" style="grid-column:span 3"><label class="chk sm"><input type="checkbox" id="rpSetCamFit"><span>건강체력교실에서 카메라로 뛴 줄넘기도 <b>줄넘기 기록에 함께</b> 넣기 (끄면 건강체력교실에만 기록)</span></label></div>
           <div class="field" style="grid-column:span 3"><label>민감도 (6~16 · 기본 10 — 작을수록 살짝 떠도 세고, 클수록 높이 떠야 셉니다. 학생은 못 바꿈)</label><div style="display:flex;align-items:center;gap:12px"><input type="range" id="rpSetCamSens" min="6" max="16" step="1" style="flex:1;max-width:320px"><b id="rpSetCamSensV">10</b><span class="unit" id="rpSetCamSensT">보통</span></div></div>
         </div>
         <div class="field"><label>AI 응원 문구 (Gemini API 키 · 비우면 기본 문구)</label>
@@ -419,6 +420,7 @@ MODS.ROPE.teacher = (function () {
       $('rpSetTypes').value = (s.종류 || []).join('\n');
       $('rpSetCamUrl').value = s.판정기주소 || ''; $('rpSetCamMin').value = s.판정기최소 || 10;
       $('rpSetCamSens').value = s.판정기민감도 || 10; paintSens();
+      $('rpSetCamFit').checked = !!s.체력합산; $('rpSetCamFit').parentNode.classList.toggle('on', !!s.체력합산);
       api('rope_t_mediaInfo', TOKEN).then(function (m) { $('rpSetPeerInfo').innerHTML = m.파일수 ? '사진 ' + m.파일수 + '장' + (m.폴더URL ? ' · <a href="' + esc(m.폴더URL) + '" target="_blank">드라이브 폴더 열기</a>' : '') : '아직 올라온 사진이 없습니다. 첫 사진이 올라오면 시트 옆에 "줄넘기 짝 확인 사진" 폴더가 생깁니다.'; }).catch(function () {});
       $('rpSetGrades').innerHTML = allGrades().map(function (g) { var on = s.대상학년.indexOf(g) > -1; return '<label class="chk sm' + (on ? ' on' : '') + '"><input type="checkbox" value="' + g + '"' + (on ? ' checked' : '') + '><span>' + g + '학년</span></label>'; }).join('');
       $('rpSetGemini').value = ''; $('rpSetGemini').placeholder = r.gemini ? '(등록됨 · 바꾸려면 새 키 입력, 지우려면 "삭제")' : 'AIza…';
@@ -446,7 +448,7 @@ MODS.ROPE.teacher = (function () {
               대상학년: qa('#rpSetGrades input:checked').map(function (i) { return Number(i.value); }),
               짝체크: $('rpSetPeer').checked, 짝사진: $('rpSetPeerPhoto').checked, 짝사진보관: $('rpSetPeerKeep').value,
               종류사용: $('rpSetTypeOn').checked, 종류: $('rpSetTypes').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean),
-              판정기주소: $('rpSetCamUrl').value.trim(), 판정기최소: Number($('rpSetCamMin').value) || 10, 판정기민감도: Number($('rpSetCamSens').value) || 10 };
+              판정기주소: $('rpSetCamUrl').value.trim(), 판정기최소: Number($('rpSetCamMin').value) || 10, 판정기민감도: Number($('rpSetCamSens').value) || 10, 체력합산: $('rpSetCamFit').checked };
     var k = $('rpSetGemini').value.trim();
     if (k === '삭제') m.geminiKey = ''; else if (k) m.geminiKey = k;
     setStatus('rpSetStatus', '저장 중…');
