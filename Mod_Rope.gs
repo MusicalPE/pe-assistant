@@ -64,7 +64,9 @@ function rope_기본설정_() {
     ['짝사진',       'Y',    'Y 면 짝이 확인할 때 사진(줄넘기 계수기 화면 등)을 선택으로 올릴 수 있음'],
     ['짝사진보관',   '유지', '유지 | 확인후삭제 — 교사가 확인한 뒤 사진 파일을 드라이브에 둘지, 휴지통으로 보낼지'],
     ['종류사용',     'Y',    'Y 면 학생이 기록을 넣을 때 줄넘기 종류(모아뛰기·이중뛰기 …)를 고름'],
-    ['종류',         ROPE_기본종류, '줄넘기 종류 목록 (쉼표로 구분, 최대 20개). 위에서부터 순서대로 선택지·그래프에 나옴']
+    ['종류',         ROPE_기본종류, '줄넘기 종류 목록 (쉼표로 구분, 최대 20개). 위에서부터 순서대로 선택지·그래프에 나옴'],
+    ['판정기주소',   'https://musicalpe.github.io/jump-rope-checker/', '카메라 줄넘기 판정기 페이지 주소 (https). 비우면 학생 화면에 "카메라로 뛰기" 버튼이 안 나옴'],
+    ['판정기최소',   '10',   '판정기가 보낸 기록을 받을 최소 횟수 (그보다 적으면 기록하지 않음)']
   ];
 }
 
@@ -168,6 +170,8 @@ function rope_설정_() {
     짝사진보관: str_(out.짝사진보관) === '확인후삭제' ? '확인후삭제' : '유지',
     종류사용: str_(out.종류사용).toUpperCase() !== 'N',
     종류: rope_종류정리_(out.종류),
+    판정기주소: /^https:\/\//.test(str_(out.판정기주소)) ? str_(out.판정기주소) : '',
+    판정기최소: Math.max(1, Math.min(1000, num_(out.판정기최소) || 10)),
     학년도: str_(all.학년도)
   };
 }
@@ -546,6 +550,8 @@ function rope_t_saveSettings(token, map) {
   if (map.짝사진 !== undefined) put['줄넘기.짝사진'] = map.짝사진 ? 'Y' : 'N';
   if (map.짝사진보관 !== undefined) put['줄넘기.짝사진보관'] = str_(map.짝사진보관) === '확인후삭제' ? '확인후삭제' : '유지';
   if (map.종류사용 !== undefined) put['줄넘기.종류사용'] = map.종류사용 ? 'Y' : 'N';
+  if (map.판정기주소 !== undefined) { var u = str_(map.판정기주소); if (u && !/^https:\/\//.test(u)) throw new Error('판정기 주소는 https:// 로 시작해야 해요.'); put['줄넘기.판정기주소'] = u || ' '; }
+  if (map.판정기최소 !== undefined) put['줄넘기.판정기최소'] = String(Math.max(1, Math.min(1000, num_(map.판정기최소) || 10)));
   if (map.종류 !== undefined) {
     var 목록 = rope_종류정리_(map.종류);
     if (!목록.length && map.종류사용 !== false) throw new Error('줄넘기 종류를 한 개 이상 적어 주세요. (종류를 쓰지 않으려면 "종류 고르기"를 끄세요)');
@@ -586,7 +592,8 @@ function rope_s_view_(me) {
   }
   return {
     학생: me, 오늘: 오늘, 설정: { 하루목표: s.하루목표, 하루최대입력: s.하루최대입력, 한번최대횟수: s.한번최대횟수, 자동확인: s.자동확인, 학급목표: s.학급목표, 짝체크: s.짝체크, 짝사진: s.짝사진,
-                            종류사용: s.종류사용 && s.종류.length > 0, 종류: s.종류 },
+                            종류사용: s.종류사용 && s.종류.length > 0, 종류: s.종류, 판정기주소: s.판정기주소 },
+    앱URL: 앱주소_(),
     요약: y, 기록: 내기록.slice().reverse(), 오늘입력: 오늘입력, 배지: rope_배지_(y),
     학급: { 총: 반.총, 오늘총: 반.오늘총, 인원: 반.학생.length, 오늘기록인원: 반.오늘기록인원, 달성: 반.달성, 학급목표: s.학급목표, 진행: rope_pct_(반.총, s.학급목표) },
     짝후보: 짝후보, 짝요청수: 짝요청수,
@@ -628,6 +635,40 @@ function rope_s_addRecord(token, m) {
     return v;
   });
 }
+/* ================= 카메라 판정기 (외부 페이지) API — ?api=rope_x_… ================= */
+
+/** 판정기가 처음 열릴 때: 누구인지 + 오늘 상황. p = { t: 학생 토큰 } */
+function rope_x_who(p) {
+  var me = 학생확인_(p.t), s = rope_설정_();
+  if (!rope_hooks_().학생참여(me.학생ID)) throw new Error('줄넘기 대상 학년이 아니에요.');
+  var 오늘 = 오늘_(), 오늘합 = 0;
+  rope_기록전체_().forEach(function (r) { if (r.학생ID === me.학생ID && r.날짜 === 오늘 && r.상태 === '확인') 오늘합 += r.횟수; });
+  return { 이름: me.이름, 학년: me.학년, 반: me.반, 번호: me.번호, 오늘: 오늘합, 하루목표: s.하루목표, 최소: s.판정기최소, 최대: s.한번최대횟수,
+           종류: s.종류사용 ? s.종류 : [], 학교명: str_(설정_().학교명) };
+}
+/** 판정기가 보낸 결과를 기록으로. p = { t, count, sec?, hand?, norope?, kind?, ver? } — 카메라가 센 횟수라 바로 확인 상태 */
+function rope_x_save(p) {
+  var me = 학생확인_(p.t), s = rope_설정_();
+  if (!rope_hooks_().학생참여(me.학생ID)) throw new Error('줄넘기 대상 학년이 아니에요.');
+  var n = Math.round(num_(p.count) || 0);
+  if (n < s.판정기최소) throw new Error(s.판정기최소 + '회 이상일 때만 기록해요. (이번 ' + n + '회)');
+  if (n > s.한번최대횟수) throw new Error('한 번에 ' + s.한번최대횟수 + '회까지만 기록할 수 있어요.');
+  var 오늘 = 오늘_();
+  var 오늘카메라 = rope_기록전체_().filter(function (r) { return r.학생ID === me.학생ID && r.날짜 === 오늘 && r.입력자 === '카메라'; }).length;
+  if (오늘카메라 >= Math.max(s.하루최대입력, 10)) throw new Error('오늘은 카메라 기록을 더 넣을 수 없어요.');
+  var 종류 = '';
+  if (s.종류사용 && s.종류.length) { 종류 = str_(p.kind); if (s.종류.indexOf(종류) < 0) 종류 = s.종류[0]; }
+  var sec = Math.round(num_(p.sec) || 0), hand = Math.round(num_(p.hand) || 0), norope = Math.round(num_(p.norope) || 0);
+  var 메모 = '카메라 판정' + (p.ver ? ' v' + str_(p.ver).replace(/^v/, '') : '') + (sec ? ' · ' + Math.floor(sec / 60) + '분 ' + (sec % 60) + '초' : '') +
+             (hand ? ' · 팔만 돌림 ' + hand + '초' : '') + (norope ? ' · 줄 없이 뜀 ' + norope + '회' : '');
+  return withLock_(function () {
+    var rec = rope_기록추가_(me.학생ID, 오늘, 지금_().slice(11), n, '확인', '카메라', 메모, 종류);
+    var 오늘합 = 0;
+    rope_기록전체_().forEach(function (r) { if (r.학생ID === me.학생ID && r.날짜 === 오늘 && r.상태 === '확인') 오늘합 += r.횟수; });
+    return { 기록ID: rec.기록ID, 횟수: n, 종류: 종류, 오늘: 오늘합, 하루목표: s.하루목표, 달성: 오늘합 >= s.하루목표 };
+  });
+}
+
 function rope_행찾기_(기록ID) {
   var hit = rows_(ROPE.기록).filter(function (r) { return str_(r.기록ID) === str_(기록ID); })[0];
   if (!hit) throw new Error('기록을 찾지 못했습니다.');

@@ -150,7 +150,17 @@
           <div class="field"><label>짝이 사진 올리기</label><label class="chk sm"><input type="checkbox" id="rpSetPeerPhoto"><span>계수기 숫자·뛰는 모습을 선택으로 첨부</span></label></div>
           <div class="field"><label>사진 보관</label><select id="rpSetPeerKeep"><option value="유지">선생님 확인 뒤에도 드라이브에 유지</option><option value="확인후삭제">선생님이 확인하면 휴지통으로</option></select><span class="unit" id="rpSetPeerInfo"></span></div>
         </div>
-        <div class="field"><label>AI 응원 문구 (Gemini API 키 · 비우면 기본 문구)</label><input type="password" id="rpSetGemini" placeholder="AIza…" autocomplete="off"><span class="unit" id="rpSetGeminiHint"></span></div>
+        <div class="panel-head" style="padding:10px 0 6px;border:0"><h3><i class="ti ti-camera"></i>카메라 판정기</h3><div class="spacer"></div><span class="unit">학생이 "카메라로 뛰기"를 누르면 이 페이지가 새 창으로 열리고, 뛴 횟수가 자동으로 기록됩니다 (온라인판)</span></div>
+        <div class="grid g3" style="margin-bottom:12px">
+          <div class="field" style="grid-column:span 2"><label>판정기 주소 (https · 비우면 버튼 숨김)</label><input type="text" id="rpSetCamUrl" placeholder="https://…/jump-rope-checker/"></div>
+          <div class="field"><label>기록할 최소 횟수</label><input type="number" id="rpSetCamMin" min="1" max="1000"></div>
+        </div>
+        <div class="field"><label>AI 응원 문구 (Gemini API 키 · 비우면 기본 문구)</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="password" id="rpSetGemini" placeholder="AIza…" autocomplete="off" style="flex:1;min-width:220px"><button type="button" class="ghost mini" id="rpSetGeminiTest"><i class="ti ti-sparkles"></i>지금 문구 만들어 보기</button></div>
+          <span class="unit" id="rpSetGeminiHint"></span>
+          <div class="note warn hide" id="rpSetGeminiErr" style="margin-top:8px"><i class="ti ti-alert-triangle"></i><div id="rpSetGeminiErrTxt"></div></div>
+          <div class="note ok hide" id="rpSetGeminiOut" style="margin-top:8px"><i class="ti ti-message-heart"></i><div id="rpSetGeminiOutTxt"></div></div>
+        </div>
       </div>
       <div class="savebar"><span class="status" id="rpSetStatus"></span><div class="spacer"></div><button id="rpSetSave"><i class="ti ti-device-floppy"></i>저장</button></div>
     </div>
@@ -406,19 +416,33 @@ MODS.ROPE.teacher = (function () {
       $('rpSetPeerKeep').value = s.짝사진보관;
       $('rpSetTypeOn').checked = s.종류사용; $('rpSetTypeOn').parentNode.classList.toggle('on', s.종류사용);
       $('rpSetTypes').value = (s.종류 || []).join('\n');
+      $('rpSetCamUrl').value = s.판정기주소 || ''; $('rpSetCamMin').value = s.판정기최소 || 10;
       api('rope_t_mediaInfo', TOKEN).then(function (m) { $('rpSetPeerInfo').innerHTML = m.파일수 ? '사진 ' + m.파일수 + '장' + (m.폴더URL ? ' · <a href="' + esc(m.폴더URL) + '" target="_blank">드라이브 폴더 열기</a>' : '') : '아직 올라온 사진이 없습니다. 첫 사진이 올라오면 시트 옆에 "줄넘기 짝 확인 사진" 폴더가 생깁니다.'; }).catch(function () {});
       $('rpSetGrades').innerHTML = allGrades().map(function (g) { var on = s.대상학년.indexOf(g) > -1; return '<label class="chk sm' + (on ? ' on' : '') + '"><input type="checkbox" value="' + g + '"' + (on ? ' checked' : '') + '><span>' + g + '학년</span></label>'; }).join('');
       $('rpSetGemini').value = ''; $('rpSetGemini').placeholder = r.gemini ? '(등록됨 · 바꾸려면 새 키 입력, 지우려면 "삭제")' : 'AIza…';
-      $('rpSetGeminiHint').textContent = r.gemini ? 'Gemini 키가 등록되어 있어 응원 문구를 AI가 씁니다.' : '키가 없으면 기본 문구 6개를 돌아가며 보여 줍니다.';
+      $('rpSetGeminiHint').textContent = r.gemini ? ('Gemini 키가 등록되어 있어 응원 문구를 AI가 하루 한 번 씁니다.' + (r.geminiModel ? ' 쓰는 모델: ' + r.geminiModel : '') + ' 모델이 은퇴하면 쓸 수 있는 모델을 자동으로 다시 고릅니다. 키는 aistudio.google.com 왼쪽 아래 열쇠 단추 → Create API key.') : '키가 없으면 기본 문구 6개를 돌아가며 보여 줍니다. 키는 aistudio.google.com 왼쪽 아래 열쇠 단추 → Create API key 에서 받습니다.';
+      $('rpSetGeminiTest').classList.toggle('hide', !r.gemini);
+      $('rpSetGeminiErr').classList.toggle('hide', !r.geminiError); $('rpSetGeminiErrTxt').textContent = r.geminiError ? '최근 오류: ' + r.geminiError + ' — 그동안은 기본 문구가 나갑니다.' : '';
+      $('rpSetGeminiOut').classList.add('hide');
       setStatus('rpSetStatus', '');
     }).catch(handleErr);
   }
   ROOT.addEventListener('change', function (e) { var l = e.target.closest && e.target.closest('label.chk'); if (l && e.target.type === 'checkbox') l.classList.toggle('on', e.target.checked); });
+  $('rpSetGeminiTest').onclick = function () {
+    var b = this; b.disabled = true; setStatus('rpSetStatus', 'Gemini 에 문구를 부탁하는 중…');
+    api('rope_t_testGemini', TOKEN).then(function (r) {
+      b.disabled = false; setStatus('rpSetStatus', '');
+      $('rpSetGeminiErr').classList.toggle('hide', !r.오류); $('rpSetGeminiErrTxt').textContent = r.오류 ? '최근 오류: ' + r.오류 : '';
+      $('rpSetGeminiOut').classList.toggle('hide', !!r.오류); $('rpSetGeminiOutTxt').textContent = r.오류 ? '' : '"' + r.문구 + '"' + (r.모델 ? ' — ' + r.모델 : '');
+      DASH = null;
+    }).catch(function (e) { b.disabled = false; setStatus('rpSetStatus', (e && e.message) || String(e), 'err'); });
+  };
   $('rpSetSave').onclick = function () {
     var m = { 하루목표: Number($('rpSetGoal').value), 학급목표: Number($('rpSetClassGoal').value), 하루최대입력: Number($('rpSetMaxIn').value), 한번최대횟수: Number($('rpSetMaxCnt').value), 자동확인: $('rpSetAuto').checked,
               대상학년: qa('#rpSetGrades input:checked').map(function (i) { return Number(i.value); }),
               짝체크: $('rpSetPeer').checked, 짝사진: $('rpSetPeerPhoto').checked, 짝사진보관: $('rpSetPeerKeep').value,
-              종류사용: $('rpSetTypeOn').checked, 종류: $('rpSetTypes').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean) };
+              종류사용: $('rpSetTypeOn').checked, 종류: $('rpSetTypes').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean),
+              판정기주소: $('rpSetCamUrl').value.trim(), 판정기최소: Number($('rpSetCamMin').value) || 10 };
     var k = $('rpSetGemini').value.trim();
     if (k === '삭제') m.geminiKey = ''; else if (k) m.geminiKey = k;
     setStatus('rpSetStatus', '저장 중…');

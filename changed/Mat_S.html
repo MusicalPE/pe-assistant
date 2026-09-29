@@ -128,10 +128,11 @@ MODS.MAT.student = (function () {
     $('msKpis').innerHTML = kpiTile('총 운동 시간', 시간표시(y.총시간), '', 'clock', 'brand') + kpiTile('함께 뛴 시간', 시간표시(y.함께.시간), '', 'users', 'coral') +
       kpiTile('연습 시간', 시간표시(y.연습.시간), '', 'user', 'violet') + kpiTile('받은 배지', y.배지수, '개', 'award', 'sun');
     var on = D.설정.게임;
+    var 그림수 = (D.그림 || []).length;
     $('msCards').innerHTML = list.filter(function (g) { return on.indexOf(g.id) >= 0; }).map(function (g) {
       var n = y.게임별[g.id] || 0;
       return '<button class="gcard' + (g.featured ? ' feat' : '') + '" data-game="' + g.id + '">' + (g.featured ? '<span class="ftag">처음이라면 여기부터</span>' : '') + '<div class="top"><h4>' + esc(g.name) + '</h4>' + MATGAME.glyph(g.id) + '</div><p>' + esc(g.desc) + '</p>' +
-        '<div class="meta"><span>' + esc(g.grade) + '</span><span>' + esc(g.dur) + '</span>' + (n ? '<span class="cnt">' + n + '번 했어요</span>' : '') + '</div></button>';
+        '<div class="meta"><span>' + esc(g.grade) + '</span><span>' + esc(g.dur) + '</span>' + (g.id === 'assoc' && 그림수 ? '<span>우리 반 그림 ' + 그림수 + '장</span>' : '') + (n ? '<span class="cnt">' + n + '번 했어요</span>' : '') + '</div></button>';
     }).join('') || '<div class="empty"><i class="ti ti-layout-grid"></i><strong>지금은 할 수 있는 게임이 없어요</strong>선생님이 게임을 켜 주면 여기에 나와요.</div>';
     qa('[data-game]').forEach(function (b) { b.onclick = function () { openGame(b.getAttribute('data-game')); }; });
     $('msPeerNote').classList.toggle('hide', !list.length);
@@ -165,7 +166,25 @@ MODS.MAT.student = (function () {
       qa('[data-peer]', ex).forEach(function (x) { x.classList.toggle('on', x === b); });
     }; });
   }
+  /* 우리 반 그림(연상 점프): 게임을 열기 직전에 그림 데이터를 받아 엔진에 넣음 (이름·색은 boot 에, 그림은 따로) */
+  function loadPics(then) {
+    var meta = D.그림 || [];
+    if (!meta.length) { MATGAME.setPics([]); then(); return; }
+    toast('그림을 불러오는 중…');
+    api('mat_s_getPics', TOKEN).then(function (data) {
+      var names = MATGAME.COLORS.map(function (c) { return c.short; });
+      MATGAME.setPics(meta.map(function (p) {
+        return { id: p.id, name: p.이름, cs: (p.색 || []).map(function (n) { return names.indexOf(n); }).filter(function (i) { return i >= 0; }), src: (data || {})[p.파일ID] || '' };
+      }));
+      then();
+    }).catch(function (e) { G.loadingPics = false; toast('그림을 불러오지 못했어요. ' + (e && e.message ? e.message : ''), 'warn'); });
+  }
   function openGame(id) {
+    if (id === 'assoc' && window.MATGAME && (D.그림 || []).length) { if (G.loadingPics) return; G.loadingPics = true; loadPics(function () { G.loadingPics = false; openGame2(id); }); return; }
+    if (id === 'assoc' && window.MATGAME) MATGAME.setPics([]);
+    openGame2(id);
+  }
+  function openGame2(id) {
     if (!window.MATGAME) { toast('게임 화면을 불러오지 못했어요. ' + (window.MATGAME_ERROR ? '(' + String(window.MATGAME_ERROR).split('\n')[0] + ')' : 'Mat_Game.html 파일이 빠졌거나 덜 붙여넣어졌는지 확인해 주세요.'), 'warn'); return; }
     G.id = id; G.player = null; G.lastSum = null;
     if (D.설정.짝방식 === '교사') G.peer = D.짝 ? { 학생ID: D.짝.짝ID, 이름: D.짝.짝이름 } : null;

@@ -1,6 +1,6 @@
 <!-- 색깔 매트 놀이터 · 게임 엔진 (모듈 MAT, 학생·교사 공용). 단독판 "색깔 매트 놀이터"의 게임 코드를 오버레이(#matOverlay) 안에서 돌게 옮긴 것입니다.
      앱 쪽 연결: MATGAME.open(게임id, { extraHTML, onOpen, validate, onStart, onUnit, onEnd, onExit, onAgain, peer, peerName, peerSec, noSkip, hideOptions, confirmExit })
-                MATGAME.setBank(문제들) · MATGAME.setPeer(on, 이름) · MATGAME.doneHTML(html) · MATGAME.list() · MATGAME.glyph(id)
+                MATGAME.setBank(문제들) · MATGAME.setPics(그림들) · MATGAME.setPeer(on, 이름) · MATGAME.doneHTML(html) · MATGAME.list() · MATGAME.glyph(id)
      기록 훅: 게임이 지시를 하나 낼 때마다 api.jump(), 단계·라운드가 끝날 때 api.unit() → 짝 확인 버튼 → onUnit(단계, 요약) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap">
 <style>
@@ -206,6 +206,27 @@
   .s-lava{flex-direction:column;gap:2.2vh}
 #matOverlay .lv-title{font-family:var(--display);font-size:clamp(30px,7.5vh,90px);line-height:1;white-space:nowrap}
 #matOverlay .s-lava.nomap .lv-title{font-size:clamp(44px,15vh,170px)}
+#matOverlay .s-pics{flex-direction:column;gap:1.4vh;justify-content:center}
+#matOverlay .pcwrap{display:flex;flex-direction:column;align-items:center;gap:.8vh;max-width:92vw}
+#matOverlay .pcimg{height:min(36vh,60vw);max-width:92vw;object-fit:contain;border-radius:2vh;background:var(--panel);display:block;transition:height .25s}
+#matOverlay .s-pics.reveal .pcimg{height:min(22vh,40vw)}
+#matOverlay .pcname{font-family:var(--display);font-size:clamp(24px,4.6vh,56px);line-height:1;min-height:1em}
+#matOverlay .s-pics .qrow{min-height:2.4vh}
+#matOverlay .s-pics .mat4{width:min(24vh,50vw);transition:width .25s}
+#matOverlay .s-pics.reveal .mat4{width:min(34vh,60vw)}
+#matOverlay .s-pics .qans{text-align:center;max-width:92vw}
+#matOverlay .s-pics.reveal .qans{color:var(--ink);font-size:clamp(22px,4.2vh,48px)}
+#matOverlay .s-pics .qans.tapme{color:var(--ink);background:var(--panel2);border-radius:99px;padding:.3em 1em}
+#matOverlay .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:10px}
+#matOverlay .pcard{background:var(--ground);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px}
+#matOverlay .pcard img{width:100%;aspect-ratio:4/3;object-fit:contain;background:var(--panel2);border-radius:7px;display:block}
+#matOverlay .pcard input[type=text]{font:inherit;font-size:14px;font-weight:700;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 7px;width:100%;min-width:0}
+#matOverlay .pcard .cchips{display:flex;gap:4px}
+#matOverlay .pcard .cchips label{flex:1;height:26px;border-radius:6px;background:var(--pc);opacity:.28;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#15130a}
+#matOverlay .pcard .cchips label.on{opacity:1;outline:2px solid var(--ink);outline-offset:1px}
+#matOverlay .pcard .cchips input{position:absolute;opacity:0;width:0;height:0}
+#matOverlay .pcard .prow{display:flex;justify-content:flex-end}
+#matOverlay .pcard .prow button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer}
 #matOverlay .lv-note{font-family:var(--display);font-size:clamp(22px,4.6vh,56px);line-height:1;color:var(--muted)}
 #matOverlay .s-lava .mat4{width:min(56vh,72vw)}
 #matOverlay .lv-mat i.safe{opacity:1}
@@ -359,7 +380,7 @@ try {
   const POS = []; MAT.forEach((c,p)=>POS[c]=p);
   const OV = document.getElementById('matOverlay');
   const $ = id => document.getElementById(id);
-  const H = { hooks: {}, bank: [] };   // 앱이 꽂는 훅과 문제 은행
+  const H = { hooks: {}, bank: [], pics: [] };   // 앱이 꽂는 훅과 문제 은행·우리 반 그림
   const rnd = n => Math.floor(Math.random()*n);
   const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];} return a; };
   const fmt = s => { s=Math.max(0,Math.ceil(s)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
@@ -496,8 +517,8 @@ try {
   let memTracks=[];
   const TrackDB={db:null,
     open(){ if(this.db) return Promise.resolve(this.db);
-      return new Promise((res,rej)=>{ const r=indexedDB.open('matpg',1);
-        r.onupgradeneeded=()=>r.result.createObjectStore('tracks',{keyPath:'id',autoIncrement:true});
+      return new Promise((res,rej)=>{ const r=indexedDB.open('matpg',2);
+        r.onupgradeneeded=()=>{ const d=r.result; if(!d.objectStoreNames.contains('tracks')) d.createObjectStore('tracks',{keyPath:'id',autoIncrement:true}); if(!d.objectStoreNames.contains('pics')) d.createObjectStore('pics',{keyPath:'id',autoIncrement:true}); };
         r.onsuccess=()=>{ this.db=r.result; res(r.result); }; r.onerror=()=>rej(r.error); }); },
     async all(){ try{ const db=await this.open(); const list=await new Promise((res,rej)=>{ const q=db.transaction('tracks').objectStore('tracks').getAll(); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); return list.concat(memTracks); }catch(e){ return memTracks.slice(); } },
     async add(file){ try{ const db=await this.open(); await new Promise((res,rej)=>{ const tx=db.transaction('tracks','readwrite'); tx.objectStore('tracks').add({name:file.name,blob:file}); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }
@@ -687,7 +708,7 @@ try {
     E.style=bgm==='random'?['party','march','kids','electro'][rnd(4)]:bgm==='dance'?'party':STYLES[bgm]?bgm:'party';
     if(soundOn){ try{ initAudio(); }catch(e){ soundOn=false; musicOn=false; } }
     cancelAnimationFrame(E.raf); music.stop();
-    $('mgPlay').classList.remove('fullbleed'); body.innerHTML=''; body.className=''; api.hideBanner(); api.chip('');
+    $('mgPlay').classList.remove('fullbleed'); body.innerHTML=''; body.className=''; body.onclick=null; api.hideBanner(); api.chip('');
     $('mgHudR').textContent=''; $('mgPaused').hidden=true; E.paused=false; $('mgPauseBtn').textContent='멈춤';
     E.played=0; E.units=[]; E.uStart=0; E.uJumps=0; E.jumps=0; E.pending=null; clearTimeout(E.peerTimer); $('mgPeerBtn').hidden=true; E.startedAt=new Date();
     E.game=def.create(opts,api);
@@ -1153,6 +1174,58 @@ try {
     return String(txt||'').split(/\n/).map(l=>l.split(/[\/|]/).map(s=>s.trim()).filter(Boolean)).filter(r=>r.length>=3).map(r=>r.slice(0,5));
   }
 
+  // 연상 점프 — "우리 반 그림": 그림 보고 점프 → 정답 확인 → 다음 그림
+  function createPics(o,api){
+      let list=o.order==='reg'?H.pics.slice():shuffle(H.pics); if(o.count!=='all') list=list.slice(0,+o.count);
+      const N=list.length, think=+o.think||6, tap=o.pace==='tap', REVEAL=3;
+      api.body.className='s-pics';
+      api.body.innerHTML='<div class="pcwrap"><img class="pcimg" alt=""><div class="pcname"></div></div><div class="qrow"><div class="qtimer"><i></i></div><div class="qsec"></div></div>';
+      const img=api.body.querySelector('.pcimg'), nameEl=api.body.querySelector('.pcname'), bar=api.body.querySelector('.qtimer i'), row=api.body.querySelector('.qrow'), qsec=api.body.querySelector('.qsec');
+      const mat=makeMat(); api.body.appendChild(mat.el);
+      const qans=document.createElement('div'); qans.className='qans'; api.body.appendChild(qans);
+      row.hidden=tap;
+      api.segments(Math.min(N,20)); api.chip(tap?'그림 보고 점프 → 화면 눌러 정답 확인':'그림을 보고 떠오르는 색 칸으로 점프');
+      let qi=-1, phase='', p0=0, lastSec=-1;
+      const names=cs=>cs.map(c=>COLORS[c].short).join('·');
+      function load(i,T){
+        qi=i; phase='think'; p0=T; lastSec=-1; const p=list[i];
+        api.body.classList.remove('reveal'); img.src=p.src; nameEl.textContent=o.name==='hide'?'':p.name;
+        mat.show(null); bar.style.width='100%'; qsec.textContent='';
+        qans.textContent=tap?'점프했으면 화면을 톡 눌러 정답을 봐요':''; qans.classList.toggle('tapme',tap);
+        api.hud(`${i+1}번`,'/ '+N); api.pop(img); api.tick(); api.jump(p.cs.length>1?2:1);
+      }
+      function reveal(T){
+        phase='reveal'; p0=T; const p=list[qi];
+        api.body.classList.add('reveal'); nameEl.textContent=p.name;
+        mat.show(p.cs.map(c=>({c,label:'여기!'})));
+        qans.textContent=`정답은 ${names(p.cs)} 칸!`+(p.cs.length>1?' (두 발로 두 칸)':'')+(tap?' — 한 번 더 누르면 다음 그림':'');
+        qans.classList.toggle('tapme',tap); api.colorTone(p.cs[0]); api.chime();
+      }
+      function next(T){
+        if((qi+1)%5===0 || qi+1>=N) api.unit();
+        if(qi+1>=N) return api.finish('그림 끝!',`${N}장을 모두 봤어요. 정답 칸에 많이 서 있었나요?`);
+        load(qi+1,T);
+      }
+      api.body.onclick=()=>{ if(!tap||!E.running||E.phase!=='run'||E.paused) return; if(phase==='think') reveal(E.T); else if(phase==='reveal') next(E.T); };
+      return {
+        bpmAt:()=>92, intensityAt:()=>0, musicStyle:'calm',
+        readyNote:'매트 위에서 그림을 기다려요!',
+        begin(){ load(0,0); },
+        update(T){
+          const el=T-p0;
+          if(phase==='think'){
+            if(!tap){ const left=think-el; bar.style.width=(Math.max(0,left/think)*100).toFixed(1)+'%';
+              const s=Math.ceil(left); if(s!==lastSec){ lastSec=s; qsec.textContent=s>0?s:''; if(s>0&&s<=3) api.beep(990,0.06,0.14,'square'); }
+              if(left<=0) reveal(T); }
+          } else if(phase==='reveal' && !tap && el>=REVEAL){ next(T); }
+          api.right(`남은 그림 ${N-qi-1}`);
+          const seg=Math.min(19,Math.floor(qi*Math.min(N,20)/N));
+          api.progress(seg, phase==='think'?(tap?0.4:el/think*0.8):0.9);
+        },
+        skip(d){ const i=qi+d; if(i>=N) return api.finish('그림 끝!',`${N}장을 모두 봤어요.`); load(Math.max(0,i),E.T); }
+      };
+    }
+
   // ================= 게임 6: 연상 점프 =================
   const ITEMS=[
     ['🍌','바나나',0],['🐥','병아리',0],['🌻','해바라기',0],['🍋','레몬',0],['🌽','옥수수',0],['🧀','치즈',0],['⭐','별',0],
@@ -1168,14 +1241,22 @@ try {
   ];
   const ASSOC={
     id:'assoc', name:'연상 점프', grade:'1~2학년 추천', dur:'4분', lit:[0,2],
-    desc:'글씨 대신 그림이 나와요. 바나나를 보면 노랑, 개구리를 보면 초록처럼 떠오르는 색 칸을 밟아요.',
-    how:['글을 아직 잘 못 읽는 친구도 할 수 있어요.','8단계 × 30초. 단계가 오를수록 그림이 빨리 바뀌고 작아져요.','어려움에서는 그림 2개가 동시에 나와서 두 발로 두 칸을 밟아요.','"두 가지 색 물건"을 넣으면 수박(초록+빨강)처럼 색이 둘인 물건이 나와요. 그때는 두 발로 두 칸!'],
+    desc:'글씨 대신 그림이 나와요. 바나나를 보면 노랑, 개구리를 보면 초록처럼 떠오르는 색 칸을 밟아요. 선생님이 넣은 우리 반 사진으로도 할 수 있어요.',
+    how:['글을 아직 잘 못 읽는 친구도 할 수 있어요.','"우리 반 그림"을 고르면 선생님이 올린 우리 반 사진이 나와요. 그림 보고 점프 → 정답 칸 확인 → 다음 그림 순서로, 자동으로 넘기거나 짝이 화면을 눌러 넘겨요.','8단계 × 30초. 단계가 오를수록 그림이 빨리 바뀌고 작아져요.','어려움에서는 그림 2개가 동시에 나와서 두 발로 두 칸을 밟아요.','"두 가지 색 물건"을 넣으면 수박(초록+빨강)처럼 색이 둘인 물건이 나와요. 그때는 두 발로 두 칸!'],
     options:[
-      {id:'diff',label:'난이도',choices:[['easy','쉬움 (매트에 칸 표시)'],['normal','보통'],['hard','어려움 (2개 동시)']],def:'easy'},
-      {id:'speed',label:'전체 속도',choices:[['1.25','천천히'],['1','보통'],['0.8','빠르게']],def:'1'},
-      {id:'multi',label:'두 가지 색 물건',choices:[['off','안 넣기'],['on','넣기 (수박 → 초록+빨강, 두 발로 두 칸)']],def:'off'},
+      {id:'src',label:'그림 종류',choices:[['emoji','기본 그림 (바나나·개구리…)'],['mine','우리 반 그림 (선생님이 올린 사진)']],def:'emoji'},
+      {id:'diff',label:'난이도',choices:[['easy','쉬움 (매트에 칸 표시)'],['normal','보통'],['hard','어려움 (2개 동시)']],def:'easy',showIf:['src','emoji']},
+      {id:'speed',label:'전체 속도',choices:[['1.25','천천히'],['1','보통'],['0.8','빠르게']],def:'1',showIf:['src','emoji']},
+      {id:'multi',label:'두 가지 색 물건',choices:[['off','안 넣기'],['on','넣기 (수박 → 초록+빨강, 두 발로 두 칸)']],def:'off',showIf:['src','emoji']},
+      {id:'pace',label:'진행',choices:[['auto','자동으로 넘기기'],['tap','화면을 눌러 넘기기 (짝·선생님)']],def:'auto',showIf:['src','mine']},
+      {id:'think',label:'생각 시간',choices:[['4','4초'],['6','6초'],['8','8초']],def:'6',showIf:['src','mine'],help:'자동으로 넘길 때 그림을 보고 뛰는 시간이에요. 정답은 3초 동안 보여 줘요.'},
+      {id:'count',label:'그림 수',choices:[['10','10장'],['20','20장'],['all','전부']],def:'all',showIf:['src','mine']},
+      {id:'order',label:'순서',choices:[['shuffle','섞기'],['reg','올린 순서']],def:'shuffle',showIf:['src','mine']},
+      {id:'name',label:'그림 이름',choices:[['show','같이 보이기'],['hide','정답 때만 보이기']],def:'show',showIf:['src','mine']},
     ],
+    validate(o){ return o.src==='mine'&&!H.pics.length?'선생님이 아직 우리 반 그림을 올리지 않았어요. "기본 그림"으로 해 주세요.':''; },
     create(o,api){
+      if(o.src==='mine') return createPics(o,api);
       const GAPS=[3.6,3.2,2.9,2.6,2.3,2.0,1.8,1.6], LS=30, NL=8, BN=2.5, TOTAL=NL*LS, speed=+o.speed;
       const POOL=(o.multi==='on'?ITEMS.concat(ITEMS2):ITEMS).map(it=>({e:it[0],n:it[1],cs:Array.isArray(it[2])?it[2]:[it[2]]}));
       const easy=o.diff==='easy', two=o.diff==='hard', lvAt=t=>Math.min(NL-1,Math.floor(t/LS));
@@ -1465,7 +1546,7 @@ try {
   const GAMES=[BASIC,STROOP,MEMORY,RHYTHM,DIRGAME,QUIZ,ASSOC,TWIST,FREEZE,LAVA];
   // 기록에 적을 난이도 이름
   const LEVEL_KEY={basic:'diff',stroop:'mode',memory:'diff',rhythm:'diff',dir:'diff',quiz:'set',assoc:'diff',twist:'diff',freeze:'diff',lava:'diff'};
-  GAMES.forEach(g=>{ g.levelOf=o=>{ const op=g.options.find(x=>x.id===LEVEL_KEY[g.id]); if(!op) return ''; const c=op.choices.find(c=>String(c[0])===String(o[op.id])); let s=c?c[1].replace(/\s*\(.*$/,''):''; if(g.id==='quiz'&&o.mlevel&&/add|times|muldiv/.test(o.set)) s+=' '+['','쉬움','보통','어려움'][+o.mlevel]; if(g.id==='stroop'&&o.easy==='on') s+=' · 이지'; return s; }; });
+  GAMES.forEach(g=>{ g.levelOf=o=>{ if(g.id==='assoc'&&o.src==='mine') return '우리 반 그림'; const op=g.options.find(x=>x.id===LEVEL_KEY[g.id]); if(!op) return ''; const c=op.choices.find(c=>String(c[0])===String(o[op.id])); let s=c?c[1].replace(/\s*\(.*$/,''):''; if(g.id==='quiz'&&o.mlevel&&/add|times|muldiv/.test(o.set)) s+=' '+['','쉬움','보통','어려움'][+o.mlevel]; if(g.id==='stroop'&&o.easy==='on') s+=' · 이지'; return s; }; });
   const SOUND_OPT={id:'snd',label:'소리',choices:[['music','음악 + 효과음'],['fx','효과음만'],['off','끄기']],def:'music'};
   // 게임별 배경 음악 선택지 — 리듬 스텝은 박자를 맞춰야 해서 기본 음악만, 퀴즈·트위스터는 잔잔한 음악이 기본
   function musicOpts(g){
@@ -1598,7 +1679,7 @@ try {
   function list(){ return GAMES.map(g=>({id:g.id,name:g.name,grade:g.grade,dur:g.dur,desc:g.desc,how:g.how,lit:g.lit,featured:!!g.featured})); }
   const glyph=g=>`<span class="mat4 glyph mg-glyph" aria-hidden="true">${MAT.map(c=>`<i style="--c:${COLORS[c].hex}" class="${g.lit.includes(c)?'':'off'}"></i>`).join('')}</span>`;
   window.MATGAME={ open, close:toHub, setPeer, doneHTML, list, glyph:(id)=>{ const g=GAMES.find(x=>x.id===id); return g?glyph(g):''; },
-    setBank:(rows)=>{ H.bank=Array.isArray(rows)?rows:[]; }, isOpen:()=>!OV.classList.contains('hide'), running:()=>E.running,
+    setBank:(rows)=>{ H.bank=Array.isArray(rows)?rows:[]; }, setPics:(rows)=>{ H.pics=(Array.isArray(rows)?rows:[]).filter(p=>p&&p.src&&Array.isArray(p.cs)&&p.cs.length); }, picsCount:()=>H.pics.length, isOpen:()=>!OV.classList.contains('hide'), running:()=>E.running,
     COLORS, MAT, QGEN, PE_QUIZ, summary:()=>summary(false),
     _advance:(sec)=>{ if(E.running&&E.phase==='run'){ E.T+=sec; E.played+=sec; } } };   // 시험용: 게임 시간을 앞으로
 })();

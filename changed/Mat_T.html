@@ -37,6 +37,19 @@
 #mat_T .lcard h4{margin:0;font-size:16px;font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:8px;}
 #mat_T .lcard p{margin:0;font-size:12.5px;color:var(--ink-2);line-height:1.5;font-weight:500;}
 #mat_T .chks label.chk{display:inline-flex;}
+#mat_T .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;}
+#mat_T .pcard{border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:10px;display:flex;flex-direction:column;gap:8px;}
+#mat_T .pcard.busy{opacity:.55;pointer-events:none;}
+#mat_T .pcard .th{width:100%;aspect-ratio:4/3;object-fit:contain;background:var(--soft);border-radius:10px;display:block;}
+#mat_T .pcard input.text{width:100%;font-size:13.5px;padding:6px 8px;}
+#mat_T .pcard .cchips{display:flex;gap:4px;flex-wrap:wrap;}
+#mat_T .pcard .cchips label{display:inline-flex;align-items:center;gap:4px;padding:3px 8px 3px 5px;border:1.5px solid var(--line);border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:var(--ink-2);}
+#mat_T .pcard .cchips label.on{border-color:var(--ink);color:var(--ink);background:var(--soft);}
+#mat_T .pcard .cchips input{position:absolute;opacity:0;width:0;height:0;}
+#mat_T .pcard .cchips i{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--pc);}
+#mat_T .pcard .prow{display:flex;gap:6px;align-items:center;justify-content:space-between;font-size:12px;color:var(--ink-3);}
+#mat_T .pdrop{border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--ink-2);background:var(--soft);cursor:pointer;}
+#mat_T .pdrop.over{border-color:var(--accent);background:var(--accent-soft);}
 </style>
 
 <div class="mroot hide" data-mod="MAT" data-role="T" id="mat_T">
@@ -45,6 +58,7 @@
   <div class="page hide" id="mat_tp_pairs"><div id="mtPgPairs"></div></div>
   <div class="page hide" id="mat_tp_lesson"><div id="mtPgLesson"></div></div>
   <div class="page hide" id="mat_tp_bank"><div id="mtPgBank"></div></div>
+  <div class="page hide" id="mat_tp_pics"><div id="mtPgPics"></div></div>
   <div class="page hide" id="mat_tp_settings"><div id="mtPgSettings"></div></div>
   <div id="mtModalRoot"></div>
 </div>
@@ -54,7 +68,7 @@
 MODS.MAT = MODS.MAT || {};
 MODS.MAT.teacher = (function () {
   var B = null, BOOTP = null;
-  var pages = ['dash', 'stats', 'pairs', 'lesson', 'bank', 'settings'];
+  var pages = ['dash', 'stats', 'pairs', 'lesson', 'bank', 'pics', 'settings'];
   var nav = [
     { section: '색깔 매트 놀이터' },
     { id: 'dash', label: '학급 현황', icon: 'chart-bar' },
@@ -62,10 +76,11 @@ MODS.MAT.teacher = (function () {
     { id: 'pairs', label: '짝 배정', icon: 'users' },
     { id: 'lesson', label: '수업 모드', icon: 'device-projector' },
     { id: 'bank', label: '퀴즈 문제 은행', icon: 'bulb' },
+    { id: 'pics', label: '우리 반 그림', icon: 'photo' },
     { id: 'settings', label: '매트 설정', icon: 'adjustments' }
   ];
   var ROOT = $('mat_T');
-  var SEL = { g: 0, c: 0 }, PAIRS = null, BANK = { 상태: '대기', list: null }, LESSON = { g: 0, c: 0, sum: null, 제외: {} };
+  var SEL = { g: 0, c: 0 }, PAIRS = null, BANK = { 상태: '대기', list: null }, PICS = { list: null, data: {}, pending: [] }, LESSON = { g: 0, c: 0, sum: null, 제외: {} };
   function qa(sel, root) { return Array.prototype.slice.call((root || ROOT).querySelectorAll(sel)); }
   function P(id) { return $('mtPg' + id); }
   function 시간표시(초) { 초 = Math.round(초 || 0); var m = Math.floor(초 / 60), s = 초 % 60; if (m >= 60) return Math.floor(m / 60) + '시간 ' + (m % 60) + '분'; return m ? m + '분' + (s ? ' ' + s + '초' : '') : s + '초'; }
@@ -75,14 +90,14 @@ MODS.MAT.teacher = (function () {
   function studentsOf(g, c) { return roster().filter(function (s) { return Number(s.학년) === Number(g) && Number(s.반) === Number(c); }).sort(function (a, b) { return a.번호 - b.번호; }); }
 
   function init(ctx) { B = null; PAIRS = null; BANK.list = null; boot(null); }
-  function reset() { B = null; BOOTP = null; PAIRS = null; BANK.list = null; LESSON = { g: 0, c: 0, sum: null, 제외: {} }; if (window.MATGAME && MATGAME.isOpen()) MATGAME.close(); }
+  function reset() { B = null; BOOTP = null; PAIRS = null; BANK.list = null; PICS = { list: null, data: {}, pending: [] }; LESSON = { g: 0, c: 0, sum: null, 제외: {} }; if (window.MATGAME && MATGAME.isOpen()) MATGAME.close(); }
   function boot(then) {
     if (!BOOTP) BOOTP = api('mat_t_boot', TOKEN).then(function (b) { B = b; BOOTP = null; setNavCount('MAT', 'bank', b.문제수.대기); if (window.MATGAME) MATGAME.setBank(b.문제 || []); }, function (e) { BOOTP = null; throw e; });
     BOOTP.then(function () { if (then) then(); }).catch(handleErr);
   }
   function show(p) {
     pages.forEach(function (id) { $('mat_tp_' + id).classList.toggle('hide', id !== p); });
-    var fn = { dash: renderDash, stats: renderStats, pairs: renderPairs, lesson: renderLesson, bank: renderBank, settings: renderSettings }[p];
+    var fn = { dash: renderDash, stats: renderStats, pairs: renderPairs, lesson: renderLesson, bank: renderBank, pics: renderPics, settings: renderSettings }[p];
     if (!fn) return;
     if (!B) { boot(fn); return; }
     fn();
@@ -260,7 +275,19 @@ MODS.MAT.teacher = (function () {
     };
   }
   function nowStr() { var d = new Date(), p = function (n) { return ('0' + n).slice(-2); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+  /* 우리 반 그림을 엔진에 넣기 (수업 모드·미리 보기) */
+  function picsToEngine(list, data) {
+    var names = MATGAME.COLORS.map(function (c) { return c.short; });
+    MATGAME.setPics((list || []).map(function (p) { return { id: p.id, name: p.이름, cs: (p.색 || []).map(function (n) { return names.indexOf(n); }).filter(function (i) { return i >= 0; }), src: (data || {})[p.파일ID] || '' }; }));
+  }
+  function withPics(then) {
+    if (PICS.list) { picsToEngine(PICS.list, PICS.data); then(); return; }
+    toast('그림을 불러오는 중…');
+    api('mat_t_getPics', TOKEN).then(function (r) { PICS.list = r.그림; PICS.data = r.데이터; picsToEngine(PICS.list, PICS.data); then(); }).catch(handleErr);
+  }
   function openLesson(id) {
+    if (id === 'assoc' && window.MATGAME && (B.그림 || []).length && !PICS.list) { withPics(function () { openLesson(id); }); return; }
+    if (id === 'assoc' && window.MATGAME) picsToEngine(PICS.list || [], PICS.data);
     var startedAt = '';
     if (!window.MATGAME) { toast('게임 화면을 불러오지 못했어요. ' + (window.MATGAME_ERROR ? '(' + String(window.MATGAME_ERROR).split('\n')[0] + ')' : 'Mat_Game.html 파일이 빠졌거나 덜 붙여넣어졌는지 확인해 주세요.'), 'warn'); return; }
     MATGAME.setBank(B.문제 || []);
@@ -352,6 +379,127 @@ MODS.MAT.teacher = (function () {
       setStatus('mtQStatus', '저장 중…');
       api('mat_t_setQuestion', TOKEN, q.id, patch).then(function () { closeModal(); toast('저장했습니다.'); refreshCounts(function () { renderBank(); }); }).catch(function (e) { setStatus('mtQStatus', (e && e.message) || String(e), 'err'); });
     };
+  }
+
+  /* ================= 우리 반 그림 (연상 점프 → 그림 종류 → 우리 반 그림) ================= */
+  var PIC_HEX = { '노랑': '#FFD21F', '초록': '#2FC653', '파랑': '#4C88FF', '빨강': '#F2392F' };
+  function picChips(sel, attr) {
+    return '<div class="cchips">' + B.색이름.map(function (c) { var on = sel.indexOf(c) >= 0; return '<label class="' + (on ? 'on' : '') + '" style="--pc:' + PIC_HEX[c] + '"><input type="checkbox" ' + attr + ' value="' + c + '"' + (on ? ' checked' : '') + '><i></i>' + c + '</label>'; }).join('') + '</div>';
+  }
+  function chipsOf(root) { return qa('input:checked', root).map(function (i) { return i.value; }); }
+  /* 체크 2개까지. 세 번째를 고르면 가장 먼저 고른 것을 풀어 줌 */
+  function bindChips(root, onChange) {
+    qa('input', root).forEach(function (i) { i.onchange = function () {
+      var on = qa('input:checked', root); if (on.length > 2) { on[0].checked = false; }
+      qa('input', root).forEach(function (x) { x.parentNode.classList.toggle('on', x.checked); });
+      if (onChange) onChange(chipsOf(root));
+    }; });
+  }
+  /* 파일 → 640px JPEG data URL (사진이 커도 시트·드라이브에 가볍게) */
+  function shrinkImage(file) {
+    return new Promise(function (res, rej) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var MAX = 640, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, MAX / Math.max(w, h));
+        var cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(w * k)); cv.height = Math.max(1, Math.round(h * k));
+        var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(img, 0, 0, cv.width, cv.height);
+        URL.revokeObjectURL(url);
+        var q = 0.82, out = cv.toDataURL('image/jpeg', q);
+        while (out.length > 380 * 1024 && q > 0.4) { q -= 0.1; out = cv.toDataURL('image/jpeg', q); }
+        res(out);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('그림 파일을 열지 못했어요: ' + file.name)); };
+      img.src = url;
+    });
+  }
+  function renderPics() {
+    var box = P('Pics');
+    box.innerHTML = '<div class="page-head"><h2>우리 반 그림</h2><span class="sub"><b>연상 점프</b>의 "그림 종류 → 우리 반 그림"에 나올 그림입니다. 그림을 올리고 <b>떠오르는 색</b>을 하나나 둘 고르면, 학생과 선생님이 연상 점프 설정에서 우리 반 그림을 고를 수 있어요. 그림이 나오면 아이들이 그 색 칸으로 점프하고, 정답 칸이 밝아진 뒤 다음 그림으로 넘어가요.</span></div>' +
+      '<div class="note"><i class="ti ti-bulb"></i><div>급식 사진, 교실 물건, 우리 학교 풍경, AI로 만든 그림 등 무엇이든 좋아요. 사진은 640px 로 줄여 올라가고(한 장 100KB 안팎), 구글 드라이브의 <b>색깔 매트 놀이터 그림</b> 폴더에 저장됩니다. 최대 60장.</div></div>' +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-photo-plus"></i>그림 올리기</h3><span class="unit" id="mtPUnit"></span></div><div class="panel-body">' +
+        '<div class="pdrop" id="mtPDrop"><i class="ti ti-upload"></i> 여기를 눌러 그림 파일을 고르거나, 파일을 끌어다 놓으세요 (여러 장 가능)<input type="file" id="mtPFile" accept="image/*" multiple hidden></div>' +
+        '<div class="pgrid" id="mtPPending" style="margin-top:10px"></div>' +
+        '<div class="savebar hide" id="mtPBar" style="padding:8px 0 0;border:0;position:static"><span class="status" id="mtPStatus"></span><div class="spacer"></div><button class="ghost" id="mtPClear">비우기</button><button id="mtPUp"><i class="ti ti-cloud-upload"></i>모두 올리기</button></div>' +
+      '</div></div>' +
+      '<div class="panel"><div class="panel-head"><h3><i class="ti ti-photo"></i>올린 그림</h3><span class="unit" id="mtPCount"></span><div class="spacer"></div><button class="mini soft" id="mtPTry"><i class="ti ti-player-play"></i>미리 해 보기</button></div><div class="panel-body">' +
+        '<div class="pgrid" id="mtPList"></div><div class="empty hide" id="mtPEmpty"><i class="ti ti-photo-off"></i><strong>아직 올린 그림이 없어요</strong>위에서 그림을 올려 보세요.</div>' +
+      '</div></div>';
+    var drop = $('mtPDrop'), file = $('mtPFile');
+    drop.onclick = function () { file.click(); };
+    drop.ondragover = function (e) { e.preventDefault(); drop.classList.add('over'); };
+    drop.ondragleave = function () { drop.classList.remove('over'); };
+    drop.ondrop = function (e) { e.preventDefault(); drop.classList.remove('over'); addPending(e.dataTransfer.files); };
+    file.onchange = function () { addPending(file.files); file.value = ''; };
+    $('mtPClear').onclick = function () { PICS.pending = []; paintPending(); };
+    $('mtPUp').onclick = uploadPending;
+    $('mtPTry').onclick = function () { if (!(PICS.list || []).length) { toast('먼저 그림을 올려 주세요.', 'warn'); return; } openLesson('assoc'); toast('연상 점프 설정에서 "그림 종류 → 우리 반 그림"을 고르세요.'); };
+    paintPending(); loadPicList();
+  }
+  function addPending(files) {
+    var arr = Array.prototype.slice.call(files || []).filter(function (f) { return /^image\//.test(f.type); });
+    if (!arr.length) { toast('그림 파일(jpg·png)을 골라 주세요.', 'warn'); return; }
+    var room = 60 - ((PICS.list || []).length + PICS.pending.length);
+    if (arr.length > room) { toast('그림은 60장까지예요. ' + Math.max(0, room) + '장만 더 넣을 수 있어요.', 'warn'); arr = arr.slice(0, Math.max(0, room)); }
+    arr.forEach(function (f) {
+      var it = { name: f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').slice(0, 30), 색: [], src: '', busy: true };
+      PICS.pending.push(it);
+      shrinkImage(f).then(function (src) { it.src = src; it.busy = false; paintPending(); }).catch(function (e) { PICS.pending.splice(PICS.pending.indexOf(it), 1); toast(e.message, 'warn'); paintPending(); });
+    });
+    paintPending();
+  }
+  function paintPending() {
+    var g = $('mtPPending'); if (!g) return;
+    g.innerHTML = PICS.pending.map(function (it, i) {
+      return '<div class="pcard' + (it.busy ? ' busy' : '') + '" data-pp="' + i + '">' + (it.src ? '<img class="th" src="' + it.src + '" alt="">' : '<div class="th"></div>') +
+        '<input type="text" class="text" data-pname maxlength="30" placeholder="그림 이름 (예: 바나나)" value="' + esc(it.name) + '">' + picChips(it.색, 'data-pc') +
+        '<div class="prow"><span>떠오르는 색 1~2개</span><button class="mini ghost" data-prm="' + i + '"><i class="ti ti-x"></i>빼기</button></div></div>';
+    }).join('');
+    $('mtPBar').classList.toggle('hide', !PICS.pending.length);
+    $('mtPUnit').textContent = PICS.pending.length ? PICS.pending.length + '장 준비됨' : '';
+    qa('[data-pp]', g).forEach(function (card) {
+      var it = PICS.pending[+card.getAttribute('data-pp')];
+      card.querySelector('[data-pname]').oninput = function () { it.name = this.value; };
+      bindChips(card.querySelector('.cchips'), function (cs) { it.색 = cs; });
+    });
+    qa('[data-prm]', g).forEach(function (b) { b.onclick = function () { PICS.pending.splice(+b.getAttribute('data-prm'), 1); paintPending(); }; });
+  }
+  function uploadPending() {
+    var items = PICS.pending.filter(function (it) { return !it.busy; });
+    var bad = items.filter(function (it) { return !String(it.name || '').trim() || !it.색.length; });
+    if (bad.length) { setStatus('mtPStatus', '이름과 색이 빠진 그림이 ' + bad.length + '장 있어요.', 'err'); return; }
+    if (!items.length) return;
+    var i = 0, ok = 0, btn = $('mtPUp'); btn.disabled = true;
+    (function next() {
+      if (i >= items.length) { btn.disabled = false; PICS.pending = PICS.pending.filter(function (it) { return items.indexOf(it) < 0 || !it.done; }); paintPending(); setStatus('mtPStatus', ok + '장을 올렸습니다.', 'ok'); toast(ok + '장을 올렸습니다.'); refreshCounts(function () { loadPicList(); }); return; }
+      var it = items[i++]; setStatus('mtPStatus', i + ' / ' + items.length + ' 올리는 중…');
+      api('mat_t_addPic', TOKEN, { 이름: String(it.name).trim(), 색: it.색, 타입: 'image/jpeg', 본문: it.src }).then(function (r) { it.done = true; ok++; PICS.list = r.그림; PICS.data[r.그림[r.그림.length - 1].파일ID] = it.src; next(); })
+        .catch(function (e) { setStatus('mtPStatus', (e && e.message) || String(e), 'err'); btn.disabled = false; PICS.pending = PICS.pending.filter(function (x) { return !x.done; }); paintPending(); loadPicList(); });
+    })();
+  }
+  function loadPicList() {
+    api('mat_t_getPics', TOKEN).then(function (r) { PICS.list = r.그림; PICS.data = r.데이터; paintPicList(); }).catch(handleErr);
+  }
+  function paintPicList() {
+    var g = $('mtPList'); if (!g) return;
+    var list = PICS.list || [];
+    $('mtPCount').textContent = list.length + ' / 60장';
+    $('mtPEmpty').classList.toggle('hide', !!list.length);
+    g.innerHTML = list.map(function (p) {
+      return '<div class="pcard" data-pid="' + esc(p.id) + '"><img class="th" src="' + (PICS.data[p.파일ID] || '') + '" alt="">' +
+        '<input type="text" class="text" data-pname maxlength="30" value="' + esc(p.이름) + '">' + picChips(p.색, 'data-pc') +
+        '<div class="prow"><span>' + esc(String(p.등록 || '').slice(0, 10)) + '</span><button class="mini danger" data-pdel="' + esc(p.id) + '"><i class="ti ti-trash"></i>지우기</button></div></div>';
+    }).join('');
+    qa('[data-pid]', g).forEach(function (card) {
+      var id = card.getAttribute('data-pid'), nameEl = card.querySelector('[data-pname]');
+      var save = function (patch) { card.classList.add('busy'); api('mat_t_setPic', TOKEN, id, patch).then(function (r) { PICS.list = r.그림; card.classList.remove('busy'); toast('저장했습니다.'); }).catch(function (e) { card.classList.remove('busy'); handleErr(e); paintPicList(); }); };
+      nameEl.onchange = function () { if (!nameEl.value.trim()) { toast('이름을 써 주세요.', 'warn'); paintPicList(); return; } save({ 이름: nameEl.value.trim() }); };
+      bindChips(card.querySelector('.cchips'), function (cs) { if (!cs.length) { toast('색을 하나 이상 골라 주세요.', 'warn'); return; } save({ 색: cs }); });
+    });
+    qa('[data-pdel]', g).forEach(function (b) { b.onclick = function () {
+      var id = b.getAttribute('data-pdel'), p = findOne(PICS.list, function (x) { return x.id === id; });
+      if (!confirm('"' + (p ? p.이름 : '') + '" 그림을 지울까요? (드라이브 파일은 휴지통으로 갑니다)')) return;
+      api('mat_t_deletePics', TOKEN, [id]).then(function (r) { PICS.list = r.그림; paintPicList(); toast('지웠습니다.'); refreshCounts(null); }).catch(handleErr);
+    }; });
   }
 
   /* ================= 설정 ================= */

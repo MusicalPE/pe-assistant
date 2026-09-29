@@ -13,21 +13,28 @@
  *   MAT_짝   : 학년도, 학년, 반, 학생ID, 이름, 짝ID, 짝이름, 등록일시     (교사가 배정한 짝. 3인 조는 A→B, B→C, C→A 처럼 원형으로)
  *   MAT_문제 : 문제ID, 상태(대기|승인|버림), 출처(AI|교사|학생), 학년군, 영역, 문제, 정답, 오답1, 오답2, 오답3, 해설, 제안자ID, 제안자, 등록일시, 교과
  *              (교과 = 체육·국어·수학·사회·과학·영어·도덕·기타, 영역은 체육일 때만 운동·스포츠·표현 — 2022 개정 교육과정)
+ *   MAT_그림 : 그림ID, 이름, 색(노랑·초록·파랑·빨강 중 1~2개, 쉼표), 파일ID(드라이브), 등록일시
+ *              (연상 점프의 "우리 반 그림"에 쓰는 선생님이 올린 그림. 그림 파일은 드라이브 폴더 "색깔 매트 놀이터 그림"에, 시트에는 파일 ID만)
  * 배지는 시트에 따로 두지 않고 누적에서 계산합니다 (줄넘기 모듈과 같은 방식).
  *******************************************************/
 
-var MAT = { 기록: 'MAT_기록', 짝: 'MAT_짝', 문제: 'MAT_문제' };
+var MAT = { 기록: 'MAT_기록', 짝: 'MAT_짝', 문제: 'MAT_문제', 그림: 'MAT_그림' };
 var MAT_H = {
   기록: ['기록ID', '학년도', '학생ID', '학년', '반', '번호', '이름', '구분', '짝ID', '짝이름', '게임', '난이도', '시작시각', '끝시각',
          '진행시간', '인정시간', '점프', '인정점프', '확인단계', '전체단계', '완주', '저장일시'],
   짝:   ['학년도', '학년', '반', '학생ID', '이름', '짝ID', '짝이름', '등록일시'],
-  문제: ['문제ID', '상태', '출처', '학년군', '영역', '문제', '정답', '오답1', '오답2', '오답3', '해설', '제안자ID', '제안자', '등록일시', '교과']
+  문제: ['문제ID', '상태', '출처', '학년군', '영역', '문제', '정답', '오답1', '오답2', '오답3', '해설', '제안자ID', '제안자', '등록일시', '교과'],
+  그림: ['그림ID', '이름', '색', '파일ID', '등록일시']
 };
 var MAT_색 = '#FFE8D6';
 var MAT_게임 = [
   ['basic', '색깔 점프'], ['stroop', '색깔 스트룹'], ['memory', '기억력 스텝'], ['rhythm', '리듬 스텝'], ['dir', '방향 점프'],
   ['quiz', '퀴즈 점프'], ['assoc', '연상 점프'], ['twist', '손발 트위스터'], ['freeze', '얼음 스텝'], ['lava', '용암 매트']
 ];
+var MAT_색이름 = ['노랑', '초록', '파랑', '빨강'];   // 게임 엔진 COLORS 순서
+var MAT_PIC_FOLDER_KEY = 'MAT_PIC_FOLDER';
+var MAT_PIC_MAX = 400 * 1024;              // 그림 한 장 최대 400KB (교사 화면에서 640px 로 줄여 보냄)
+var MAT_PIC_LIMIT = 60;                    // 그림 최대 장수
 var MAT_교과 = ['체육', '국어', '수학', '사회', '과학', '영어', '도덕', '기타'];
 var MAT_영역 = ['운동', '스포츠', '표현'];          // 체육과 영역 (2022 개정 교육과정)
 var MAT_옛영역 = { '건강': '운동', '도전': '스포츠', '경쟁': '스포츠', '안전': '운동' };   // 예전 판 문제의 영역 이름 바꿔 읽기
@@ -83,6 +90,7 @@ function mat_hooks_() {
       만듦 = 만듦.concat(시트준비_(MAT.기록, MAT_H.기록, { 색: MAT_색 }));
       만듦 = 만듦.concat(시트준비_(MAT.짝, MAT_H.짝, { 색: MAT_색 }));
       만듦 = 만듦.concat(시트준비_(MAT.문제, MAT_H.문제, { 색: MAT_색 }));
+      만듦 = 만듦.concat(시트준비_(MAT.그림, MAT_H.그림, { 색: MAT_색 }));
       ensureColumns_(MAT.문제, MAT_H.문제);   // 예전 판 시트에 교과 열 보충
       var put = {}, 있음 = {};
       rows_(SHEET.설정).forEach(function (r) { 있음[str_(r.항목)] = true; });
@@ -133,7 +141,8 @@ function mat_hooks_() {
       return [
         { key: '기록', 이름: '플레이 기록 (함께·연습·수업)', 수: rows_(MAT.기록).length },
         { key: '짝', 이름: '교사 배정 짝', 수: rows_(MAT.짝).length },
-        { key: '문제', 이름: '퀴즈 문제 은행', 수: rows_(MAT.문제).length }
+        { key: '문제', 이름: '퀴즈 문제 은행', 수: rows_(MAT.문제).length },
+        { key: '그림', 이름: '우리 반 그림 (드라이브 파일도 휴지통으로)', 수: rows_(MAT.그림).length }
       ];
     },
     초기화: function (opts) {
@@ -141,6 +150,7 @@ function mat_hooks_() {
       if (opts.기록) res.기록 = 시트비우기_(MAT.기록);
       if (opts.짝) res.짝 = 시트비우기_(MAT.짝);
       if (opts.문제) res.문제 = 시트비우기_(MAT.문제);
+      if (opts.그림) { mat_그림휴지통_(rows_(MAT.그림).map(function (r) { return str_(r.파일ID); })); res.그림 = 시트비우기_(MAT.그림); }
       mat_캐시지우기_();
       return res;
     },
@@ -314,6 +324,101 @@ function mat_문제추가_(list, 출처, 상태, 제안자ID, 제안자) {
   return rows.length;
 }
 
+/* ---------- 우리 반 그림 (선생님이 올린 그림 → 드라이브, 시트에는 파일 ID) ---------- */
+function mat_그림폴더_() {
+  var id = 속성_(MAT_PIC_FOLDER_KEY);
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
+  var parent = null;
+  try { var parents = DriveApp.getFileById(ss_().getId()).getParents(); if (parents.hasNext()) parent = parents.next(); } catch (e) {}
+  var folder = (parent || DriveApp).createFolder('색깔 매트 놀이터 그림');
+  속성저장_(MAT_PIC_FOLDER_KEY, folder.getId());
+  return folder;
+}
+function mat_색정리_(v) {
+  var out = [];
+  (Array.isArray(v) ? v : 목록_(v)).forEach(function (c) { c = str_(c); if (MAT_색이름.indexOf(c) >= 0 && out.indexOf(c) < 0) out.push(c); });
+  return out.slice(0, 2);
+}
+function mat_그림객체_(r) {
+  return { id: str_(r.그림ID), 이름: str_(r.이름), 색: mat_색정리_(r.색), 파일ID: str_(r.파일ID), 등록: 시각문자_(r.등록일시) };
+}
+/** 쓸 수 있는 그림 목록 (파일·색이 있는 것만, 올린 순서) */
+function mat_그림목록_() {
+  return rows_(MAT.그림).map(mat_그림객체_).filter(function (p) { return p.id && p.파일ID && p.색.length; });
+}
+/** 파일 → data: URL (파일마다 6시간 캐시) */
+function mat_그림데이터_(list) {
+  var out = {};
+  (list || []).slice(0, MAT_PIC_LIMIT).forEach(function (p) {
+    var id = p.파일ID; if (!id || out[id]) return;
+    out[id] = 캐시_('mat_pic_' + id, function () {
+      try { var blob = DriveApp.getFileById(id).getBlob(); return 'data:' + blob.getContentType() + ';base64,' + Utilities.base64Encode(blob.getBytes()); }
+      catch (e) { return ''; }
+    }, 21600) || '';
+  });
+  return out;
+}
+function mat_그림휴지통_(파일ID들) {
+  var n = 0;
+  (파일ID들 || []).forEach(function (id) { if (!id) return; try { DriveApp.getFileById(String(id)).setTrashed(true); n++; } catch (e) {} try { 캐시지우기_('mat_pic_' + id); } catch (e) {} });
+  return n;
+}
+/** 교사: 그림 목록 + 그림 데이터 */
+function mat_t_getPics(token) {
+  교사확인_(token);
+  var list = mat_그림목록_();
+  return { 그림: list, 데이터: mat_그림데이터_(list), 색이름: MAT_색이름, 최대: MAT_PIC_LIMIT };
+}
+/** 교사: 그림 올리기. pic = { 이름, 색:[...], 타입:'image/jpeg', 본문(base64) } */
+function mat_t_addPic(token, pic) {
+  교사확인_(token);
+  pic = pic || {};
+  var 이름 = str_(pic.이름).slice(0, 30), 색 = mat_색정리_(pic.색), 타입 = /^image\/(jpeg|png|webp)$/.test(str_(pic.타입)) ? str_(pic.타입) : 'image/jpeg';
+  var b64 = str_(pic.본문).replace(/^data:[^,]*,/, '');
+  if (!이름) throw new Error('그림 이름을 써 주세요.');
+  if (!색.length) throw new Error('떠오르는 색을 하나나 둘 골라 주세요.');
+  if (!b64) throw new Error('그림 파일이 없어요.');
+  if (Math.round(b64.length * 0.75) > MAT_PIC_MAX) throw new Error('그림이 너무 커요. 다시 골라 주세요.');
+  return withLock_(function () {
+    시트준비_(MAT.그림, MAT_H.그림, { 색: MAT_색 });
+    if (rows_(MAT.그림).length >= MAT_PIC_LIMIT) throw new Error('그림은 ' + MAT_PIC_LIMIT + '장까지 올릴 수 있어요. 안 쓰는 그림을 지워 주세요.');
+    var id = makeId_('P');
+    var ext = /png/.test(타입) ? '.png' : /webp/.test(타입) ? '.webp' : '.jpg';
+    var 파일명 = (오늘_() + '_' + 이름 + '_' + 색.join('') + ext).replace(/[\\\/:*?"<>|]/g, '_');
+    var file = mat_그림폴더_().createFile(Utilities.newBlob(Utilities.base64Decode(b64), 타입, 파일명));
+    appendRows_(MAT.그림, MAT_H.그림, [{ 그림ID: id, 이름: 이름, 색: 색.join(','), 파일ID: file.getId(), 등록일시: 지금_() }]);
+    mat_캐시지우기_();
+    return { ok: true, 그림: mat_그림목록_() };
+  });
+}
+/** 교사: 이름·색 고치기 */
+function mat_t_setPic(token, id, patch) {
+  교사확인_(token);
+  id = str_(id); patch = patch || {};
+  return withLock_(function () {
+    var have = rows_(MAT.그림).filter(function (r) { return str_(r.그림ID) === id; })[0];
+    if (!have) throw new Error('그림을 찾지 못했습니다.');
+    var f = {};
+    if (patch.이름 !== undefined) { f.이름 = str_(patch.이름).slice(0, 30); if (!f.이름) throw new Error('그림 이름을 써 주세요.'); }
+    if (patch.색 !== undefined) { var 색 = mat_색정리_(patch.색); if (!색.length) throw new Error('색을 하나나 둘 골라 주세요.'); f.색 = 색.join(','); }
+    setCells_(MAT.그림, MAT_H.그림, have._row, f);
+    mat_캐시지우기_();
+    return { ok: true, 그림: mat_그림목록_() };
+  });
+}
+/** 교사: 그림 지우기 (드라이브 파일은 휴지통으로) */
+function mat_t_deletePics(token, ids) {
+  교사확인_(token);
+  var set = {}; (ids || []).forEach(function (id) { set[str_(id)] = true; });
+  return withLock_(function () {
+    var files = rows_(MAT.그림).filter(function (r) { return set[str_(r.그림ID)]; }).map(function (r) { return str_(r.파일ID); });
+    var n = 행지우기_(MAT.그림, function (o) { return set[str_(o.그림ID)] === true; });
+    mat_그림휴지통_(files);
+    mat_캐시지우기_();
+    return { ok: true, 지움: n, 그림: mat_그림목록_() };
+  });
+}
+
 /* ---------- Gemini 로 문제 받기 (줄넘기 모듈의 키·모델 선택을 함께 씀) ---------- */
 function mat_gemini키_() {
   try { return (typeof ROPE_GEMINI_KEY !== 'undefined' ? 속성_(ROPE_GEMINI_KEY) : 속성_('GEMINI_KEY')) || ''; } catch (e) { return ''; }
@@ -399,7 +504,7 @@ function mat_s_boot(token) {
   return {
     설정: { 짝방식: s.짝방식, 최소시간: s.최소시간, 확인시간: s.확인시간, 게임: s.게임, 학생제안: s.학생제안, 해설표시: s.해설표시 },
     게임이름: MAT_게임, 짝: 배정, 반친구: 반친구, 요약: mat_요약공개_(y), 최근: 최근,
-    문제: mat_승인문제_(s.해설표시), 내제안: rows_(MAT.문제).filter(function (r) { return str_(r.제안자ID) === me.학생ID; }).map(mat_문제객체_).slice(-10)
+    문제: mat_승인문제_(s.해설표시), 그림: mat_그림목록_(), 내제안: rows_(MAT.문제).filter(function (r) { return str_(r.제안자ID) === me.학생ID; }).map(mat_문제객체_).slice(-10)
   };
 }
 function mat_요약공개_(y) {
@@ -434,6 +539,9 @@ function mat_s_saveRecord(token, rec, 이전배지) {
   return { ok: true, 기록: saved, 요약: 요약, 새배지: 이전배지 ? 새배지 : [] };
 }
 
+/** 학생: 우리 반 그림 불러오기 (게임 시작 직전에 한 번) → { 파일ID: dataURL } */
+function mat_s_getPics(token) { mat_학생확인_(token); return mat_그림데이터_(mat_그림목록_()); }
+
 /** 학생이 문제 제안 (교사 승인 후 문제 은행에) */
 function mat_s_proposeQuestion(token, q) {
   var me = mat_학생확인_(token), s = mat_설정_();
@@ -456,7 +564,7 @@ function mat_t_boot(token) {
   rows_(MAT.문제).forEach(function (r) { var st = str_(r.상태) || '대기'; 문제수[st] = (문제수[st] || 0) + 1; });
   var err = ''; try { err = 속성_(MAT_GEMINI_ERR_KEY) || ''; } catch (e) {}
   return { 설정: s, 게임이름: MAT_게임, 학급목록: 학급목록, 문제수: 문제수, gemini여부: !!mat_gemini키_(), geminiError: err,
-           문제: mat_승인문제_(s.해설표시), 오늘: 오늘_(), 교과: MAT_교과, 영역: MAT_영역, 학년군: MAT_학년군 };
+           문제: mat_승인문제_(s.해설표시), 그림: mat_그림목록_(), 색이름: MAT_색이름, 오늘: 오늘_(), 교과: MAT_교과, 영역: MAT_영역, 학년군: MAT_학년군 };
 }
 
 /** 학급 현황 (학년·반 0 = 전체) */
