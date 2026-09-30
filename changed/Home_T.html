@@ -506,7 +506,7 @@ MODS.core.teacher = (function () {
           '<div class="field" style="margin-bottom:10px"><label>선생님용 주소 (선생님 탭이 먼저 열림)</label><input type="text" readonly value="' + esc(url + '?page=teacher') + '" onclick="this.select()"></div>' +
           '<div id="setQr" style="display:flex;gap:14px;align-items:center;margin:4px 0 14px;padding:12px;border:1px solid var(--line);border-radius:14px">' +
           '<div id="setQrImg" style="width:112px;height:112px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--ink-3);background:#fff;border-radius:8px">QR 만드는 중…</div>' +
-          '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start"><b>학생용 주소 QR</b><span class="unit">새 태블릿·핸드폰 카메라로 찍으면 바로 열려요. 인쇄해서 교실에 붙여 두세요.</span>' +
+          '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start"><b>학생용 주소 QR</b><span class="unit">새 태블릿·핸드폰 카메라로 찍으면 바로 열려요. 인쇄해서 교실에 붙여 두세요.<br><span id="setQrWhat"></span></span>' +
           '<button class="soft mini" type="button" id="btnQrPrint" disabled><i class="ti ti-printer"></i>QR 인쇄</button></div></div>'
         : '<div class="unit" style="margin-bottom:10px">웹 앱으로 배포하면 접속 주소가 여기에 나타납니다.</div>') +
         (url ? screenModeHtml(s) : '') +
@@ -527,27 +527,33 @@ MODS.core.teacher = (function () {
     return qrLoading;
   }
   function qrSvg(url, cell) { var q = qrcode(0, 'M'); q.addData(url); q.make(); return q.createSvgTag(cell, cell * 2); }
-  function drawQr(url, s) {
+  /** QR 에 담을 주소: 화면방식이 "새 화면"이면 새 화면 주소 + 학교 주소(?app=) 를 한 줄로 → 찍자마자 새 화면(넘겨주기 버튼 없이),
+      "기존"이면 학교 주소 그대로. 설정을 바꾸면 QR 도 따라 바뀜 */
+  function qrTarget(url, s) {
+    return s && s.화면방식 === '새 화면' ? (s.새화면주소 || 'https://musicalpe.github.io/pe-app/') + '?app=' + encodeURIComponent(url) : url;
+  }
+  function drawQr(url0, s) {
+    var url = qrTarget(url0, s);
     loadQr().then(function () {
       var box = $('setQrImg'); if (!box) return;
+      if ($('setQrWhat')) $('setQrWhat').textContent = s.화면방식 === '새 화면' ? '새 화면으로 바로 열려요 (학교 주소가 함께 들어 있음)' : '학교 앱 주소가 열려요';
       box.innerHTML = qrSvg(url, 3); var svg = box.querySelector('svg'); if (svg) { svg.style.width = '100%'; svg.style.height = '100%'; }
       $('btnQrPrint').disabled = false;
       $('btnQrPrint').onclick = function () { printQr(url, s); };
     }).catch(function (e) { var box = $('setQrImg'); if (box) box.textContent = e.message; });
   }
+  /* 인쇄: 공통 인쇄 틀(App.html 의 body.printing + .print-area — 명렬표와 같은 방식)을 씀. 앱 인쇄 규칙이 나머지를 모두 숨기므로 따로 CSS 를 두지 않음 */
   function printQr(url, s) {
-    var st = $('qrPrintCss');
-    if (!st) { st = document.createElement('style'); st.id = 'qrPrintCss'; st.textContent = '#qrPrint{display:none}@media print{body.qr-printing>*:not(#qrPrint){display:none!important}body.qr-printing #qrPrint{display:flex!important}}'; document.head.appendChild(st); }
-    var d = $('qrPrint'); if (!d) { d = document.createElement('div'); d.id = 'qrPrint'; document.body.appendChild(d); }
-    d.style.cssText = 'flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:90vh;text-align:center;font-family:inherit';
-    d.innerHTML = (s.학교명 ? '<div style="font-size:22px;font-weight:800;color:#555">' + esc(s.학교명) + '</div>' : '') +
-      '<div style="font-size:40px;font-weight:900">' + esc(s.학생용이름 || '체육 활동 기록장') + '</div>' +
-      '<div style="width:520px;height:520px">' + qrSvg(url, 8).replace('<svg ', '<svg style="width:100%;height:100%" ') + '</div>' +
-      '<div style="font-size:18px;font-weight:700">카메라로 찍으면 열려요</div><div style="font-size:11px;color:#777;word-break:break-all;max-width:640px">' + esc(url) + '</div>';
-    document.body.classList.add('qr-printing');
-    var done = function () { document.body.classList.remove('qr-printing'); window.removeEventListener('afterprint', done); };
+    var d = $('qrPrint'); if (!d) { d = document.createElement('div'); d.id = 'qrPrint'; d.className = 'print-area'; d.style.display = 'none'; document.body.appendChild(d); }
+    d.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:92vh;text-align:center">' +
+      (s.학교명 ? '<div style="font-size:22px;font-weight:800;color:#555">' + esc(s.학교명) + '</div>' : '') +
+      '<div style="font-size:40px;font-weight:900;color:#000">' + esc(s.학생용이름 || '체육 활동 기록장') + '</div>' +
+      '<div style="width:120mm;height:120mm">' + qrSvg(url, 8).replace('<svg ', '<svg style="width:100%;height:100%" ') + '</div>' +
+      '<div style="font-size:18px;font-weight:700;color:#000">카메라로 찍으면 열려요</div><div style="font-size:11px;color:#777;word-break:break-all;max-width:160mm">' + esc(url) + '</div></div>';
+    document.body.classList.add('printing');
+    var done = function () { document.body.classList.remove('printing'); window.removeEventListener('afterprint', done); };
     window.addEventListener('afterprint', done);
-    window.print();   // afterprint 에서 원래대로 (인쇄할 때만 쓰는 표시라 늦게 지워져도 화면엔 영향 없음)
+    window.print();
   }
   /* ---------- 화면 방식 (기존 | 새 화면) — v3.0 ----------
      새 화면(GitHub)이 준비됐는지는 새 화면 주소의 ready.json 으로 확인합니다. 준비 전에는 "새 화면"을 고를 수 없어요. */
@@ -633,6 +639,7 @@ MODS.core.teacher = (function () {
       if (!r.ok) { setStatus('setStatus', r.message, 'err'); return; }
       D.설정 = r.설정; D.모듈 = r.모듈목록; CTX.설정 = r.설정; CTX.모듈 = r.모듈목록;
       $('appTitle').textContent = r.설정.프로그램이름; document.title = r.설정.프로그램이름;
+      if ($('setQrImg') && D.앱URL) drawQr(D.앱URL, r.설정);   // 화면 방식이 바뀌면 QR 도 새로
       LOGIN.제목 = r.설정.프로그램이름; LOGIN.학생용이름 = r.설정.학생용이름; LOGIN.테마 = r.설정.테마; applyTheme(r.설정.테마);
       var before = MODLIST.map(function (m) { return m.key; }).join(',');
       MODLIST = r.모듈목록.filter(function (m) { return m.사용; });

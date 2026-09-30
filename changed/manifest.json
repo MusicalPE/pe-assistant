@@ -1,9 +1,15 @@
 {
-  "version": "3.0.1",
-  "libraryVersion": 38,
+  "version": "3.0.2",
+  "libraryVersion": 39,
   "date": "2026-09-30",
-  "notes": "v3.0.1 — 설정 → 접속 주소에 학생용 주소 QR 코드(인쇄 가능). 업데이트 칸의 '지금 버전'이 옛 번호로 보이던 것 수정. 새 화면에서 doPost 가 없는 학교의 큰 저장도 조각으로 온전히.\n껍데기(Shell.gs)는 그대로입니다 (3.0.0 에서 doPost 한 줄을 넣지 않았다면 넣어 주세요).",
+  "notes": "v3.0.2 — 교사 로그인이 빨라짐(홈 현황 카드는 화면이 뜬 뒤 채움). 학생이 로그인 직후 모듈을 누르면 빈 화면이 남던 것 수정. 학생용 QR 이 화면 방식을 따라감, QR 인쇄 수정. 매트 게임 Made by 도장·뒤로가기로 닫기.\n껍데기(Shell.gs)는 그대로입니다.",
   "history": [
+    {
+      "version": "3.0.2",
+      "lib": 39,
+      "date": "2026-10-01",
+      "notes": "교사 로그인이 빨라졌어요 — 로그인하면 화면이 먼저 뜨고, 홈의 모듈 현황 카드는 그 뒤에 채워져요(예전엔 카드를 다 만든 뒤에야 들어가서 몇 초씩 걸림).\n학생이 로그인하자마자 모듈을 누르면 빈 화면이 남던 것 수정(줄넘기·건강체력교실·매트·PAPS·FMS·수행평가).\n학생용 주소 QR 이 화면 방식을 따라가요(\"새 화면\"이면 찍자마자 새 화면). QR 인쇄가 빈 종이로 나오던 것 수정.\n색깔 매트 놀이터: 게임 화면에 Made by 도장, 게임 중 휴대폰 \"뒤로\"를 누르면 게임이 닫히고 음악도 멈춤."
+    },
     {
       "version": "3.0.1",
       "lib": 38,
@@ -153,14 +159,14 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "43cf23ce0be90b68",
-      "bytes": 78174
+      "sha256": "a84314a295d9c9f9",
+      "bytes": 78959
     },
     {
       "name": "Eval_S.html",
       "type": "HTML",
-      "sha256": "48ec0dbf5d962942",
-      "bytes": 26057
+      "sha256": "657807c74bba615e",
+      "bytes": 26400
     },
     {
       "name": "Eval_T.html",
@@ -177,8 +183,8 @@
     {
       "name": "FMS_S.html",
       "type": "HTML",
-      "sha256": "ba2e5db1ae45b24a",
-      "bytes": 46237
+      "sha256": "0cbcf75d960829bf",
+      "bytes": 46580
     },
     {
       "name": "FMS_T.html",
@@ -189,8 +195,8 @@
     {
       "name": "Fit_S.html",
       "type": "HTML",
-      "sha256": "6db147ba3fe918d8",
-      "bytes": 36588
+      "sha256": "f277dcba54753684",
+      "bytes": 36931
     },
     {
       "name": "Fit_T.html",
@@ -207,8 +213,8 @@
     {
       "name": "Home_T.html",
       "type": "HTML",
-      "sha256": "361d61aab38227f4",
-      "bytes": 63264
+      "sha256": "83cfe98357a32226",
+      "bytes": 63946
     },
     {
       "name": "Lib.gs",
@@ -219,14 +225,14 @@
     {
       "name": "Mat_Game.html",
       "type": "HTML",
-      "sha256": "b91cb16b9842f14c",
-      "bytes": 125438
+      "sha256": "ee27fc8f9e5757f4",
+      "bytes": 127325
     },
     {
       "name": "Mat_S.html",
       "type": "HTML",
-      "sha256": "cc7e423d70212155",
-      "bytes": 25203
+      "sha256": "6f07aa52c1491236",
+      "bytes": 25546
     },
     {
       "name": "Mat_T.html",
@@ -291,8 +297,8 @@
     {
       "name": "PAPS_S.html",
       "type": "HTML",
-      "sha256": "7b545f8e041d5dce",
-      "bytes": 30826
+      "sha256": "7d678fd10e955ea9",
+      "bytes": 31169
     },
     {
       "name": "PAPS_T.html",
@@ -303,8 +309,8 @@
     {
       "name": "Rope_S.html",
       "type": "HTML",
-      "sha256": "c559964310b3efde",
-      "bytes": 37348
+      "sha256": "2a7cc18fc5d99895",
+      "bytes": 37691
     },
     {
       "name": "Rope_T.html",

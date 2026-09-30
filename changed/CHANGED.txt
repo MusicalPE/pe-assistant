@@ -1,14 +1,13 @@
-체육교사 보조 프로그램 v3.0.1 · 라이브러리 38  (2026-09-30)
+체육교사 보조 프로그램 v3.0.2 · 라이브러리 39  (2026-10-01)
 
-바뀐 파일 (라이브러리에 붙여넣을 것: Code.gs · Updater.gs · Home_T.html)
-  Code.gs       새 판에서 늘어난 설정 항목(화면방식 등)을 첫 접속 때 설정 시트에 채움 · SERVER_API 2 — 조각 올리기 "통째(whole)" (doPost 없는 학교의 큰 저장), 판 3.0.1
-  Updater.gs    업데이트 칸 "지금 버전"을 기억한 값 대신 늘 지금 코드의 번호로
-  Home_T.html   설정 → 접속 주소: 학생용 주소 QR + QR 인쇄
-  manifest.json · README.md   판 3.0.1 · 라이브러리 38
-  tools/        build-web.js · web-runtime.js(새 화면 3.0.1) · offline-runtime.js(base64DecodeWebSafe·getDataAsString 흉내) · build-offline.js
-껍데기(Shell.gs)는 3.0.0 과 같습니다 (unchanged/shell).
-설명서 PDF 는 크기 때문에 이 묶음에서 뺐습니다 (v2.4 설명서 그대로, v3.0 설명서는 5단계).
+라이브러리에 붙여넣을 것 (9개)
+  Code.gs        교사 로그인 때 홈 현황 카드를 만들지 않음(화면이 뜬 뒤 따로) → 로그인 몇 초 빨라짐 · 판 3.0.2
+  Home_T.html    학생용 QR 이 화면 방식을 따라감 · QR 인쇄를 공통 인쇄 틀로
+  Mat_Game.html  Made by 도장 · 뒤로가기로 게임 닫기·음악 멈춤
+  Rope_S · Fit_S · Mat_S · Eval_S · FMS_S · PAPS_S (.html)  불러오는 중 누른 화면이 버려져 빈 화면이 남던 것
+  manifest.json · README.md   알림용 (GitHub)
+껍데기(Shell.gs)는 그대로 (unchanged/shell)
 
 적용 순서
-  1) 라이브러리에 Code.gs · Updater.gs · Home_T.html 붙여넣기 → 저장 → 새 버전 38
-  2) 학교 시트: 라이브러리 PE 버전 38 → 배포 관리 → 연필 → 새 버전 → 배포
+  1) 라이브러리에 위 9개 붙여넣기 → 저장 → 새 버전 39
+  2) 학교 시트: 라이브러리 PE 버전 39 → 배포 관리 → 연필 → 새 버전 → 배포
