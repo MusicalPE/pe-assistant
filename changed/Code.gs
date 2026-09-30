@@ -27,16 +27,17 @@
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '3.0.0';
+var APP_VERSION = '3.0.1';
 
 /* 새 화면(GitHub) 과 주고받는 서버 기능 번호. 서버 입구(?api=rpc·doPost·조각 올리기 등)가 바뀔 때만 올립니다.
    새 화면은 ?api=info 로 이 번호를 읽고, 기대보다 낮으면 그 기능을 숨깁니다. (판 번호와 따로) */
-var SERVER_API = 1;
+var SERVER_API = 2;   // 1: 입구(lib 37) · 2: 조각 올리기 whole(모든 인자를 통째로 조각) (lib 38)
 var 새화면기본주소 = 'https://musicalpe.github.io/pe-app/';
 
 /* 판별 바뀐 내용 — 설정 → 업데이트 칸의 "이번 판에서 바뀐 것" 과 지난 판 보기에 씁니다.
    새 판을 낼 때 맨 앞에 한 항목을 더하고, tools/make-release.js 가 이 표를 manifest.json 의 history 로도 내보냅니다. */
 var APP_HISTORY = [
+  { version: '3.0.1', lib: 38, date: '2026-09-30', notes: '설정 → 접속 주소에 학생용 주소 QR 코드가 생겼습니다. 새 태블릿·핸드폰에서 카메라로 찍으면 바로 열리고, "QR 인쇄"로 교실에 붙여 둘 수 있어요(학교마다 자기 주소로 그려짐).\n업데이트 칸의 "지금 버전"이 라이브러리를 올린 뒤에도 몇 시간 동안 옛 번호로 보이던 것 수정.\n(새 화면) 껍데기에 doPost 가 없는 학교에서도 큰 저장(여러 줄 한꺼번에 저장·사진+썸네일)이 조각으로 온전히 올라가게 서버 입구를 넓혔습니다.' },
   { version: '3.0.0', lib: 37, date: '2026-09-30', notes: '새 화면(GitHub)을 위한 서버 입구 — 화면은 GitHub 한 곳에서, 저장은 지금처럼 학교 시트에서 하는 3.0 의 첫 단계입니다. 지금 화면은 그대로이고, 새로 생긴 것은 뒤에서만 동작합니다.\n설정 → 화면 방식: "기존 화면"(기본) | "새 화면". 새 화면을 고르면 학교 앱 주소로 들어온 사람에게 "새 화면으로 열기" 버튼을 보여 줍니다(주소·즐겨찾기 그대로). 문제가 생기면 여기서 기존으로 되돌리거나, 주소 뒤에 ?classic=1 을 붙이면 기존 화면이 열립니다. 새 화면이 준비되기 전에는 고를 수 없게 막혀 있습니다.\n껍데기(Shell.gs)에 doPost 한 줄이 늘었습니다 — 새 화면에서 사진·영상을 올릴 때 씁니다. 안 넣어도 지금 화면은 그대로 동작하지만, 새 화면에서는 사진이 느리게(조각으로) 올라가고 영상은 올릴 수 없습니다.' },
   { version: '2.4.0', lib: 36, date: '2026-09-29', notes: '건강체력교실에 카메라 줄넘기 — 운동 기록에서 "집에서 · 줄넘기"를 고르면 "카메라로 뛰기" 버튼이 나오고, 판정기가 센 횟수가 건강체력교실 기록(가정·줄넘기·바로 확인·포인트 계산)으로 들어옵니다. 줄넘기 설정의 "건강체력교실에서 카메라로 뛴 줄넘기도 줄넘기 기록에 함께 넣기" 스위치를 켜면 줄넘기 누적·배지에도 잡힙니다(기본은 꺼짐). 판정기 v0.6 필요.' },
   { version: '2.3.3', lib: 35, date: '2026-09-29', notes: '줄넘기 카메라 판정기 v0.5 에 맞춤 — 판정기 민감도를 줄넘기 설정(6~16)에서 선생님이 정하고 학생은 못 바꿈. 판정기는 이제 머리부터 발까지 다 보일 때만 세고(앉아서 들썩이거나 너무 가까이 서면 "뒤로 물러서요"), 엉덩이·머리·발이 같이 떴을 때만 1회.' },
@@ -250,7 +251,8 @@ function 조각받기_(p) {
   return { i: i, n: d.length };
 }
 
-/** ?api=up_commit&id=&n=<조각 수>&fn=&args=<JSON, 자료 자리에 "__UP__"> → { result } | { missing:[…] } */
+/** ?api=up_commit&id=&n=<조각 수>&fn=&args=<JSON, 자료 자리에 "__UP__"> → { result } | { missing:[…] }
+    whole=1 (SERVER_API 2): 합친 자료가 인자 배열 JSON 전체(UTF-8 → 웹 안전 base64) — 긴 글자가 없는 큰 저장(여러 줄 표 등)이나 사진+썸네일도 그대로 */
 function 조각합치기_(p) {
   var id = 조각번호_(p.id), n = Number(p.n);
   if (!(n >= 1 && n <= 5000)) throw new Error('조각 수가 잘못됐습니다.');
@@ -265,7 +267,13 @@ function 조각합치기_(p) {
   if (missing.length) return { missing: missing };
   if (size > 조각최대_) throw new Error('조각으로 올리기엔 너무 큽니다. 선생님께 껍데기(Shell.gs)에 doPost 를 넣어 달라고 말씀해 주세요.');
   var data = keys.map(function (k) { return got[k]; }).join('');
-  var res = rpc(String(p.fn || ''), 조각끼우기_(p.args ? JSON.parse(p.args) : [], data), CTX_);
+  var args;
+  if (p.whole) {   // 인자 배열 JSON 을 UTF-8 → base64(웹 안전) 로 보냄: 한글이 주소에서 9배로 불어나지 않게
+    args = JSON.parse(Utilities.newBlob(Utilities.base64DecodeWebSafe(data)).getDataAsString('UTF-8'));
+    if (!Array.isArray(args)) throw new Error('보낸 자료 모양이 잘못됐습니다.');
+  }
+  else args = 조각끼우기_(p.args ? JSON.parse(p.args) : [], data);
+  var res = rpc(String(p.fn || ''), args, CTX_);
   for (i = 0; i < keys.length; i += 100) cache.removeAll(keys.slice(i, i + 100));
   return { result: res };
 }
@@ -413,7 +421,9 @@ function 준비_() {
   var ss = ss_();
   var 빠짐 = !findSheet_(SHEET.설정) || !findSheet_(SHEET.학생) || !findSheet_(SHEET.안내) || !속성_(PW_KEY);
   var 모듈빠짐 = false;
-  if (!빠짐) {
+  if (!빠짐) {   // 새 판에서 늘어난 설정 항목(예: 화면방식)이 시트에 없으면 채움 — 판이 바뀐 뒤 첫 접속 때 한 번만 확인
+    var 있음 = {}; rows_(SHEET.설정).forEach(function (r) { 있음[str_(r.항목)] = true; });
+    if (기본설정_().some(function (r) { return !있음[r[0]]; })) 모듈빠짐 = true;
     지원모듈_().forEach(function (m) {
       var h = 모듈훅_(m.key);
       if (h && typeof h.준비확인 === 'function') { try { if (!h.준비확인()) 모듈빠짐 = true; } catch (e) { 모듈빠짐 = true; } }
