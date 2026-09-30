@@ -505,10 +505,37 @@ MODS.core.teacher = (function () {
         ? '<div class="field" style="margin-bottom:10px"><label>학생용 주소 (태블릿에 즐겨찾기)</label><input type="text" readonly value="' + esc(url) + '" onclick="this.select()"></div>' +
           '<div class="field" style="margin-bottom:10px"><label>선생님용 주소 (선생님 탭이 먼저 열림)</label><input type="text" readonly value="' + esc(url + '?page=teacher') + '" onclick="this.select()"></div>'
         : '<div class="unit" style="margin-bottom:10px">웹 앱으로 배포하면 접속 주소가 여기에 나타납니다.</div>') +
+        (url ? screenModeHtml(s) : '') +
         (D.시트URL ? '<a href="' + esc(D.시트URL) + '" target="_blank" rel="noopener"><button class="soft" type="button"><i class="ti ti-table"></i>스프레드시트 열기</button></a>' : '') +
         '<div class="unit" style="margin-top:10px">버전 ' + esc(D.버전) + '</div>';
+      if (url) checkNewScreen(s);
       renderUpdate(D.업데이트);
     }).catch(handleErr);
+  }
+  /* ---------- 화면 방식 (기존 | 새 화면) — v3.0 ----------
+     새 화면(GitHub)이 준비됐는지는 새 화면 주소의 ready.json 으로 확인합니다. 준비 전에는 "새 화면"을 고를 수 없어요. */
+  function screenModeHtml(s) {
+    var cur = s.화면방식 === '새 화면' ? '새 화면' : '기존';
+    return '<div class="field" style="margin-bottom:6px"><label for="setScreen">화면 방식</label>' +
+      '<select id="setScreen"><option value="기존"' + (cur === '기존' ? ' selected' : '') + '>기존 화면 (지금 이 화면)</option>' +
+      '<option value="새 화면"' + (cur === '새 화면' ? ' selected' : '') + '>새 화면 (GitHub · 태블릿 카메라를 앱 안에서)</option></select></div>' +
+      '<div class="unit" id="setScreenNote" style="margin-bottom:12px">새 화면 준비 상태를 확인하는 중…</div>';
+  }
+  function checkNewScreen(s) {
+    var base = s.새화면주소 || 'https://musicalpe.github.io/pe-app/', sel = $('setScreen'), note = $('setScreenNote');
+    if (!sel) return;
+    var opt = sel.querySelector('option[value="새 화면"]');
+    var tail = ' 학생 주소·즐겨찾기는 그대로예요. 문제가 생기면 여기서 "기존 화면"으로 되돌리거나 주소 뒤에 <b>?classic=1</b> 을 붙이면 기존 화면이 열려요.';
+    var notReady = function (why) {
+      if (sel.value !== '새 화면') opt.disabled = true;
+      note.innerHTML = '새 화면은 아직 준비 중이에요' + (why ? ' (' + esc(why) + ')' : '') + '. 준비되면 여기서 고를 수 있어요.' + (sel.value === '새 화면' ? tail : '');
+    };
+    fetch(base + 'ready.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); }).then(function (j) {
+      if (!j || !j.ready) return notReady('');
+      if (j.minServerApi && j.minServerApi > (s.SERVER_API || 0)) return notReady('라이브러리를 올리면 쓸 수 있어요');
+      opt.disabled = false;
+      note.innerHTML = '새 화면 v' + esc(j.version || '') + ' 준비됨. "새 화면"으로 저장하면 이 학교 앱 주소로 들어온 사람에게 "새 화면으로 열기" 버튼이 나와요.' + tail;
+    }).catch(function () { notReady('새 화면 주소에 닿지 못함'); });
   }
   /* ---------- 색상 테마 고르기 (누르면 바로 미리보기, 저장해야 유지) ---------- */
   function drawThemes(cur) {
@@ -562,6 +589,7 @@ MODS.core.teacher = (function () {
       전화: $('setPhone').value, 이메일: $('setEmail').value, 학교급: $('setLevel').value, 테마: pickedTheme(),
       학년범위: Array.prototype.map.call($('setGrades').querySelectorAll('input:checked'), function (c) { return Number(c.value); }),
       반범위: Number($('setClasses').value), 학생로그인: $('setLoginMode').value, 자동나가기분: Number($('setIdle').value), 모듈: 모듈 };
+    if ($('setScreen')) map.화면방식 = $('setScreen').value;
     var btn = this; btn.disabled = true; setStatus('setStatus', '저장 중…');
     api('t_saveSettings', TOKEN, map).then(function (r) {
       btn.disabled = false;

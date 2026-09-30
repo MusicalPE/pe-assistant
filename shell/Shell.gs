@@ -2,7 +2,7 @@
  * 체육교사 보조 프로그램 — 껍데기 (Shell.gs)
  *
  * 이 스프레드시트에 들어가는 유일한 스크립트 파일입니다. 실제 프로그램은 "라이브러리" PE 에 있고,
- * 이 파일은 요청을 라이브러리로 넘겨주기만 합니다. 앞으로 이 파일은 바뀌지 않습니다.
+ * 이 파일은 요청을 라이브러리로 넘겨주기만 합니다. (v3.0 에서 doPost 한 줄이 늘었습니다)
  *
  * 설치: 편집기 왼쪽 "라이브러리 +" → 스크립트 ID 붙여넣기 → 버전 "가장 큰 숫자" → 식별자 PE → 추가
  * 새 버전 적용: 라이브러리 PE 의 버전 숫자를 올리고 저장 → 배포 → 배포 관리 → 연필 → 새 버전 → 배포
@@ -20,6 +20,9 @@ function doGet(e) {
   try { c.legacyProps = PropertiesService.getScriptProperties().getProperties(); } catch (x) {}   // 옛 방식에서 올라온 경우 비밀번호 등 이사
   return PE.doGet(e, c);
 }
+
+/** 새 화면(GitHub)에서 사진·영상처럼 큰 자료를 올릴 때 쓰는 입구 (v3.0) */
+function doPost(e) { return PE.doPost(e, ctx_()); }
 
 /** 화면이 부르는 모든 서버 함수는 이 하나를 거쳐 라이브러리로 갑니다 */
 function rpc(name, args) { return PE.rpc(name, args, ctx_()); }

@@ -27,11 +27,17 @@
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '2.4.0';
+var APP_VERSION = '3.0.0';
+
+/* 새 화면(GitHub) 과 주고받는 서버 기능 번호. 서버 입구(?api=rpc·doPost·조각 올리기 등)가 바뀔 때만 올립니다.
+   새 화면은 ?api=info 로 이 번호를 읽고, 기대보다 낮으면 그 기능을 숨깁니다. (판 번호와 따로) */
+var SERVER_API = 1;
+var 새화면기본주소 = 'https://musicalpe.github.io/pe-app/';
 
 /* 판별 바뀐 내용 — 설정 → 업데이트 칸의 "이번 판에서 바뀐 것" 과 지난 판 보기에 씁니다.
    새 판을 낼 때 맨 앞에 한 항목을 더하고, tools/make-release.js 가 이 표를 manifest.json 의 history 로도 내보냅니다. */
 var APP_HISTORY = [
+  { version: '3.0.0', lib: 37, date: '2026-09-30', notes: '새 화면(GitHub)을 위한 서버 입구 — 화면은 GitHub 한 곳에서, 저장은 지금처럼 학교 시트에서 하는 3.0 의 첫 단계입니다. 지금 화면은 그대로이고, 새로 생긴 것은 뒤에서만 동작합니다.\n설정 → 화면 방식: "기존 화면"(기본) | "새 화면". 새 화면을 고르면 학교 앱 주소로 들어온 사람에게 "새 화면으로 열기" 버튼을 보여 줍니다(주소·즐겨찾기 그대로). 문제가 생기면 여기서 기존으로 되돌리거나, 주소 뒤에 ?classic=1 을 붙이면 기존 화면이 열립니다. 새 화면이 준비되기 전에는 고를 수 없게 막혀 있습니다.\n껍데기(Shell.gs)에 doPost 한 줄이 늘었습니다 — 새 화면에서 사진·영상을 올릴 때 씁니다. 안 넣어도 지금 화면은 그대로 동작하지만, 새 화면에서는 사진이 느리게(조각으로) 올라가고 영상은 올릴 수 없습니다.' },
   { version: '2.4.0', lib: 36, date: '2026-09-29', notes: '건강체력교실에 카메라 줄넘기 — 운동 기록에서 "집에서 · 줄넘기"를 고르면 "카메라로 뛰기" 버튼이 나오고, 판정기가 센 횟수가 건강체력교실 기록(가정·줄넘기·바로 확인·포인트 계산)으로 들어옵니다. 줄넘기 설정의 "건강체력교실에서 카메라로 뛴 줄넘기도 줄넘기 기록에 함께 넣기" 스위치를 켜면 줄넘기 누적·배지에도 잡힙니다(기본은 꺼짐). 판정기 v0.6 필요.' },
   { version: '2.3.3', lib: 35, date: '2026-09-29', notes: '줄넘기 카메라 판정기 v0.5 에 맞춤 — 판정기 민감도를 줄넘기 설정(6~16)에서 선생님이 정하고 학생은 못 바꿈. 판정기는 이제 머리부터 발까지 다 보일 때만 세고(앉아서 들썩이거나 너무 가까이 서면 "뒤로 물러서요"), 엉덩이·머리·발이 같이 떴을 때만 1회.' },
   { version: '2.3.2', lib: 34, date: '2026-09-29', notes: '색깔 매트 놀이터 점프 배지가 "함께 점프 5001000"처럼 하나로 붙어 나오던 것 수정 — 설정 시트가 "500,1000"을 숫자 5,001,000 으로 바꿔 읽던 문제. 설정 값 칸을 글자 서식으로 저장하고, 이미 그렇게 저장된 학교는 기본값(500·1000회)으로 읽습니다.' },
@@ -104,7 +110,9 @@ function 기본설정_() {
     ['반범위',       '15',            '반은 1부터 이 숫자까지'],
     ['자동나가기분', '3',             '학생이 이 시간(분) 동안 화면을 만지지 않으면 로그인 화면으로'],
     ['학생로그인',   '숫자판',        '숫자판 | 입력칸 — 학생 비밀번호를 넣는 방식'],
-    ['테마',         '민트',          '로그인·메인 화면 색상 테마: ' + 테마들.join(' | ')]
+    ['테마',         '민트',          '로그인·메인 화면 색상 테마: ' + 테마들.join(' | ')],
+    ['화면방식',     '기존',          '기존 | 새 화면 — 새 화면이면 이 앱 주소로 들어온 사람에게 GitHub 새 화면 버튼을 보여 줍니다. 문제가 생기면 기존으로 (주소 뒤 ?classic=1 은 언제나 기존 화면)'],
+    ['새화면주소',   '',              '비워 두면 기본 새 화면(' + 새화면기본주소 + '). https 주소만']
   ];
   MODULES.forEach(function (m) {
     rows.push(['모듈.' + m.key, 'Y', m.이름 + ' 모듈 사용 (Y/N)']);
@@ -127,10 +135,12 @@ var 학생상태 = ['재학', '졸업', '전출'];
  */
 function doGet(e, ctx) {
   ctx설정_(ctx);
-  if (e && e.parameter && e.parameter.api) return 외부API_(e);   // 다른 페이지(줄넘기 판정기 등)가 JSON 으로 부르는 문
+  var p = (e && e.parameter) || {};
+  if (p.api) return 입구API_.test(p.api) ? 입구GET_(p) : 외부API_(e);   // 새 화면 입구 | 다른 페이지(줄넘기 판정기 등)가 JSON 으로 부르는 문
   속성이사_(ctx && ctx.legacyProps);
   var 준비결과 = 준비_();
   var 설정 = 설정_();
+  if (화면방식_(설정) === '새 화면' && !p.classic) return 넘겨주기화면_(p, 설정);   // ?classic=1 이면 기존 화면 (탈출구)
   var tpl = HtmlService.createTemplateFromFile('App');
   tpl.mods = 모듈상태_();          // { PAPS: true, ... } 켜져 있고 설치된 것만 true
   tpl.page = (e && e.parameter && e.parameter.page) || '';
@@ -160,6 +170,141 @@ function 외부API_(e) {
     out = { ok: true, data: f(p) };
   } catch (err) { out = { ok: false, error: String(err && err.message || err) }; }
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ================= 새 화면(GitHub) 입구 =================
+   새 화면은 https 주소(GitHub Pages)에서 fetch 로 이 웹앱을 부릅니다. 응답은 모두 { ok, data | error, ms } JSON.
+     GET  ?api=info                      학교·판·모듈·테마 (첫 부팅)
+     GET  ?api=ping                      빈 요청 (연결 확인)
+     GET  ?api=rpc&fn=<이름>&args=<JSON>  작은 요청 — 기존 rpc 분배기 그대로 (이름 규칙 검사 포함)
+     POST {fn, args} (text/plain)        큰 요청(사진·영상)·비밀번호 — 껍데기의 doPost 가 넘겨줌
+     GET  ?api=up_chunk / up_commit      껍데기에 doPost 가 없을 때: 큰 자료를 조각으로 나눠 보낸 뒤 서버에서 합쳐 실행
+   웹앱이 이미 익명 공개이고 같은 rpc 분배기를 쓰므로 새로 열리는 함수는 없습니다. */
+var 입구API_ = /^(info|ping|rpc|up_chunk|up_commit)$/;
+var 조각표시_ = '__UP__';          // 조각으로 올린 자료가 들어갈 자리
+var 조각시간_ = 1200;              // 조각은 20분 동안 캐시에
+var 조각최대_ = 12 * 1024 * 1024;   // 조각으로 합칠 수 있는 최대 크기 (base64 글자, 약 9MB 파일) — 영상은 doPost 로
+
+function JSON응답_(fn) {
+  var t0 = Date.now(), out;
+  try { out = { ok: true, data: fn() }; }
+  catch (err) { out = { ok: false, error: String(err && err.message || err) }; }
+  out.ms = Date.now() - t0;
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function 입구GET_(p) {
+  return JSON응답_(function () {
+    switch (p.api) {
+      case 'ping': return { t: Date.now(), SERVER_API: SERVER_API };
+      case 'info': return 입구정보_();
+      case 'rpc': return rpc(String(p.fn || ''), p.args ? JSON.parse(p.args) : [], CTX_);
+      case 'up_chunk': return 조각받기_(p);
+      case 'up_commit': return 조각합치기_(p);
+    }
+    throw new Error('알 수 없는 요청: ' + p.api);
+  });
+}
+
+/** 껍데기: function doPost(e) { return PE.doPost(e, ctx_()); }  본문 JSON { fn, args } */
+function doPost(e, ctx) {
+  ctx설정_(ctx);
+  return JSON응답_(function () {
+    var body = e && e.postData && e.postData.contents;
+    if (!body) throw new Error('보낸 내용이 비어 있습니다.');
+    var m = JSON.parse(body);
+    return rpc(String(m.fn || ''), Array.isArray(m.args) ? m.args : [], CTX_);
+  });
+}
+
+/** 새 화면 첫 부팅: 서버 기능 번호·판·이름·테마·켜진 모듈 (로그인 전이라 학생 정보 없음) */
+function 입구정보_() {
+  준비_();
+  var s = 설정_();
+  return {
+    SERVER_API: SERVER_API, 판: APP_VERSION,
+    제목: str_(s.프로그램이름) || 기본프로그램이름, 학생용이름: str_(s.학생용이름) || 기본학생용이름, 학교명: str_(s.학교명),
+    테마: 테마_(s.테마), 모듈: 모듈상태_(), 화면방식: 화면방식_(s), 앱주소: 앱주소_()
+  };
+}
+
+/* ---------- 조각 올리기 (껍데기에 doPost 가 없는 학교) ----------
+   라이브러리의 스크립트 캐시는 모든 학교가 함께 쓰므로 문서 캐시(학교 시트)를 먼저 쓰고, 키에는 학교 표시(ck_)를 붙입니다. */
+function 조각캐시_() {
+  try { var c = CacheService.getDocumentCache(); if (c) return c; } catch (e) {}
+  return CacheService.getScriptCache();
+}
+function 조각번호_(id) {
+  id = String(id || '');
+  if (!/^[A-Za-z0-9]{8,40}$/.test(id)) throw new Error('올리기 번호가 잘못됐습니다.');
+  return id;
+}
+function 조각키_(id, i) { return 'UP_' + ck_(id + '_' + i); }
+
+/** ?api=up_chunk&id=<올리기번호>&i=<순서>&d=<base64 조각> */
+function 조각받기_(p) {
+  var id = 조각번호_(p.id), i = Number(p.i), d = String(p.d || '');
+  if (!(i >= 0 && i < 5000)) throw new Error('조각 순서가 잘못됐습니다.');
+  if (d.length > 90000) throw new Error('조각이 너무 큽니다.');
+  조각캐시_().put(조각키_(id, i), d, 조각시간_);
+  return { i: i, n: d.length };
+}
+
+/** ?api=up_commit&id=&n=<조각 수>&fn=&args=<JSON, 자료 자리에 "__UP__"> → { result } | { missing:[…] } */
+function 조각합치기_(p) {
+  var id = 조각번호_(p.id), n = Number(p.n);
+  if (!(n >= 1 && n <= 5000)) throw new Error('조각 수가 잘못됐습니다.');
+  var cache = 조각캐시_(), keys = [], got = {}, i;
+  for (i = 0; i < n; i++) keys.push(조각키_(id, i));
+  for (i = 0; i < keys.length; i += 100) {
+    var part = cache.getAll(keys.slice(i, i + 100));
+    Object.keys(part).forEach(function (k) { got[k] = part[k]; });
+  }
+  var missing = [], size = 0;
+  keys.forEach(function (k, j) { if (got[k] === undefined || got[k] === null) missing.push(j); else size += got[k].length; });
+  if (missing.length) return { missing: missing };
+  if (size > 조각최대_) throw new Error('조각으로 올리기엔 너무 큽니다. 선생님께 껍데기(Shell.gs)에 doPost 를 넣어 달라고 말씀해 주세요.');
+  var data = keys.map(function (k) { return got[k]; }).join('');
+  var res = rpc(String(p.fn || ''), 조각끼우기_(p.args ? JSON.parse(p.args) : [], data), CTX_);
+  for (i = 0; i < keys.length; i += 100) cache.removeAll(keys.slice(i, i + 100));
+  return { result: res };
+}
+function 조각끼우기_(v, data) {
+  if (v === 조각표시_) return data;
+  if (Array.isArray(v)) return v.map(function (x) { return 조각끼우기_(x, data); });
+  if (v && typeof v === 'object') { var o = {}; Object.keys(v).forEach(function (k) { o[k] = 조각끼우기_(v[k], data); }); return o; }
+  return v;
+}
+
+/* ---------- 화면 방식 (기존 | 새 화면) ---------- */
+function 화면방식_(s) { return str_((s || 설정_()).화면방식) === '새 화면' ? '새 화면' : '기존'; }
+function 새화면주소_(s) {
+  var u = str_((s || 설정_()).새화면주소);
+  if (!/^https:\/\/[^\s"'<>]+$/.test(u)) u = 새화면기본주소;
+  return /\/$/.test(u) ? u : u + '/';
+}
+
+/** 화면방식 = 새 화면: 학교 앱 주소로 들어온 사람에게 새 화면 버튼을 보여 줌. 구글 웹앱 틀 안에서는 자동 이동이 막혀서(0단계 시험) 누르는 버튼이 기본 */
+function 넘겨주기화면_(p, 설정) {
+  var app = 앱주소_(), teacher = p.page === 'teacher';
+  var go = 새화면주소_(설정) + '?app=' + encodeURIComponent(app) + (teacher ? '&page=teacher' : '');
+  var classic = app + '?classic=1' + (teacher ? '&page=teacher' : '');
+  var 이름 = teacher ? (str_(설정.프로그램이름) || 기본프로그램이름) : (str_(설정.학생용이름) || 기본학생용이름);
+  var h = function (x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
+  // (문서 틀 태그는 HtmlService 가 붙임 — 오프라인 빌드가 head·body 닫는 태그를 찾아 끼워 넣으므로 여기엔 쓰지 않음)
+  var html = '<style>' +
+    'body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F2FAF7;color:#16232E;font:16px/1.6 "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;padding:20px;box-sizing:border-box}' +
+    '.box{max-width:460px;width:100%;background:#fff;border:1px solid #D7EAE3;border-radius:20px;padding:30px 26px;text-align:center;box-shadow:0 14px 40px -18px rgba(22,35,46,.25)}' +
+    'h1{font-size:22px;margin:0 0 4px}p{margin:6px 0;color:#557069;font-size:15px}' +
+    'a.go{display:block;margin:22px 0 12px;background:#14A085;color:#fff;text-decoration:none;font-weight:800;font-size:21px;padding:18px;border-radius:16px}' +
+    'a.go:active{transform:scale(.98)}a.sub{color:#557069;font-size:13px}.school{color:#14A085;font-weight:800;font-size:14px}</style>' +
+    '<div class="box">' + (str_(설정.학교명) ? '<div class="school">' + h(설정.학교명) + '</div>' : '') +
+    '<h1>' + h(이름) + '</h1><p>새 화면에서 열려요. 아래 버튼을 눌러 주세요.</p>' +
+    '<a class="go" href="' + h(go) + '" target="_top">새 화면으로 열기</a>' +
+    '<p style="font-size:13px">이 주소와 즐겨찾기는 앞으로도 그대로 쓰면 돼요.</p>' +
+    '<p style="margin-top:14px"><a class="sub" href="' + h(classic) + '" target="_top">새 화면이 안 열리면 → 기존 화면으로 열기</a></p></div>';
+  return HtmlService.createHtmlOutput(html).setTitle(이름).addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 /** 옛 스크립트 속성 → '_속성' 시트로 (교사 비밀번호·사진 폴더·Gemini 키). 한 번만 */
@@ -411,7 +556,8 @@ function 공개설정_() {
     반범위: Math.max(1, Math.min(30, num_(s.반범위) || 15)),
     자동나가기분: Math.max(1, Math.min(60, num_(s.자동나가기분) || 3)),
     학생로그인: str_(s.학생로그인) === '입력칸' ? '입력칸' : '숫자판',
-    테마: 테마_(s.테마), 테마목록: 테마들.slice()
+    테마: 테마_(s.테마), 테마목록: 테마들.slice(),
+    화면방식: 화면방식_(s), 새화면주소: 새화면주소_(s), SERVER_API: SERVER_API
   };
 }
 
@@ -861,6 +1007,10 @@ function t_saveSettings(token, map) {
   if (map.테마 !== undefined) {
     if (테마들.indexOf(str_(map.테마)) < 0) return { ok: false, message: '없는 색상 테마입니다.' };
     put.테마 = str_(map.테마);
+  }
+  if (map.화면방식 !== undefined) {
+    if (['기존', '새 화면'].indexOf(str_(map.화면방식)) < 0) return { ok: false, message: '화면 방식은 기존 또는 새 화면입니다.' };
+    put.화면방식 = str_(map.화면방식);
   }
 
   // 학교급이 바뀌면 학년 범위와 모듈별 대상 학년을 그 학교급의 기본값으로 되돌리고, 모듈에 알립니다 (PAPS 종목·기준표 등)
