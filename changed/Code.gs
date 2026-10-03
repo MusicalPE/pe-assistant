@@ -27,7 +27,7 @@
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '3.1.3';
+var APP_VERSION = '3.1.4';
 
 /* 새 화면(GitHub) 과 주고받는 서버 기능 번호. 서버 입구(?api=rpc·doPost·조각 올리기 등)가 바뀔 때만 올립니다.
    새 화면은 ?api=info 로 이 번호를 읽고, 기대보다 낮으면 그 기능을 숨깁니다. (판 번호와 따로) */
@@ -37,6 +37,7 @@ var 새화면기본주소 = 'https://musicalpe.github.io/pe-app/';
 /* 판별 바뀐 내용 — 설정 → 업데이트 칸의 "이번 판에서 바뀐 것" 과 지난 판 보기에 씁니다.
    새 판을 낼 때 맨 앞에 한 항목을 더하고, tools/make-release.js 가 이 표를 manifest.json 의 history 로도 내보냅니다. */
 var APP_HISTORY = [
+  { version: '3.1.4', lib: 44, date: '2026-10-04', notes: '(만든 선생님 학교 전용) 사용 학교 현황을 프로그램 설정 화면에서 바로 봐요 — 받는 쪽이 따로 시트가 아니라 만든 선생님의 학교 프로그램 안(숨긴 시트 _사용학교)에 쌓여요. 다른 학교에는 이 칸이 나오지 않고 받지도 않아요.' },
   { version: '3.1.3', lib: 43, date: '2026-10-03', notes: '사용 학교 알림 (설정 → 업데이트 아래): 하루 한 번 "이 프로그램을 쓰고 있어요" 신호를 만든 선생님께 보내요. 기본은 익명(무작위 학교 번호·판·학교급·켠 모듈 수·화면 방식)이고, "학교 이름도 알리기"를 고른 학교만 이름을 함께 보내요. GitHub 사용량·서버 확충을 준비하고 업데이트를 꾸준히 이어 가기 위한 것이에요. 학생 이름·기록·비밀번호는 각 학교 스프레드시트에만 있어 보낼 수도 모을 수도 없고, "알리지 않기"로 끌 수 있어요.' },
   { version: '3.1.2', lib: 42, date: '2026-10-03', notes: 'AI 키를 설정 한 곳에서(설정 → AI 키 · 시험해 보기) — 줄넘기 응원 문구·매트 퀴즈 문제·세특이 모두 이 키를 쓰고, 앞으로 생길 AI 기능도 여기 키를 써요. 줄넘기 설정에 넣어 둔 키는 그대로 쓰여요.' },
   { version: '3.1.1', lib: 41, date: '2026-10-03', notes: '세특 초안에 "AI로 다듬기" — AI 키가 있으면 학생마다 기록 사실로 서로 다른 문장을 써 줘요. 학생 한 명씩, 또는 고른 학생(안 고르면 반 전체)을 차례로. 선생님이 칸에 쓴 관찰 내용을 가장 먼저 살리고, 이름·성별·학교는 보내지 않으며, 기록에 없는 일은 지어내지 않게 했어요. 쓴 글은 바로 저장되고 "초안으로"로 언제든 되돌릴 수 있어요.\n세특 초안: 학생을 골라 글 지우기(빈칸으로 저장 — 다시 불러와도 빈칸).\n선생님이 로그인하면 새 소식 창 — 판이 바뀌면 "이번에 바뀐 것"을 한 번, 학교 프로그램(라이브러리) 새 버전이 나와 있으면 적용 방법을 함께 안내(적용할 때까지 7일에 한 번).' },
@@ -297,6 +298,8 @@ function 사용알림방식_(s) { var v = str_((s || 설정_()).사용알림); r
 function 사용알림_(주소, 라이브러리) {
   try {
     if (!주소 || !/^https:\/\/script\.google(usercontent)?\.com\//.test(주소)) return;
+    var 나 = 배포ID_(앱주소_()), 받는 = 배포ID_(주소) && 배포ID_(주소) === 나;   // 받는 주소가 이 학교면 '받는 학교'
+    if (받는 !== 받는학교인가_()) 속성저장_('사용알림.받기', 받는 ? 'Y' : null);
     var s = 설정_(), 방식 = 사용알림방식_(s); if (방식 === '끔') return;
     var 오늘 = 오늘_(); if (속성_('사용알림.날짜') === 오늘) return;
     var id = 속성_('사용알림.ID'); if (!id) { id = Utilities.getUuid().replace(/-/g, '').slice(0, 12); 속성저장_('사용알림.ID', id); }
@@ -307,6 +310,39 @@ function 사용알림_(주소, 라이브러리) {
     속성저장_('사용알림.날짜', 오늘);   // 실패해도 하루 한 번만 시도
     UrlFetchApp.fetch(주소 + (주소.indexOf('?') < 0 ? '?' : '&') + qs, { muteHttpExceptions: true, followRedirects: true });
   } catch (e) {}
+}
+/* 사용 학교 알림 받기 (v3.1.4): 만든 선생님의 학교 웹앱이 곧 받는 쪽. manifest.usage 가 이 학교 주소를 가리키면
+   (배포 ID 가 같으면) 이 학교만 '받는 학교'가 되어 숨긴 시트 '_사용학교'에 쌓고, 설정 화면에서 바로 봅니다. 다른 학교는 받지 않음 */
+var 사용학교시트 = '_사용학교', 사용학교머리 = ['학교번호', '학교 이름', '학교급', '판', '라이브러리', '모듈 수', '화면 방식', '처음', '마지막', '보낸 횟수'];
+function 배포ID_(u) { var m = String(u || '').match(/\/s\/([A-Za-z0-9_-]{20,})\//); return m ? m[1] : ''; }
+function 받는학교인가_() { return 속성_('사용알림.받기') === 'Y'; }
+function core_x_usage(p) {
+  if (!받는학교인가_()) throw new Error('받지 않는 학교입니다.');
+  var id = String(p.id || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 20);
+  if (!id) throw new Error('no id');
+  return withLock_(function () {
+    if (!findSheet_(사용학교시트)) { 시트준비_(사용학교시트, 사용학교머리); try { findSheet_(사용학교시트).hideSheet(); } catch (e) {} }
+    var now = 지금_(), 이름 = str_(p.name).slice(0, 40), row = null;
+    rows_(사용학교시트).some(function (r) { if (str_(r.학교번호) === id) { row = r; return true; } return false; });
+    var f = { 학교번호: id, '학교 이름': 이름, 학교급: str_(p.lvl).slice(0, 4), 판: str_(p.v).slice(0, 12), 라이브러리: str_(p.lib).slice(0, 6),
+              '모듈 수': num_(p.mods) || '', '화면 방식': str_(p.screen) === 'new' ? '새 화면' : '기존', 마지막: now };
+    if (row) { f['보낸 횟수'] = (num_(row['보낸 횟수']) || 0) + 1; setCells_(사용학교시트, 사용학교머리, row._row, f); }
+    else { f.처음 = now; f['보낸 횟수'] = 1; appendRow_(사용학교시트, 사용학교머리, f); }
+    return 'ok';
+  }, 10000);
+}
+/** 설정 화면용: 받는 학교면 사용 학교 현황 */
+function t_usageStats(token) {
+  교사확인_(token);
+  if (!받는학교인가_()) return { 받기: false };
+  var list = findSheet_(사용학교시트) ? rows_(사용학교시트).map(function (r) {
+    return { 번호: str_(r.학교번호), 이름: str_(r['학교 이름']), 급: str_(r.학교급), 판: str_(r.판), 라이브러리: str_(r.라이브러리), 모듈: num_(r['모듈 수']) || 0,
+             화면: str_(r['화면 방식']), 처음: 시각문자_(r.처음), 마지막: 시각문자_(r.마지막), 횟수: num_(r['보낸 횟수']) || 0 };
+  }) : [];
+  var 기준 = Utilities.formatDate(new Date(Date.now() - 30 * 864e5), tz_(), 'yyyy-MM-dd');
+  list.sort(function (a, b) { return String(b.마지막).localeCompare(String(a.마지막)); });
+  return { 받기: true, 학교: list, 전체: list.length, 최근30일: list.filter(function (x) { return String(x.마지막).slice(0, 10) >= 기준; }).length,
+           이름: list.filter(function (x) { return x.이름; }).length, 기준: 기준 };
 }
 function 화면방식_(s) { return str_((s || 설정_()).화면방식) === '새 화면' ? '새 화면' : '기존'; }
 function 새화면주소_(s) {

@@ -222,6 +222,10 @@
             <div class="unit">이 키 하나를 <b>줄넘기 AI 응원 문구 · 색깔 매트 퀴즈 문제 받기 · 세특 AI로 다듬기</b>가 함께 쓰고, 앞으로 생기는 AI 기능도 여기 키를 씁니다. 키는 <b>aistudio.google.com</b> → 왼쪽 아래 열쇠 단추 → Create API key 에서 무료로 받아요. AI에는 학생 이름·성별·학교 이름을 보내지 않아요.</div>
           </div>
         </div>
+        <div class="panel hide" id="setUsageStats">
+          <div class="panel-head"><h3><i class="ti ti-school"></i>우리 프로그램을 쓰는 학교</h3><div class="spacer"></div><button class="mini ghost" id="usRefresh"><i class="ti ti-refresh"></i>새로고침</button></div>
+          <div class="panel-body" id="usBody"></div>
+        </div>
       </div>
       <div>
         <div class="panel">
@@ -616,8 +620,25 @@ MODS.core.teacher = (function () {
       api('t_aiInfo', TOKEN).then(aiPaint).catch(function () {});
     }).catch(function (e) { b.disabled = false; $('aiOut').classList.add('hide'); handleErr(e); });
   };
+  /* 사용 학교 현황 — 받는 학교(만든 선생님 학교)에만 (v3.1.4) */
+  function usLoad() {
+    if (!$('setUsageStats') || (D.설정.SERVER_API || 4) < 4) return;
+    api('t_usageStats', TOKEN).then(function (r) {
+      if (!r || !r.받기) { $('setUsageStats').classList.add('hide'); return; }
+      $('setUsageStats').classList.remove('hide');
+      var 판 = {}; r.학교.forEach(function (x) { 판[x.판] = (판[x.판] || 0) + 1; });
+      var kv = function (k, v) { return '<span style="background:var(--soft);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600">' + k + ' <b style="font-size:17px;margin-left:4px">' + v + '</b></span>'; };
+      $('usBody').innerHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' + kv('지금까지', r.전체 + '곳') + kv('최근 30일', r.최근30일 + '곳') + kv('이름 알린 학교', r.이름 + '곳') + '</div>' +
+        (Object.keys(판).length ? '<div class="unit" style="margin-bottom:8px">판별: ' + Object.keys(판).sort().reverse().map(function (k) { return 'v' + esc(k) + ' ' + 판[k] + '곳'; }).join(' · ') + '</div>' : '') +
+        (r.학교.length ? '<div class="scroll-x"><table style="font-size:13px;white-space:nowrap"><thead><tr><th>학교</th><th>급</th><th>판</th><th>모듈</th><th>화면</th><th>처음</th><th>마지막</th></tr></thead><tbody>' +
+          r.학교.map(function (x) { return '<tr><td>' + (x.이름 ? '<b>' + esc(x.이름) + '</b>' : '<span class="unit">익명 ' + esc(x.번호.slice(0, 4)) + '…</span>') + '</td><td>' + esc(x.급) + '</td><td>v' + esc(x.판) + '</td><td>' + x.모듈 + '</td><td>' + esc(x.화면) + '</td><td class="unit">' + esc(String(x.처음).slice(5, 10)) + '</td><td class="unit">' + esc(String(x.마지막).slice(5, 16)) + '</td></tr>'; }).join('') +
+          '</tbody></table></div>' : '<div class="unit">아직 신호를 보낸 학교가 없어요. 각 학교에서 선생님이 로그인하면 하루에 한 번 쌓여요.</div>') +
+        '<div class="unit" style="margin-top:8px">이 칸은 만든 선생님 학교에만 보여요. 자료는 이 시트의 숨긴 시트 <b>_사용학교</b>에 있어요.</div>';
+    }).catch(function () {});
+  }
+  $('usRefresh').onclick = usLoad;
   function renderSettings() {
-    setStatus('setStatus', ''); setStatus('pwStatus', ''); aiLoad();
+    setStatus('setStatus', ''); setStatus('pwStatus', ''); aiLoad(); usLoad();
     $('pwCur').value = ''; $('pwNew').value = ''; $('pwNew2').value = '';
     api('t_getSettings', TOKEN).then(function (st) {
       var s = st.설정;
