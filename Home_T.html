@@ -34,6 +34,30 @@
 .opt input{width:17px;height:17px;accent-color:var(--warn);margin-top:3px;}
 .reset-box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
 .reset-box b{display:block;margin-bottom:4px;}
+.reset-box .rs-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.reset-box .rs-head b{margin:0;}
+.reset-box .rs-all{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);font-weight:700;cursor:pointer;white-space:nowrap;}
+.rs-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+/* 새 학년도 · 세특 초안 (v3.1) */
+.ny-flow{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 2px;}
+.ny-flow span{background:var(--soft);border-radius:10px;padding:8px 12px;font-size:13.5px;font-weight:600;}
+.ny-flow span b{font-size:15px;}
+.ny-flow span.grad{background:var(--brand-soft);color:var(--brand-ink);}
+.ny-big{font-size:22px;font-weight:800;letter-spacing:-.03em;margin:2px 0 8px;}
+.ny-steps{margin:6px 0 0;padding-left:20px;line-height:1.9;font-size:14px;}
+.sk-mods{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.sk-mods label{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);border-radius:99px;padding:5px 11px;cursor:pointer;background:#fff;font-size:13px;font-weight:600;}
+.sk-mods label.on{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-ink);}
+.sk-mods input{margin:0;width:15px;height:15px;accent-color:var(--brand);}
+.sk-row .panel-head h3 .no{color:var(--ink-3);font-weight:700;margin-right:6px;}
+.sk-row textarea{width:100%;min-height:96px;font:inherit;font-size:14.5px;line-height:1.65;resize:vertical;}
+.sk-cnt{font-size:12.5px;font-weight:700;color:var(--ink-3);white-space:nowrap;}
+.sk-cnt.over{color:var(--coral);}
+.sk-ev{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.sk-ev span{font-size:12px;color:var(--ink-2);background:var(--soft);border-radius:8px;padding:3px 8px;}
+.sk-ev span b{color:var(--ink);margin-right:4px;}
+.sk-saved{font-size:12px;color:var(--ink-3);}
+.sk-saved.dirty{color:var(--sun-ink,#B7791F);font-weight:700;}
 </style>
 
 <div class="mroot hide" data-mod="core" data-role="T" id="core_T">
@@ -76,6 +100,23 @@
       <div class="scroll-x"><table id="pfTable"><thead id="pfHead"></thead><tbody id="pfRows"></tbody></table></div>
       <div class="empty hide" id="pfEmpty"><i class="ti ti-users"></i><strong>학생이 없습니다</strong></div>
     </div>
+  </div>
+
+  <!-- ===== 세특 초안 (v3.1) ===== -->
+  <div class="page hide" id="core_tp_seteuk">
+    <div class="page-head"><h2>세특 초안</h2><span class="sub">이번 학년도 기록으로 체육 교과 세부능력 및 특기사항 초안을 만들어요. 고쳐 쓴 글은 시트에 저장돼요.</span></div>
+    <div class="bar">
+      <div class="field"><label for="skGrade">학년</label><select id="skGrade"></select></div>
+      <div class="field"><label for="skClass">반</label><select id="skClass"></select></div>
+      <div class="field"><label for="skLimit">글자 한도</label><select id="skLimit"><option value="500">500자 (1500바이트)</option><option value="300">300자</option><option value="1000">1000자</option></select></div>
+      <button id="skMake"><i class="ti ti-writing"></i>불러오기</button>
+      <div class="spacer"></div>
+      <button class="soft hide" id="skCopyAll"><i class="ti ti-table-export"></i>반 전체 표로 복사</button>
+    </div>
+    <div class="bar" style="padding-top:10px;padding-bottom:10px"><span class="unit" style="margin-right:4px">넣을 기록</span><div class="sk-mods" id="skMods"></div></div>
+    <div class="note"><i class="ti ti-info-circle"></i><div>기록에서 뽑은 <b>틀 문장</b>이라 학생끼리 비슷할 수 있어요. 수업에서 본 모습을 덧붙여 고쳐 써 주세요. 수행평가에 쓴 <b>특기사항</b>은 그대로 가져옵니다. 저장한 글이 있으면 그 글을 먼저 보여 주고, <b>초안으로</b>를 누르면 기록에서 다시 만들어요. 스포츠클럽은 창의적 체험활동에 더 맞아 기본으로 꺼 두었어요.</div></div>
+    <div id="skList"></div>
+    <div class="empty hide" id="skEmpty"><i class="ti ti-users"></i><strong>학생이 없습니다</strong>학년·반을 골라 불러오기를 눌러 주세요.</div>
   </div>
 
   <!-- ===== 학생 명단 ===== -->
@@ -167,6 +208,32 @@
     <div class="savebar" style="border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)"><span class="status" id="setStatus"></span><div class="spacer"></div><button id="btnSetSave"><i class="ti ti-device-floppy"></i>설정 저장</button></div>
   </div>
 
+  <!-- ===== 새 학년도 시작 (v3.1) ===== -->
+  <div class="page hide" id="core_tp_newyear">
+    <div class="page-head"><h2>새 학년도 시작</h2><span class="sub">3월에 한 번 — 학년 올리기와 학년도 바꾸기를 한꺼번에 해요</span></div>
+    <div class="panel">
+      <div class="panel-head"><h3><i class="ti ti-calendar-plus"></i>이렇게 바뀌어요</h3></div>
+      <div class="panel-body" id="nyInfo"><div class="unit">불러오는 중…</div></div>
+    </div>
+    <div class="panel" id="nyRunBox">
+      <div class="panel-head"><h3><i class="ti ti-list-check"></i>실행</h3></div>
+      <div class="panel-body">
+        <label class="opt"><input type="checkbox" id="nyCopy" checked><span><b>먼저 보관본 만들기 (권장)</b> — 지금 스프레드시트 전체를 구글 드라이브에 사본으로 남겨요. 지난 학년도 기록을 언제든 그대로 볼 수 있어요.</span></label>
+        <label class="opt"><input type="checkbox" id="nyClean"><span><b>이미 졸업·전출한 학생 정리</b> — <span id="nyLeftN">0</span>명과 그 학생들의 기록을 지워요. 보관본에는 남아요. (이번에 졸업할 학생은 졸업 처리만 하고 남겨 둬요)</span></label>
+      </div>
+      <div class="savebar">
+        <div class="field"><label for="nyConfirm">확인 — 새 학년도 라고 입력</label><input type="text" id="nyConfirm" placeholder="새 학년도" style="width:140px"></div>
+        <button id="btnNyRun"><i class="ti ti-player-play"></i>새 학년도 시작</button>
+        <span class="status" id="nyStatus"></span>
+      </div>
+    </div>
+    <div class="panel hide" id="nyDone">
+      <div class="panel-head"><h3><i class="ti ti-circle-check"></i>끝났어요 — 이어서 할 일</h3></div>
+      <div class="panel-body" id="nyDoneBody"></div>
+    </div>
+    <div class="note"><i class="ti ti-info-circle"></i><div><b>기록은 어떻게 되나요?</b> 학생 기록은 학생ID로 이어져서 지워지지 않아요. 학년도가 붙는 기록(수업 계획·수행평가·PAPS·색깔 매트·스포츠클럽)은 새 학년도에 새로 시작하고, 지난 기록은 시트에 그대로 남아요. 줄넘기·건강체력교실·FMS 배지는 학생마다 계속 쌓여요.</div></div>
+  </div>
+
   <!-- ===== 초기화 ===== -->
   <div class="page hide" id="core_tp_reset">
     <div class="page-head"><h2>초기화</h2><span class="sub">지운 자료는 되돌릴 수 없습니다</span></div>
@@ -241,17 +308,19 @@ MODS.core.teacher = (function () {
   var D = null;        // t_boot 응답
   var HOME = null;     // t_home 응답
   var MODLIST = [];    // 켜진 모듈
-  var pages = ['dash', 'students', 'profile', 'settings', 'reset'];
+  var pages = ['dash', 'students', 'profile', 'seteuk', 'settings', 'newyear', 'reset'];
 
   var navTop = [
     { section: '홈' },
     { id: 'dash', label: '오늘 할 일', icon: 'layout-dashboard' },
     { id: 'students', label: '학생 명단', icon: 'users' },
-    { id: 'profile', label: '학생 프로필', icon: 'id-badge-2' }
+    { id: 'profile', label: '학생 프로필', icon: 'id-badge-2' },
+    { id: 'seteuk', label: '세특 초안', icon: 'writing' }
   ];
   var navBottom = [
     { section: '설정' },
     { id: 'settings', label: '설정', icon: 'settings' },
+    { id: 'newyear', label: '새 학년도 시작', icon: 'calendar-plus' },
     { id: 'reset', label: '초기화', icon: 'trash' }
   ];
 
@@ -264,7 +333,7 @@ MODS.core.teacher = (function () {
   function show(p) {
     pages.forEach(function (id) { $('core_tp_' + id).classList.toggle('hide', id !== p); });
     if (!D) return;
-    ({ dash: renderDash, students: renderStudents, profile: renderProfilePage, settings: renderSettings, reset: renderReset }[p] || function () {})();
+    ({ dash: renderDash, students: renderStudents, profile: renderProfilePage, seteuk: renderSeteuk, settings: renderSettings, newyear: renderNewYear, reset: renderReset }[p] || function () {})();
   }
 
   function range(a, b) { var out = []; for (var i = a; i <= b; i++) out.push(i); return out; }
@@ -671,17 +740,44 @@ MODS.core.teacher = (function () {
     $('rsBody').innerHTML = '<div class="unit">불러오는 중…</div>';
     api('t_resetInfo', TOKEN).then(function (info) {
       RS = info;
-      var h = '';
+      // 한꺼번에 고르기: 모든 기록(명단은 남김) · 명단까지 전부 · 선택 해제 — 모듈마다 "이 모듈 모두"
+      var h = '<div class="rs-tools"><button class="mini soft" type="button" id="rsAllRec"><i class="ti ti-checks"></i>모든 기록 선택 (명단은 남김)</button>' +
+        '<button class="mini soft" type="button" id="rsAllEvery"><i class="ti ti-checks"></i>명단까지 전부 선택</button>' +
+        '<button class="mini ghost" type="button" id="rsNone"><i class="ti ti-square"></i>선택 해제</button><span class="unit" id="rsCount"></span></div>';
       Object.keys(info.모듈).forEach(function (key) {
         var m = modInfo(key), items = info.모듈[key];
         if (items && items.오류) { h += '<div class="reset-box"><b>' + esc(m.이름) + '</b><span class="unit">' + esc(items.오류) + '</span></div>'; return; }
-        h += '<div class="reset-box"><b><i class="ti ti-' + m.아이콘 + '"></i> ' + esc(m.이름) + '</b>' +
+        h += '<div class="reset-box"><div class="rs-head"><b><i class="ti ti-' + m.아이콘 + '"></i> ' + esc(m.이름) + '</b>' +
+          ((items || []).length > 1 ? '<label class="rs-all"><input type="checkbox" data-rs-all="' + key + '">이 모듈 모두</label>' : '') + '</div>' +
           (items || []).map(function (it) { return '<label class="opt"><input type="checkbox" data-rs="' + key + '" value="' + esc(it.key) + '"><span>' + esc(it.이름) + ' <span class="unit">' + esc(it.수) + '건</span></span></label>'; }).join('') +
           '</div>';
       });
       h += '<div class="reset-box"><b><i class="ti ti-users"></i> 공통</b><label class="opt"><input type="checkbox" id="rs학생"><span>학생 명단 전체 <span class="unit">' + info.학생 + '명</span> — 모든 모듈의 기록도 함께 지우는 것이 안전합니다</span></label></div>';
       $('rsBody').innerHTML = h;
+      rsBind();
     }).catch(handleErr);
+  }
+  /* 모듈별 "이 모듈 모두"(일부만 고르면 반쯤 표시) · 위쪽 한꺼번에 고르기 · 고른 수 */
+  function rsBind() {
+    var body = $('rsBody'), items = function (k) { return Array.prototype.slice.call(body.querySelectorAll('[data-rs' + (k ? '="' + k + '"' : '') + ']')); };
+    var sync = function () {
+      Array.prototype.forEach.call(body.querySelectorAll('[data-rs-all]'), function (a) {
+        var its = items(a.getAttribute('data-rs-all')), on = its.filter(function (c) { return c.checked; }).length;
+        a.checked = on > 0 && on === its.length; a.indeterminate = on > 0 && on < its.length;
+      });
+      var n = items().filter(function (c) { return c.checked; }).length, st = $('rs학생') && $('rs학생').checked;
+      $('rsCount').textContent = (n || st) ? '고른 것 ' + n + '개' + (st ? ' + 학생 명단' : '') : '';
+    };
+    Array.prototype.forEach.call(body.querySelectorAll('[data-rs-all]'), function (a) {
+      a.onchange = function () { var on = a.checked; items(a.getAttribute('data-rs-all')).forEach(function (c) { c.checked = on; }); sync(); };
+    });
+    items().forEach(function (c) { c.onchange = sync; });
+    if ($('rs학생')) $('rs학생').onchange = sync;
+    var setAll = function (on, roster) { items().forEach(function (c) { c.checked = on; }); if ($('rs학생')) $('rs학생').checked = !!roster; sync(); };
+    $('rsAllRec').onclick = function () { setAll(true, false); };
+    $('rsAllEvery').onclick = function () { setAll(true, true); };
+    $('rsNone').onclick = function () { setAll(false, false); };
+    sync();
   }
   $('rsRefresh').onclick = renderReset;
   $('btnResetAll').onclick = function () {
@@ -691,7 +787,8 @@ MODS.core.teacher = (function () {
     });
     var 학생 = $('rs학생') && $('rs학생').checked;
     if (!any && !학생) { setStatus('rsStatus', '지울 자료를 골라 주세요.', 'err'); return; }
-    if (!confirm('선택한 자료를 지웁니다. 되돌릴 수 없습니다. 계속할까요?')) return;
+    var 개수 = $('rsBody').querySelectorAll('[data-rs]:checked').length;
+    if (!confirm('고른 자료 ' + 개수 + '개' + (학생 ? ' + 학생 명단 전체' : '') + '를 지웁니다. 되돌릴 수 없습니다. 계속할까요?')) return;
     var btn = this; btn.disabled = true; setStatus('rsStatus', '지우는 중…');
     api('t_resetAll', TOKEN, { 모듈: 모듈, 학생: 학생 }, $('rsConfirm').value).then(function (r) {
       btn.disabled = false;
@@ -761,6 +858,148 @@ MODS.core.teacher = (function () {
       Array.prototype.forEach.call($('pfRows').querySelectorAll('[data-pf]'), function (a) { a.onclick = function (e) { e.preventDefault(); $('pfStudent').value = a.getAttribute('data-pf'); pfLoad(); }; });
     }).catch(handleErr);
   }
+
+  /* ================= 새 학년도 시작 (v3.1) ================= */
+  var NY = null;
+  function needApi3(box) {   // 새 화면 + 옛 라이브러리(39 이하)
+    if ((D.설정.SERVER_API || 0) >= 3 || D.설정.SERVER_API === undefined) return false;
+    $(box).innerHTML = '<div class="note sun"><i class="ti ti-alert-triangle"></i><div>이 기능은 학교 프로그램(라이브러리)을 <b>v3.1.0(라이브러리 40)</b> 이상으로 올리면 쓸 수 있어요. 설정 → 업데이트를 확인해 주세요.</div></div>';
+    return true;
+  }
+  function renderNewYear() {
+    setStatus('nyStatus', ''); $('nyConfirm').value = '';
+    if (needApi3('nyInfo')) return;
+    $('nyInfo').innerHTML = '<div class="unit">불러오는 중…</div>';
+    api('t_newYearInfo', TOKEN).then(function (r) {
+      NY = r;
+      var gs = Object.keys(r.학년별).map(Number).sort(function (a, b) { return a - b; });
+      var flow = gs.map(function (g) {
+        return g >= r.최대학년 ? '<span class="grad">' + g + '학년 <b>' + r.학년별[g] + '</b>명 → 졸업</span>' : '<span>' + g + '학년 <b>' + r.학년별[g] + '</b>명 → ' + (g + 1) + '학년</span>';
+      }).join('');
+      $('nyInfo').innerHTML =
+        '<div class="ny-big">' + r.학년도 + '학년도 → ' + r.다음 + '학년도</div>' +
+        (gs.length ? '<div class="ny-flow">' + flow + '</div>' : '<div class="unit">재학생이 없어요. 학년도만 바뀌어요.</div>') +
+        '<div class="unit" style="margin-top:8px">올라가는 학생 ' + r.올림 + '명 · 졸업 ' + r.졸업 + '명. 올라가는 학생은 반·번호가 비워지고, 새 명렬을 붙여 넣으면 기록이 이어진 채로 채워져요.</div>' +
+        (r.반없음 ? '<div class="note sun" style="margin-top:10px"><i class="ti ti-alert-triangle"></i><div>지금도 반·번호가 없는 재학생이 ' + r.반없음 + '명 있어요. 작년 학년 올리기를 하고 명렬을 아직 안 넣은 건 아닌지 확인해 주세요.</div></div>' : '') +
+        (r.지난실행 ? '<div class="note warn" style="margin-top:10px"><i class="ti ti-alert-triangle"></i><div>' + r.다음 + '학년도 시작을 이미 ' + esc(r.지난실행) + '에 한 번 했어요. 다시 하면 학년이 한 번 더 올라가요.</div></div>' : '');
+      $('nyLeftN').textContent = r.이미떠남;
+      $('nyClean').disabled = !r.이미떠남; if (!r.이미떠남) $('nyClean').checked = false;
+    }).catch(handleErr);
+  }
+  $('btnNyRun').onclick = function () {
+    if (!NY) return;
+    if ($('nyConfirm').value.replace(/\s/g, '') !== '새학년도') { setStatus('nyStatus', '확인 칸에 새 학년도 라고 입력해 주세요.', 'err'); return; }
+    if (!confirm(NY.학년도 + '학년도 → ' + NY.다음 + '학년도로 넘어갑니다.\n재학생 ' + NY.재학 + '명의 학년이 올라가고(' + NY.최대학년 + '학년은 졸업), 반·번호가 비워집니다.' + ($('nyClean').checked ? '\n이미 졸업·전출한 ' + NY.이미떠남 + '명과 그 기록을 지웁니다.' : '') + '\n계속할까요?')) return;
+    var btn = this; btn.disabled = true;
+    setStatus('nyStatus', $('nyCopy').checked ? '보관본을 만들고 넘어가는 중… (1분쯤 걸릴 수 있어요)' : '넘어가는 중…');
+    api('t_newYearRun', TOKEN, { 보관본: $('nyCopy').checked, 졸업생정리: $('nyClean').checked }, $('nyConfirm').value).then(function (r) {
+      btn.disabled = false;
+      if (!r.ok) { setStatus('nyStatus', r.message, 'err'); return; }
+      setStatus('nyStatus', '');
+      D.설정 = r.설정; CTX.설정 = r.설정; applyRoster(r.명단); fillSelects();
+      $('nyRunBox').classList.add('hide');
+      $('nyDoneBody').innerHTML =
+        '<div class="ny-big">' + r.학년도 + '학년도가 시작됐어요</div>' +
+        '<div class="unit">학년 올림 ' + r.올림 + '명 · 졸업 ' + r.졸업 + '명' + (r.지움 ? ' · 정리 ' + r.지움 + '명' : '') + '</div>' +
+        (r.보관본 ? '<p style="margin:10px 0 0"><a href="' + esc(r.보관본) + '" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> ' + r.이전 + '학년도 보관본 열기</a> <span class="unit">(구글 드라이브 내 파일에도 있어요)</span></p>' : (r.보관본 === '' ? '<p class="unit" style="margin:10px 0 0">' + r.이전 + '학년도 보관본을 백업 파일로 내려받았어요.</p>' : '')) +
+        '<ol class="ny-steps">' +
+        '<li><b>학생 명단 → 명렬 붙여넣기</b>로 반마다 새 반·번호를 넣어 주세요. "기존 학생 채우기"가 자동으로 켜져서 기록이 이어져요. <button class="mini soft" id="nyGoStu">학생 명단으로</button></li>' +
+        '<li><b>설정</b>에서 반 수와 등록할 수 있는 학년을 확인해 주세요.</li>' +
+        '<li>새로 들어온 학생은 그냥 붙여 넣으면 새로 등록돼요. 비밀번호 카드는 새 반으로 다시 인쇄하면 돼요(비밀번호는 그대로).</li>' +
+        '<li>수업 도우미 시간표·수업 계획, 수행평가 계획을 새로 정해 주세요. (수행평가는 지난 학년도 계획 복사 기능이 있어요)</li>' +
+        '<li>다른 메뉴에도 새 학년도가 반영되도록 <b>한 번 로그아웃했다가 다시 들어와</b> 주세요. <button class="mini ghost" id="nyRelogin">지금 로그아웃</button></li>' +
+        '</ol>';
+      $('nyDone').classList.remove('hide');
+      $('nyGoStu').onclick = function () { showPage('core:students'); };
+      $('nyRelogin').onclick = function () { logoutNow(); };
+      toast(r.학년도 + '학년도로 넘어갔어요');
+    }).catch(function (e) { btn.disabled = false; setStatus('nyStatus', ''); handleErr(e); });
+  };
+
+  /* ================= 세특 초안 (v3.1) ================= */
+  var SK = null, SK_MODS = null;
+  function skBytes(t) { var n = 0; for (var i = 0; i < t.length; i++) { var c = t.charCodeAt(i); n += c === 10 ? 2 : (c < 128 ? 1 : 3); } return n; }
+  function skCount(row) {
+    var t = row.querySelector('textarea').value, lim = Number($('skLimit').value), b = skBytes(t), el = row.querySelector('.sk-cnt');
+    el.textContent = t.length + '자 · ' + b + '/' + (lim * 3) + '바이트';
+    el.classList.toggle('over', b > lim * 3);
+  }
+  function renderSeteuk() {
+    var gs = D.설정.학년범위, cs = range(1, D.설정.반범위);
+    var g0 = $('skGrade').value || gs[0], c0 = $('skClass').value || 1;
+    $('skGrade').innerHTML = options(gs, g0, function (g) { return g + '학년'; });
+    $('skClass').innerHTML = options(cs, c0, function (c) { return c + '반'; });
+    if (!SK) $('skEmpty').classList.remove('hide');
+    if (needApi3('skList')) { $('skEmpty').classList.add('hide'); $('skMake').disabled = true; }
+  }
+  function skLoad(force) {
+    var g = Number($('skGrade').value), c = Number($('skClass').value);
+    var mods = SK_MODS ? SK_MODS.filter(function (m) { return m.켬; }).map(function (m) { return m.key; }) : null;
+    $('skList').innerHTML = '<div class="unit" style="padding:10px 2px">기록을 모으는 중…</div>'; $('skEmpty').classList.add('hide');
+    api('t_seteukDraft', TOKEN, g, c, mods).then(function (r) {
+      SK = r; SK_MODS = r.모듈;
+      $('skMods').innerHTML = r.모듈.map(function (m) { return '<label class="' + (m.켬 ? 'on' : '') + '"><input type="checkbox" data-skm="' + m.key + '"' + (m.켬 ? ' checked' : '') + '>' + esc(m.이름) + '</label>'; }).join('') || '<span class="unit">켜진 모듈이 없어요</span>';
+      Array.prototype.forEach.call($('skMods').querySelectorAll('[data-skm]'), function (i) {
+        i.onchange = function () { SK_MODS.forEach(function (m) { if (m.key === i.getAttribute('data-skm')) m.켬 = i.checked; }); i.parentNode.classList.toggle('on', i.checked); skLoad(); };
+      });
+      $('skEmpty').classList.toggle('hide', r.학생.length > 0);
+      $('skCopyAll').classList.toggle('hide', !r.학생.length);
+      $('skList').innerHTML = r.학생.map(function (s) {
+        var text = s.저장 || s.초안;
+        return '<div class="panel sk-row" data-id="' + esc(s.학생ID) + '">' +
+          '<div class="panel-head"><h3><span class="no">' + (s.번호 || '–') + '</span>' + esc(s.이름) + '</h3>' +
+          '<span class="sk-saved">' + (s.저장 ? '저장됨 ' + esc(s.수정일시) : (s.초안 ? '초안' : '기록 없음')) + '</span><div class="spacer"></div><span class="sk-cnt"></span>' +
+          '<button class="mini ghost" data-act="regen" title="기록에서 다시 만든 초안으로 바꾸기"><i class="ti ti-refresh"></i>초안으로</button>' +
+          '<button class="mini soft" data-act="copy"><i class="ti ti-copy"></i>복사</button>' +
+          '<button class="mini" data-act="save"><i class="ti ti-device-floppy"></i>저장</button></div>' +
+          '<div class="panel-body"><textarea placeholder="이 학생은 이번 학년도 기록이 아직 없어요. 수업에서 본 모습을 직접 써 주세요.">' + esc(text) + '</textarea>' +
+          (s.조각.length ? '<div class="sk-ev">' + s.조각.map(function (k) { return '<span><b>' + esc(k.이름) + '</b>' + esc(k.근거) + '</span>'; }).join('') + '</div>' : '') +
+          '</div></div>';
+      }).join('');
+      Array.prototype.forEach.call($('skList').querySelectorAll('.sk-row'), function (row) {
+        var id = row.getAttribute('data-id'), s = findOne(SK.학생, function (x) { return x.학생ID === id; }), ta = row.querySelector('textarea'), lab = row.querySelector('.sk-saved');
+        var saved = s.저장 || '';
+        var mark = function () {   // 저장한 글(없으면 처음 만든 초안)과 달라지면 "저장 안 됨"
+          var d = ta.value !== (saved !== '' ? saved : s.초안);
+          lab.classList.toggle('dirty', d);
+          lab.textContent = d ? '저장 안 됨' : (saved ? '저장됨 ' + (s.수정일시 || '') : (s.초안 ? '초안' : '기록 없음'));
+        };
+        var save = function (quiet) {
+          var v = ta.value;
+          return api('t_seteukSave', TOKEN, id, v).then(function (x) {
+            if (!x.ok) { toast(x.message, 'err'); return; }
+            saved = v; s.저장 = v; s.수정일시 = x.수정일시; lab.classList.remove('dirty'); lab.textContent = '저장됨 ' + x.수정일시;
+            if (!quiet) toast(s.이름 + ' 저장했어요');
+          }).catch(handleErr);
+        };
+        ta.oninput = function () { skCount(row); mark(); };
+        ta.onblur = function () { if (lab.classList.contains('dirty')) save(true); };
+        row.querySelector('[data-act=save]').onclick = function () { save(false); };
+        row.querySelector('[data-act=copy]').onclick = function () { copyText(ta.value); toast(s.이름 + ' 글을 복사했어요'); };
+        row.querySelector('[data-act=regen]').onclick = function () {
+          if (ta.value && ta.value !== s.초안 && !confirm('지금 글을 기록에서 만든 초안으로 바꿀까요? (저장 전까지는 시트에 그대로 있어요)')) return;
+          ta.value = s.초안; skCount(row); mark();
+        };
+        skCount(row);
+      });
+    }).catch(function (e) { $('skList').innerHTML = ''; handleErr(e); });
+  }
+  function copyText(t) {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t); return; } } catch (e) {}
+    var x = document.createElement('textarea'); x.value = t; x.style.position = 'fixed'; x.style.opacity = '0'; document.body.appendChild(x); x.select();
+    try { document.execCommand('copy'); } catch (e) {} document.body.removeChild(x);
+  }
+  $('skMake').onclick = function () { skLoad(); };
+  $('skGrade').onchange = $('skClass').onchange = function () { if (SK) skLoad(); };
+  $('skLimit').onchange = function () { Array.prototype.forEach.call($('skList').querySelectorAll('.sk-row'), skCount); };
+  $('skCopyAll').onclick = function () {
+    var rows = Array.prototype.map.call($('skList').querySelectorAll('.sk-row'), function (row) {
+      var s = findOne(SK.학생, function (x) { return x.학생ID === row.getAttribute('data-id'); });
+      return [s.번호, s.이름, row.querySelector('textarea').value.replace(/[\t\r\n]+/g, ' ')].join('\t');
+    });
+    copyText('번호\t이름\t세부능력 및 특기사항\n' + rows.join('\n'));
+    toast(rows.length + '명 글을 표로 복사했어요. 엑셀·한글에 붙여 넣으세요');
+  };
 
   return { navTop: navTop, navBottom: navBottom, init: init, show: show, reset: reset, applyRoster: applyRoster };
 })();

@@ -27,16 +27,17 @@
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '3.0.2';
+var APP_VERSION = '3.1.0';
 
 /* 새 화면(GitHub) 과 주고받는 서버 기능 번호. 서버 입구(?api=rpc·doPost·조각 올리기 등)가 바뀔 때만 올립니다.
    새 화면은 ?api=info 로 이 번호를 읽고, 기대보다 낮으면 그 기능을 숨깁니다. (판 번호와 따로) */
-var SERVER_API = 2;   // 1: 입구(lib 37) · 2: 조각 올리기 whole(모든 인자를 통째로 조각) (lib 38)
+var SERVER_API = 3;   // 1: 입구(lib 37) · 2: 조각 올리기 whole(모든 인자를 통째로 조각) (lib 38) · 3: 세특 초안·새 학년도 (lib 40)
 var 새화면기본주소 = 'https://musicalpe.github.io/pe-app/';
 
 /* 판별 바뀐 내용 — 설정 → 업데이트 칸의 "이번 판에서 바뀐 것" 과 지난 판 보기에 씁니다.
    새 판을 낼 때 맨 앞에 한 항목을 더하고, tools/make-release.js 가 이 표를 manifest.json 의 history 로도 내보냅니다. */
 var APP_HISTORY = [
+  { version: '3.1.0', lib: 40, date: '2026-10-01', notes: '세특 초안 (홈 → 세특 초안): 학년·반을 고르면 이번 학년도 기록(수행평가 특기사항·PAPS·줄넘기·건강체력교실·FMS·색깔 매트, 고르면 스포츠클럽)으로 학생마다 체육 세부능력 및 특기사항 초안 문장을 만들어요. 고쳐 쓴 글은 세특_초안 시트에 저장되고, 글자·나이스 바이트 수가 보이며, 반 전체를 표로 복사할 수 있어요.\n새 학년도 시작 (설정 → 새 학년도 시작): 학년도 바꾸기·재학생 학년 올리기(마지막 학년 졸업)·이미 졸업·전출한 학생 정리(고르면)를 한 번에. 시작 전에 시트 보관본(사본)을 자동으로 만들고, 끝나면 이어서 할 일을 안내해요.\n여러 학교가 같은 시간에 저장해도 서로 기다리지 않게 저장 잠금을 학교마다 따로. 홈 현황을 2분 동안 기억해 빨라짐(기록이 바뀌면 바로 새로).\n초기화 화면에 한꺼번에 고르기(모든 기록 · 명단까지 전부 · 모듈마다 "이 모듈 모두"). 휴대폰·태블릿에서 위 메뉴를 누르면 그 메뉴 첫 화면이 바로 열림. 색깔 매트 놀이터 설정·끝 화면이 밝은 카드 톤으로(게임 중 화면은 검은 바탕 그대로).' },
   { version: '3.0.2', lib: 39, date: '2026-10-01', notes: '교사 로그인이 빨라졌어요 — 로그인하면 화면이 먼저 뜨고, 홈의 모듈 현황 카드는 그 뒤에 채워져요(예전엔 카드를 다 만든 뒤에야 들어가서 몇 초씩 걸림).\n학생이 로그인하자마자 모듈을 누르면 빈 화면이 남던 것 수정(줄넘기·건강체력교실·매트·PAPS·FMS·수행평가).\n학생용 주소 QR 이 화면 방식을 따라가요("새 화면"이면 찍자마자 새 화면). QR 인쇄가 빈 종이로 나오던 것 수정.\n색깔 매트 놀이터: 게임 화면에 Made by 도장, 게임 중 휴대폰 "뒤로"를 누르면 게임이 닫히고 음악도 멈춤.' },
   { version: '3.0.1', lib: 38, date: '2026-09-30', notes: '설정 → 접속 주소에 학생용 주소 QR 코드가 생겼습니다. 새 태블릿·핸드폰에서 카메라로 찍으면 바로 열리고, "QR 인쇄"로 교실에 붙여 둘 수 있어요(학교마다 자기 주소로 그려짐).\n업데이트 칸의 "지금 버전"이 라이브러리를 올린 뒤에도 몇 시간 동안 옛 번호로 보이던 것 수정.\n(새 화면) 껍데기에 doPost 가 없는 학교에서도 큰 저장(여러 줄 한꺼번에 저장·사진+썸네일)이 조각으로 온전히 올라가게 서버 입구를 넓혔습니다.' },
   { version: '3.0.0', lib: 37, date: '2026-09-30', notes: '새 화면(GitHub)을 위한 서버 입구 — 화면은 GitHub 한 곳에서, 저장은 지금처럼 학교 시트에서 하는 3.0 의 첫 단계입니다. 지금 화면은 그대로이고, 새로 생긴 것은 뒤에서만 동작합니다.\n설정 → 화면 방식: "기존 화면"(기본) | "새 화면". 새 화면을 고르면 학교 앱 주소로 들어온 사람에게 "새 화면으로 열기" 버튼을 보여 줍니다(주소·즐겨찾기 그대로). 문제가 생기면 여기서 기존으로 되돌리거나, 주소 뒤에 ?classic=1 을 붙이면 기존 화면이 열립니다. 새 화면이 준비되기 전에는 고를 수 없게 막혀 있습니다.\n껍데기(Shell.gs)에 doPost 한 줄이 늘었습니다 — 새 화면에서 사진·영상을 올릴 때 씁니다. 안 넣어도 지금 화면은 그대로 동작하지만, 새 화면에서는 사진이 느리게(조각으로) 올라가고 영상은 올릴 수 없습니다.' },
@@ -1150,7 +1151,9 @@ function t_badgeSummary(token, 학년, 반) {
  * 교사 대시보드. 모듈마다 hooks.교사대시보드() 가 돌려주는 카드를 모읍니다.
  * 카드 = { 제목, 값, 단위, 설명, 배지(대기 건수 등), 이동:'모듈:페이지' }
  */
-function t_home(token) { 교사확인_(token); return 홈자료_(); }
+/** 홈 현황은 모든 모듈을 훑어 2초쯤 걸려서 2분 동안 기억해 둡니다. 기록이 바뀌면(잠금 쓰기 — withLock_) 바로 지웁니다. (v3.1) */
+var 홈캐시초_ = 120;
+function t_home(token) { 교사확인_(token); return 캐시_('home', 홈자료_, 홈캐시초_); }
 function 홈자료_() {
   var 학생 = 학생목록_(false);
   var 학년별 = {};
@@ -1190,6 +1193,253 @@ function s_boot(token) {
   var row = 학생찾기_(me.학생ID);
   var 배지 = 학생배지묶음_(me.학생ID);
   return { 학생: me, 카드: 카드, 메뉴: 메뉴, 초기비번여부: row ? row.비번상태 === '초기' : false, 오늘: 오늘_(), 설정: 공개설정_(), 배지수: 배지.총달성, 배지전체: 배지.총전체 };
+}
+
+/* ================= 새 학년도 시작 (v3.1) =================
+   학년도 +1 · 재학생 학년 올리기(마지막 학년은 졸업) · (고르면) 졸업·전출 학생 정리 · 시작 전 시트 보관본.
+   기록은 학생ID로 이어지고, 학년도가 붙는 기록(수업·수행평가·PAPS·매트·클럽)은 새 학년도에 새로 시작합니다. */
+function 새학년도정보_() {
+  var s = 설정_(), Y = num_(s.학년도) || new Date().getFullYear(), 최대 = 학교급_().최대학년;
+  var 학생 = 학생목록_(true), 재학 = 학생.filter(function (x) { return x.상태 === '재학'; });
+  var 학년별 = {};
+  재학.forEach(function (x) { 학년별[x.학년] = (학년별[x.학년] || 0) + 1; });
+  return {
+    학년도: Y, 다음: Y + 1, 최대학년: 최대, 학년별: 학년별, 재학: 재학.length,
+    올림: 재학.filter(function (x) { return x.학년 < 최대; }).length,
+    졸업: 재학.filter(function (x) { return x.학년 >= 최대; }).length,
+    이미떠남: 학생.filter(function (x) { return x.상태 !== '재학'; }).length,
+    반없음: 재학.filter(function (x) { return !x.반 || !x.번호; }).length,
+    지난실행: 속성_('새학년도.' + (Y + 1)) || '', 이번실행: 속성_('새학년도.' + Y) || '',
+    학교이름: str_(s.학교명) || ss_().getName()
+  };
+}
+function t_newYearInfo(token) { 교사확인_(token); return 새학년도정보_(); }
+
+/** opts = { 보관본: true, 졸업생정리: false } · 확인문구 '새 학년도' */
+function t_newYearRun(token, opts, 확인문구) {
+  교사확인_(token);
+  opts = opts || {};
+  if (str_(확인문구).replace(/\s/g, '') !== '새학년도') return { ok: false, message: '확인 칸에 새 학년도 라고 입력해 주세요.' };
+  var info = 새학년도정보_(), out = { ok: true, 이전: info.학년도, 학년도: info.다음 };
+  if (opts.보관본 !== false) {
+    try {
+      var 사본 = ss_().copy(info.학교이름 + ' 체육 기록 (' + info.학년도 + '학년도 보관본)');
+      out.보관본 = 사본.getUrl();
+    } catch (e) {
+      return { ok: false, message: '보관본(시트 사본)을 만들지 못해 멈췄어요: ' + e.message + ' — 스프레드시트에서 파일 → 사본 만들기로 직접 만든 뒤 "보관본 만들기"를 끄고 다시 실행해 주세요.' };
+    }
+  }
+  return withLock_(function () {
+    var 최대 = info.최대학년, 올림 = 0, 졸업 = 0, 지움 = 0;
+    // 1. 졸업·전출 정리 (고른 경우) — 이번에 졸업할 학생은 남겨 두고, 이미 떠난 학생만
+    if (opts.졸업생정리) {
+      var 떠난 = {};
+      학생목록_(true).forEach(function (x) { if (x.상태 !== '재학') 떠난[x.학생ID] = true; });
+      var ids = Object.keys(떠난);
+      if (ids.length) {
+        지움 = 행지우기_(SHEET.학생, function (r) { return 떠난[str_(r.학생ID)]; });
+        MODULES.forEach(function (m) {
+          var h = 모듈훅_(m.key);
+          if (h && typeof h.명단삭제후 === 'function') { try { h.명단삭제후(ids); } catch (e) {} }
+        });
+        캐시지우기_('학생');
+      }
+    }
+    // 2. 학년 올리기
+    학생목록_(true).forEach(function (x) {
+      if (x.상태 !== '재학') return;
+      if (x.학년 >= 최대) { setCells_(SHEET.학생, HEADERS.학생, x._row, { 상태: '졸업', 수정일시: 지금_() }); 졸업++; }
+      else { setCells_(SHEET.학생, HEADERS.학생, x._row, { 학년: x.학년 + 1, 반: '', 번호: '', 수정일시: 지금_() }); 올림++; }
+    });
+    캐시지우기_('학생');
+    // 3. 학년도 바꾸기 + 모든 캐시 비우기 (학년도로 거르는 모듈 캐시가 있음)
+    설정저장_({ 학년도: String(info.다음) });
+    캐시지우기_('설정'); 캐시지우기_(준비플래그_);
+    MODULES.forEach(function (m) { var h = 모듈훅_(m.key); if (h && typeof h.캐시지우기 === 'function') { try { h.캐시지우기(); } catch (e) {} } });
+    속성저장_('새학년도.' + info.다음, 지금_());
+    out.올림 = 올림; out.졸업 = 졸업; out.지움 = 지움;
+    out.설정 = 공개설정_();
+    var r = 명단응답_(); out.학생 = r.학생; out.명단 = r;
+    return out;
+  }, 120000);
+}
+
+/* ================= 체육 세특 초안 (v3.1) =================
+   모듈 기록(이번 학년도 3월 ~ 다음 해 2월)을 모아 학생마다 초안 문장을 만듭니다. AI 없이 틀 문장 — 선생님이 고쳐 쓰는 출발점.
+   고친 글은 '세특_초안' 시트에 학년도별로 저장됩니다. */
+var SETEUK = '세특_초안', SETEUK_H = ['학생ID', '학년도', '이름', '내용', '수정일시'];
+var SETEUK_모듈 = ['EVAL', 'PAPS', 'ROPE', 'FIT', 'FMS', 'MAT', 'CLUB'];
+
+function 세특기간_(Y) { return { 시작: Y + '-03-01', 끝: (Y + 1) + '-02-31' }; }
+function 세특고르기_(arr, seed) { var h = 0; String(seed).split('').forEach(function (c) { h = (h * 31 + c.charCodeAt(0)) % 9973; }); return arr[h % arr.length]; }
+function 세특마침_(t) { t = str_(t).replace(/\s+/g, ' ').trim(); if (!t) return ''; return /[.!?。]$/.test(t) ? t : t + '.'; }
+function 세특시간_(초) { var m = Math.round((초 || 0) / 60); return m >= 60 ? Math.floor(m / 60) + '시간' + (m % 60 ? ' ' + (m % 60) + '분' : '') : m + '분'; }
+
+/** 반 전체 학생의 모듈별 조각: { 학생ID: [{모듈, 이름, 글, 근거}] } */
+function 세특재료_(학생들, 쓸모듈, Y) {
+  var 기간 = 세특기간_(Y), 상태 = 모듈상태_(), out = {}, 이름 = {};
+  MODULES.forEach(function (m) { 이름[m.key] = m.이름; });
+  학생들.forEach(function (s) { out[s.학생ID] = []; });
+  var 안 = function (d) { d = str_(d).slice(0, 10); return d && d >= 기간.시작 && d <= 기간.끝; };
+  var 넣기 = function (id, key, 글, 근거) { if (글) out[id].push({ 모듈: key, 이름: 이름[key] || key, 글: 세특마침_(글), 근거: 근거 || '' }); };
+  var 켬 = function (k) { return 상태[k] && 쓸모듈.indexOf(k) >= 0; };
+
+  if (켬('EVAL')) try {
+    var 계획 = {}; eval_계획목록_().forEach(function (p) { 계획[p.id] = p; });
+    rows_(EVAL.결과).forEach(function (r) {
+      var id = str_(r.학생ID); if (!out[id] || str_(r.학년도) !== String(Y)) return;
+      var p = 계획[str_(r.평가ID)]; if (!p) return;
+      var 특기 = str_(r.특기사항), 단계 = str_(r.단계), i = p.라벨.indexOf(단계), 대상 = p.평가요소 || p.평가명;
+      var 글 = 특기;
+      if (!글 && i >= 0) {
+        var 위 = i === 0, 아래 = i === p.라벨.length - 1;
+        글 = 위 ? 세특고르기_(["'" + 대상 + "' 활동에서 정확하고 안정된 수행 능력을 보임", "'" + 대상 + "'에서 동작의 원리를 이해하고 능숙하게 수행함"], id + p.id)
+           : 아래 ? "'" + 대상 + "'에 끝까지 성실하게 참여하며 꾸준히 연습함"
+           : "'" + 대상 + "' 활동에 적극적으로 참여하여 동작을 익힘";
+      }
+      넣기(id, 'EVAL', 글, p.평가명 + (단계 ? ' · ' + 단계 : ''));
+    });
+  } catch (e) {}
+
+  if (켬('PAPS')) try {
+    var ps = paps_설정_(), 종목 = paps_종목목록_();
+    학생들.forEach(function (s) {
+      if (ps.대상학년.indexOf(Number(s.학년)) < 0) return;
+      var 기록 = paps_학생기록_(s.학생ID, String(Y));
+      var 회차들 = ps.회차.filter(function (r) { return 기록[r] && Object.keys(기록[r]).length; });
+      if (!회차들.length) return;
+      var 첫 = 기록[회차들[0]], 끝 = 기록[회차들[회차들.length - 1]], 오른 = [], 등급들 = [];
+      종목.forEach(function (t) {
+        var a = 첫[t.종목], b = 끝[t.종목];
+        if (b && b.등급 !== '' && !isNaN(Number(b.등급))) 등급들.push(Number(b.등급));
+        if (회차들.length > 1 && a && b && Number(b.등급) < Number(a.등급)) 오른.push(t.종목);
+      });
+      var 평균 = 등급들.length ? 등급들.reduce(function (x, y) { return x + y; }, 0) / 등급들.length : null;
+      var 글 = '';
+      if (오른.length) 글 = '학생건강체력평가에서 ' + 오른.slice(0, 2).join('·') + ' 종목의 등급을 높이는 등 체력 향상을 위해 꾸준히 노력함';
+      else if (평균 !== null && 평균 <= 2) 글 = '학생건강체력평가 여러 종목에서 고르게 우수한 체력을 보임';
+      else if (평균 !== null) 글 = '학생건강체력평가에 성실히 참여하며 자신의 체력 상태를 확인하고 목표를 세움';
+      넣기(s.학생ID, 'PAPS', 글, 회차들.join('→') + (평균 !== null ? ' · 평균 ' + Math.round(평균 * 10) / 10 + '등급' : '') + (오른.length ? ' · 오른 종목 ' + 오른.join(', ') : ''));
+    });
+  } catch (e) {}
+
+  if (켬('ROPE')) try {
+    var rs = rope_설정_(), 줄 = rope_기록전체_().filter(function (r) { return 안(r.날짜); });
+    학생들.forEach(function (s) {
+      var y = rope_학생요약_(s.학생ID, 줄, rs);
+      if (!y.기록일수) return;
+      var 종류 = Object.keys(y.종류별 || {}).filter(function (k) { return k !== ROPE_종류없음; }).sort(function (a, b) { return y.종류별[b] - y.종류별[a]; });
+      var 글 = '줄넘기 기록을 ' + y.기록일수 + '일 동안 스스로 남기며 누적 ' + y.누적.toLocaleString() + '회를 ' + (종류.length > 1 ? '뛰었고, ' + 종류.slice(0, 2).join('·') + ' 등 여러 기술에 도전함' : '뛰며 꾸준히 연습함');
+      if (y.최장연속 >= 7) 글 += '. 최장 ' + y.최장연속 + '일 연속으로 기록할 만큼 꾸준함이 돋보임';
+      넣기(s.학생ID, 'ROPE', 글, '기록 ' + y.기록일수 + '일 · 누적 ' + y.누적 + '회 · 하루 최고 ' + y.하루최고 + '회 · 최장 연속 ' + y.최장연속 + '일');
+    });
+  } catch (e) {}
+
+  if (켬('FIT')) try {
+    var 참가 = fit_참가자맵_(false), 운동 = fit_기록전체_().filter(function (r) { return r.상태 === '확인' && 안(r.날짜); });
+    학생들.forEach(function (s) {
+      if (!참가[s.학생ID]) return;
+      var 내 = 운동.filter(function (r) { return r.학생ID === s.학생ID; });
+      if (!내.length) return;
+      var 요소 = {}, 가정 = 0;
+      내.forEach(function (r) { 요소[r.요소] = (요소[r.요소] || 0) + 1; if (r.장소 === '가정') 가정++; });
+      var 많은 = Object.keys(요소).filter(Boolean).sort(function (a, b) { return 요소[b] - 요소[a]; })[0];
+      var 글 = '건강체력교실에 참여하여 ' + 내.length + '회의 운동 기록을 스스로 관리하' + (많은 ? '고, 특히 ' + 많은 + ' 운동에 꾸준히 참여함' : '며 체력 관리 습관을 기름');
+      if (가정 >= 3) 글 += '. 가정에서도 ' + 가정 + '회 운동하며 생활 속 운동을 실천함';
+      넣기(s.학생ID, 'FIT', 글, '확인된 기록 ' + 내.length + '회 · 가정 ' + 가정 + '회' + (많은 ? ' · 많이 한 요소 ' + 많은 : ''));
+    });
+  } catch (e) {}
+
+  if (켬('FMS')) try {
+    var app = fms_appData_(), 단계 = {}, 기술 = {};
+    app.levels.forEach(function (l) { 단계[l.id] = l; });
+    app.skills.forEach(function (k) { 기술[k.id] = k.name; });
+    var 승인 = {};
+    rows_(FMS.배지).map(fms_배지객체_).forEach(function (a) {
+      if (!out[a.studentId] || a.status !== FMS_STATUS.OK || !안(a.decidedAt || a.at)) return;
+      var l = 단계[a.levelId]; if (!l) return;
+      var m = 승인[a.studentId] = 승인[a.studentId] || {};
+      m[l.skillId] = Math.max(m[l.skillId] || 0, l.step || 1);
+    });
+    Object.keys(승인).forEach(function (id) {
+      var ks = Object.keys(승인[id]).sort(function (a, b) { return 승인[id][b] - 승인[id][a]; });
+      var 이름들 = ks.map(function (k) { return 기술[k]; }).filter(Boolean);
+      if (!이름들.length) return;
+      넣기(id, 'FMS', '기본 움직임 기술 도전에서 ' + 이름들.slice(0, 3).join('·') + (이름들.length > 3 ? ' 등 ' : ' ') + 이름들.length + '개 기술의 단계를 통과하며 움직임의 정확성을 높임',
+        ks.map(function (k) { return 기술[k] + ' ' + 승인[id][k] + '단계'; }).join(', '));
+    });
+  } catch (e) {}
+
+  if (켬('MAT')) try {
+    var 매트 = mat_기록전체_().filter(function (r) { return !r.날짜 || 안(r.날짜); });
+    학생들.forEach(function (s) {
+      var y = mat_학생요약_(s.학생ID, 매트);
+      if (!y.판수) return;
+      var 함께 = y.함께.시간, 연습 = y.연습.시간;
+      if (함께 + 연습 < 300) return;   // 5분 미만은 빼기
+      var 글 = 함께 >= 연습
+        ? '색깔 매트 활동에서 친구와 짝을 이루어 서로의 움직임을 확인해 주며 ' + 세특시간_(함께) + ' 동안 즐겁게 참여함'
+        : '색깔 매트 활동을 스스로 ' + 세특시간_(연습) + ' 동안 연습하며 민첩성과 순발력을 기름';
+      넣기(s.학생ID, 'MAT', 글, '함께 ' + 세특시간_(함께) + ' · 연습 ' + 세특시간_(연습) + ' · ' + y.판수 + '판');
+    });
+  } catch (e) {}
+
+  if (켬('CLUB')) try {
+    club_클럽목록_().forEach(function (c) {
+      if (str_(c.학년도) && str_(c.학년도) !== String(Y)) return;
+      c.참가자.forEach(function (m) {
+        if (!out[m.학생ID]) return;
+        var 분 = 0, 횟수 = 0;
+        c.활동.forEach(function (a) { if (a.참여.indexOf(m.학생ID) >= 0) { 횟수++; 분 += a.분; } });
+        if (!횟수) return;
+        넣기(m.학생ID, 'CLUB', (c.이름 || '스포츠클럽') + '(' + c.종목 + ')에서 ' + 횟수 + '회 활동하며 협동심과 경기 규칙을 지키는 태도를 기름', 횟수 + '회 · ' + Math.round(분 / 60 * 10) / 10 + '시간 (창의적 체험활동에 더 맞을 수 있음)');
+      });
+    });
+  } catch (e) {}
+  return out;
+}
+
+function 세특저장맵_(Y) {
+  var m = {};
+  if (!findSheet_(SETEUK)) return m;
+  rows_(SETEUK).forEach(function (r) { if (str_(r.학년도) === String(Y)) m[str_(r.학생ID)] = { 내용: str_(r.내용), 수정일시: 시각문자_(r.수정일시), _row: r._row }; });
+  return m;
+}
+
+/** 학년·반의 초안. 모듈들 = ['EVAL','PAPS',...] (없으면 클럽 빼고 전부) */
+function t_seteukDraft(token, 학년, 반, 모듈들) {
+  교사확인_(token);
+  var Y = num_(설정_().학년도) || new Date().getFullYear();
+  var 학생 = 학생목록_(false).filter(function (s) { return s.학년 === Number(학년) && s.반 === Number(반); })
+    .sort(function (a, b) { return (a.번호 || 99) - (b.번호 || 99); });
+  var 쓸 = (모듈들 && 모듈들.length) ? 모듈들 : SETEUK_모듈.filter(function (k) { return k !== 'CLUB'; });
+  var 재료 = 세특재료_(학생, 쓸, Y), 저장 = 세특저장맵_(Y);
+  var 순서 = {}; SETEUK_모듈.forEach(function (k, i) { 순서[k] = i; });
+  var 상태 = 모듈상태_(), 쓸수있는 = SETEUK_모듈.filter(function (k) { return 상태[k]; });
+  return {
+    학년도: Y, 모듈: 쓸수있는.map(function (k) { var m = MODULES.filter(function (x) { return x.key === k; })[0]; return { key: k, 이름: m ? m.이름 : k, 켬: 쓸.indexOf(k) >= 0 }; }),
+    학생: 학생.map(function (s) {
+      var 조각 = (재료[s.학생ID] || []).sort(function (a, b) { return 순서[a.모듈] - 순서[b.모듈]; });
+      var sv = 저장[s.학생ID];
+      return { 학생ID: s.학생ID, 번호: s.번호, 이름: s.이름, 조각: 조각,
+               초안: 조각.map(function (c) { return c.글; }).join(' '),
+               저장: sv ? sv.내용 : '', 수정일시: sv ? sv.수정일시 : '' };
+    })
+  };
+}
+
+function t_seteukSave(token, 학생ID, 내용) {
+  교사확인_(token);
+  var Y = String(num_(설정_().학년도) || new Date().getFullYear()), id = str_(학생ID);
+  var s = 학생찾기_(id); if (!s) return { ok: false, message: '학생을 찾을 수 없습니다.' };
+  내용 = String(내용 === undefined || 내용 === null ? '' : 내용).slice(0, 3000);
+  return withLock_(function () {
+    시트준비_(SETEUK, SETEUK_H);
+    var sv = 세특저장맵_(Y)[id], now = 지금_();
+    if (sv) setCells_(SETEUK, SETEUK_H, sv._row, { 이름: s.이름, 내용: 내용, 수정일시: now });
+    else appendRow_(SETEUK, SETEUK_H, { 학생ID: id, 학년도: Y, 이름: s.이름, 내용: 내용, 수정일시: now });
+    return { ok: true, 수정일시: now };
+  });
 }
 
 /* ================= 초기화 ================= */

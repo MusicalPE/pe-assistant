@@ -321,6 +321,42 @@ body.mg-open{overflow:hidden}
 #matOverlay .mg-madeby .pre{color:var(--muted);font-weight:500}#matOverlay .mg-madeby .who{font-weight:800}#matOverlay .mg-madeby i{font-size:14px;color:var(--yellow)}
 #matOverlay:has(#mgPlay:not([hidden])) .mg-madeby{display:none}
 @media print{#matOverlay .mg-madeby{display:none}}
+/* ===== 밝은 카드 테마 (줄넘기 판정기 v0.7.3 과 같은 톤) — 고르기·설정·끝 화면.
+   게임 중(#mgPlay)은 프로젝터에서 매트 색이 또렷하도록 검은 바탕을 그대로 둠(아래에서 어두운 값으로 되돌림).
+   ※ build_engine.py 로 엔진을 다시 만들 때 이 블록을 지키기 ===== */
+#matOverlay{color-scheme:light;--ground:#F3F4F6;--panel:#FFFFFF;--panel2:#F8F9FB;--line:#E7E9EE;--ink:#1F2430;--ink2:#3B4252;--muted:#7A8190;
+  --accent:#FF6B5B;--accent-ink:#E2513F;--accent-soft:#FFF0EE;--shadow:0 1px 2px rgba(17,24,39,.04),0 8px 28px rgba(17,24,39,.06)}
+#matOverlay #mgPlay{color-scheme:dark;--ground:#000000;--panel:#14161C;--panel2:#1B1E26;--line:#2C3140;--ink:#F2F3F7;--muted:#9097A8;background:var(--ground);color:var(--ink)}
+#matOverlay h1 .c2{color:#E8A600}
+#matOverlay #mgDone{--yellow:#E8A600}
+#matOverlay .back{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:9px 16px;color:var(--ink2);font-size:15px;box-shadow:0 1px 2px rgba(17,24,39,.04)}
+#matOverlay .back:hover{background:var(--panel2);color:var(--ink)}
+#matOverlay .card{border-radius:20px;border-color:var(--line);box-shadow:var(--shadow);padding:20px 22px}
+#matOverlay .card:hover{background:var(--panel);border-color:#D5D9E0;transform:translateY(-2px);box-shadow:0 2px 4px rgba(17,24,39,.05),0 12px 32px rgba(17,24,39,.09)}
+#matOverlay .meta span{background:var(--panel2);border-color:var(--line);color:var(--ink2)}
+#matOverlay .feat-tag{background:var(--accent);color:#fff}
+#matOverlay .how li{border-radius:14px;box-shadow:0 1px 2px rgba(17,24,39,.04);color:var(--ink2)}
+#matOverlay fieldset{border-radius:16px;box-shadow:var(--shadow);padding:12px 16px 16px}
+#matOverlay legend{color:var(--muted);background:var(--panel);border-radius:99px;padding:2px 10px}
+#matOverlay .seg span{background:var(--panel2);border-color:var(--line);color:var(--ink2);border-radius:12px}
+#matOverlay .seg input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(255,107,91,.25)}
+#matOverlay .mg-extra .box{border-radius:16px;box-shadow:var(--shadow)}
+#matOverlay .mg-extra .segbtns button{background:var(--panel2);border-color:var(--line);color:var(--ink2);border-radius:12px}
+#matOverlay .mg-extra .segbtns button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+#matOverlay textarea{background:var(--panel2);border-radius:12px}
+#matOverlay .track,#matOverlay .pcard{background:var(--panel2);border-radius:12px}
+#matOverlay .pcard input[type=text]{background:#fff}
+#matOverlay .addbtn{color:#fff;border-radius:12px}
+#matOverlay .start{background:var(--accent);color:#fff;border-radius:18px;box-shadow:0 6px 0 #D9493A,0 12px 26px rgba(255,107,91,.3)}
+#matOverlay .start:active{box-shadow:0 2px 0 #D9493A}
+#matOverlay .err,#matOverlay .mg-done .save.err{color:var(--accent-ink)}
+#matOverlay .ghost{background:var(--panel);border:1px solid var(--line);color:var(--ink2);border-radius:14px;box-shadow:0 1px 2px rgba(17,24,39,.04)}
+#matOverlay .ghost:hover{background:var(--panel2)}
+#matOverlay .mg-done .stat{border-radius:16px;box-shadow:var(--shadow)}
+#matOverlay .mg-done .swap{color:var(--accent-ink)}
+#matOverlay .mg-done .badges span{background:var(--accent-soft);color:var(--accent-ink)}
+#matOverlay .mg-madeby{background:#fff;border-color:var(--line);color:var(--ink);box-shadow:var(--shadow)}
+#matOverlay .mg-madeby i{color:var(--accent)}
 </style>
 <div id="matOverlay" class="hide">
 <!-- 게임 설정 -->
