@@ -38,6 +38,13 @@
 .reset-box .rs-head b{margin:0;}
 .reset-box .rs-all{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);font-weight:700;cursor:pointer;white-space:nowrap;}
 .rs-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+/* 로그인 때 새 소식·업데이트 안내 (v3.1.1) */
+#mdNews .nv{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff;}
+#mdNews .nv h4{margin:0 0 6px;font-size:14.5px;letter-spacing:-.02em;display:flex;gap:8px;align-items:baseline;}
+#mdNews .nv h4 small{color:var(--ink-3);font-weight:600;font-size:12px;}
+#mdNews .nv ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.65;color:var(--ink-2);}
+#mdNews .nv ul li+li{margin-top:3px;}
+#mdNews .upd ol{margin:6px 0 0;padding-left:20px;font-size:13.5px;line-height:1.7;}
 /* 새 학년도 · 세특 초안 (v3.1) */
 .ny-flow{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 2px;}
 .ny-flow span{background:var(--soft);border-radius:10px;padding:8px 12px;font-size:13.5px;font-weight:600;}
@@ -58,6 +65,9 @@
 .sk-ev span b{color:var(--ink);margin-right:4px;}
 .sk-saved{font-size:12px;color:var(--ink-3);}
 .sk-saved.dirty{color:var(--sun-ink,#B7791F);font-weight:700;}
+.sk-row .panel-head .sk-pick{width:18px;height:18px;accent-color:var(--brand);margin:0 4px 0 0;}
+.sk-row.picked{outline:2px solid var(--brand);outline-offset:-1px;}
+.sk-row.busy textarea{opacity:.55;}
 </style>
 
 <div class="mroot hide" data-mod="core" data-role="T" id="core_T">
@@ -114,6 +124,14 @@
       <button class="soft hide" id="skCopyAll"><i class="ti ti-table-export"></i>반 전체 표로 복사</button>
     </div>
     <div class="bar" style="padding-top:10px;padding-bottom:10px"><span class="unit" style="margin-right:4px">넣을 기록</span><div class="sk-mods" id="skMods"></div></div>
+    <div class="bar hide" id="skTools" style="padding-top:10px;padding-bottom:10px">
+      <label class="chk"><input type="checkbox" id="skAll"><span>모두 고르기</span></label>
+      <button class="mini" id="skAiRun"><i class="ti ti-sparkles"></i><span>반 전체 AI로 다듬기</span></button>
+      <button class="mini ghost" id="skClear" disabled><i class="ti ti-eraser"></i>고른 글 지우기</button>
+      <span class="status" id="skRunStatus"></span>
+      <div class="spacer"></div>
+      <span class="unit" id="skKeyState"></span><button class="mini ghost" id="skKeyBtn"><i class="ti ti-key"></i>AI 키 설정</button>
+    </div>
     <div class="note"><i class="ti ti-info-circle"></i><div>기록에서 뽑은 <b>틀 문장</b>이라 학생끼리 비슷할 수 있어요. 수업에서 본 모습을 덧붙여 고쳐 써 주세요. 수행평가에 쓴 <b>특기사항</b>은 그대로 가져옵니다. 저장한 글이 있으면 그 글을 먼저 보여 주고, <b>초안으로</b>를 누르면 기록에서 다시 만들어요. 스포츠클럽은 창의적 체험활동에 더 맞아 기본으로 꺼 두었어요.</div></div>
     <div id="skList"></div>
     <div class="empty hide" id="skEmpty"><i class="ti ti-users"></i><strong>학생이 없습니다</strong>학년·반을 골라 불러오기를 눌러 주세요.</div>
@@ -190,6 +208,20 @@
           </div>
           <div class="panel-body unit" style="padding-top:0">잊어버리면 스프레드시트 메뉴 <code>체육교사 보조 → 교사 비밀번호 초기화</code>로 1234로 되돌립니다.</div>
         </div>
+        <div class="panel" id="setAiPanel">
+          <div class="panel-head"><h3><i class="ti ti-sparkles"></i>AI 키 (Gemini)</h3><div class="spacer"></div><span class="unit" id="aiBadge"></span></div>
+          <div class="panel-body">
+            <div class="unit" id="aiState">불러오는 중…</div>
+            <div class="bar" style="box-shadow:none;border:none;padding:0;margin:10px 0 8px;background:none">
+              <div class="field" style="flex:1;min-width:200px"><label for="aiKey" id="aiKeyLab">키 넣기</label><input type="password" id="aiKey" placeholder="AIza…" autocomplete="off"></div>
+              <button class="mini" id="aiSave"><i class="ti ti-device-floppy"></i>저장</button>
+              <button class="mini ghost" id="aiTest"><i class="ti ti-player-play"></i>시험해 보기</button>
+              <button class="mini ghost" id="aiDel">키 지우기</button>
+            </div>
+            <div class="note hide" id="aiOut" style="margin:0 0 8px"><i class="ti ti-message-circle"></i><div id="aiOutTxt"></div></div>
+            <div class="unit">이 키 하나를 <b>줄넘기 AI 응원 문구 · 색깔 매트 퀴즈 문제 받기 · 세특 AI로 다듬기</b>가 함께 쓰고, 앞으로 생기는 AI 기능도 여기 키를 씁니다. 키는 <b>aistudio.google.com</b> → 왼쪽 아래 열쇠 단추 → Create API key 에서 무료로 받아요. AI에는 학생 이름·성별·학교 이름을 보내지 않아요.</div>
+          </div>
+        </div>
       </div>
       <div>
         <div class="panel">
@@ -202,6 +234,11 @@
         </div>
         <div class="panel"><div class="panel-head"><h3><i class="ti ti-refresh"></i>업데이트</h3></div>
           <div class="panel-body" id="setUpdate"><div class="unit">불러오는 중…</div></div>
+          <div class="panel-body hide" id="setUsageBox" style="border-top:1px solid var(--line)">
+            <div class="field"><label for="setUsage">사용 학교 알림 (프로그램을 만든 선생님께)</label>
+              <select id="setUsage"><option value="익명">익명으로 알리기 (기본)</option><option value="학교 이름">학교 이름도 함께 알리기</option><option value="끔">알리지 않기</option></select></div>
+            <div class="unit" style="margin-top:6px">하루에 한 번, 선생님이 로그인할 때 "이 프로그램을 쓰고 있어요" 신호를 보내요. 보내는 것: 무작위 학교 번호 · 판 번호 · 학교급 · 켠 모듈 수 · 화면 방식 (고르면 학교 이름). <b>왜 모으나요?</b> 몇 학교가 어느 판을 쓰는지 알아야 GitHub 사용량·서버 확충을 미리 준비하고, 업데이트를 꾸준히 이어 갈 수 있어서예요. <b>학생 이름·기록·비밀번호는 각 학교의 구글 스프레드시트에만 있어서, 만든 사람은 볼 수도 모을 수도 없어요.</b> 바꾼 뒤 <b>설정 저장</b>.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -292,6 +329,15 @@
   </div>
 </div>
 
+<!-- ===== 모달: 새 소식 · 업데이트 안내 (로그인 때 한 번) ===== -->
+<div id="mdNews" class="modal hide">
+  <div style="max-width:580px;max-height:86vh;display:flex;flex-direction:column">
+    <div class="panel-head"><h3><i class="ti ti-sparkles"></i><span id="newsTitle">새로 바뀌었어요</span></h3><div class="spacer"></div><button class="ghost mini" id="newsX"><i class="ti ti-x"></i>닫기</button></div>
+    <div class="panel-body" id="newsBody" style="overflow:auto"></div>
+    <div class="savebar"><button class="ghost hide" id="newsGoUpd"><i class="ti ti-refresh"></i>업데이트 자세히</button><div class="spacer"></div><button id="newsOk"><i class="ti ti-check"></i>확인</button></div>
+  </div>
+</div>
+
 <!-- ===== 모달: 비밀번호 카드 ===== -->
 <div id="mdCards" class="modal hide">
   <div style="max-width:860px">
@@ -328,6 +374,7 @@ MODS.core.teacher = (function () {
     D = ctx; if (D.홈) D.홈시각 = Date.now();
     MODLIST = (ctx.모듈 || []).filter(function (m) { return m.사용; });
     fillSelects();
+    setTimeout(showNews, 700);
   }
   function reset() { D = null; HOME = null; MODLIST = []; }
   function show(p) {
@@ -544,8 +591,33 @@ MODS.core.teacher = (function () {
   };
 
   /* ================= 설정 ================= */
+  /* AI 키 한 곳 (v3.1.1) */
+  function aiPaint(r) {
+    $('aiBadge').textContent = r.키 ? '등록됨 ✓' : '없음';
+    $('aiState').innerHTML = r.키 ? '키가 등록되어 있어요 (…' + esc(r.끝) + ')' + (r.모델 ? ' · 쓰는 모델 ' + esc(r.모델) : '') + '. 모델이 바뀌거나 은퇴해도 쓸 수 있는 모델을 저절로 다시 골라요.' + (r.오류 ? '<div class="note warn" style="margin-top:8px"><i class="ti ti-alert-triangle"></i><div>최근 오류: ' + esc(r.오류) + '</div></div>' : '') : '아직 키가 없어요. 키가 없으면 AI 기능은 꺼지고, 줄넘기 응원 문구는 기본 문구가 나와요.';
+    $('aiKeyLab').textContent = r.키 ? '새 키로 바꾸기' : '키 넣기';
+    $('aiTest').disabled = !r.키; $('aiDel').disabled = !r.키;
+  }
+  function aiLoad() { if (!$('aiState')) return; if ((D.설정.SERVER_API || 4) < 4) { $('setAiPanel').classList.add('hide'); return; } api('t_aiInfo', TOKEN).then(aiPaint).catch(function () {}); }
+  $('aiSave').onclick = function () {
+    var k = $('aiKey').value.trim(); if (!k) { toast('키를 붙여 넣어 주세요', 'err'); return; }
+    api('t_aiKey', TOKEN, k).then(function (r) { if (!r.ok) { toast(r.message, 'err'); return; } $('aiKey').value = ''; aiPaint(r); if (SK) SK.AI = true; toast('AI 키를 저장했어요. 시험해 보기로 확인해 보세요'); }).catch(handleErr);
+  };
+  $('aiDel').onclick = function () {
+    if (!confirm('AI 키를 지울까요? 줄넘기 응원 문구·매트 퀴즈·세특 AI가 모두 꺼져요.')) return;
+    api('t_aiKey', TOKEN, '').then(function (r) { aiPaint(r); if (SK) SK.AI = false; $('aiOut').classList.add('hide'); toast('AI 키를 지웠어요'); }).catch(handleErr);
+  };
+  $('aiTest').onclick = function () {
+    var b = this; b.disabled = true; $('aiOut').classList.remove('hide'); $('aiOut').className = 'note'; $('aiOutTxt').textContent = 'AI에게 물어보는 중…';
+    api('t_aiTest', TOKEN).then(function (r) {
+      b.disabled = false;
+      $('aiOut').className = 'note ' + (r.ok ? 'ok' : 'warn');
+      $('aiOutTxt').textContent = r.ok ? '잘 돼요! AI의 답: "' + r.답 + '"' + (r.모델 ? ' — ' + r.모델 : '') : '안 돼요: ' + r.message;
+      api('t_aiInfo', TOKEN).then(aiPaint).catch(function () {});
+    }).catch(function (e) { b.disabled = false; $('aiOut').classList.add('hide'); handleErr(e); });
+  };
   function renderSettings() {
-    setStatus('setStatus', ''); setStatus('pwStatus', '');
+    setStatus('setStatus', ''); setStatus('pwStatus', ''); aiLoad();
     $('pwCur').value = ''; $('pwNew').value = ''; $('pwNew2').value = '';
     api('t_getSettings', TOKEN).then(function (st) {
       var s = st.설정;
@@ -563,6 +635,7 @@ MODS.core.teacher = (function () {
       // 학교급을 바꾸면 학년 체크박스를 그 학교급의 학년으로 미리 보여 줍니다 (실제 반영은 저장할 때)
       $('setLevel').onchange = function () { var 급 = this.value; drawGrades(급, 급 === (s.학교급 || '초') ? s.학년범위 : (급 === '중' ? [1, 2, 3] : [1, 2, 3, 4, 5, 6])); };
       $('setClasses').value = s.반범위; $('setLoginMode').value = s.학생로그인; $('setIdle').value = s.자동나가기분;
+      $('setUsageBox').classList.toggle('hide', !s.사용알림); if (s.사용알림) $('setUsage').value = s.사용알림;
       drawThemes(s.테마 || '민트');
       $('setMods').innerHTML = st.모듈목록.map(function (m) {
         return '<div class="mod-toggle' + (m.설치 ? '' : ' off') + '"><span class="ic" style="background:' + colorVar(m.색) + '"><i class="ti ti-' + m.아이콘 + '"></i></span>' +
@@ -702,6 +775,7 @@ MODS.core.teacher = (function () {
       학년범위: Array.prototype.map.call($('setGrades').querySelectorAll('input:checked'), function (c) { return Number(c.value); }),
       반범위: Number($('setClasses').value), 학생로그인: $('setLoginMode').value, 자동나가기분: Number($('setIdle').value), 모듈: 모듈 };
     if ($('setScreen')) map.화면방식 = $('setScreen').value;
+    if (!$('setUsageBox').classList.contains('hide')) map.사용알림 = $('setUsage').value;
     var btn = this; btn.disabled = true; setStatus('setStatus', '저장 중…');
     api('t_saveSettings', TOKEN, map).then(function (r) {
       btn.disabled = false;
@@ -859,6 +933,43 @@ MODS.core.teacher = (function () {
     }).catch(handleErr);
   }
 
+  /* ================= 로그인 때 새 소식 · 업데이트 안내 (v3.1.1) =================
+     ① 새로 바뀐 것: 이 기기에서 마지막으로 본 판 이후의 내역(처음이면 지금 판 하나). 판마다 한 번.
+     ② 학교 프로그램(라이브러리) 새 버전이 저장소에 있으면 적용 방법. 적용할 때까지 7일에 한 번.
+     새 화면에서는 새 화면 판 내역(WEB.history), 기존 화면에서는 서버 판 내역. 기억은 이 기기(브라우저)에만. */
+  function newsKey(k) { return 'pe_news:' + k + ':' + String(D.앱URL || D.시트URL || '').slice(-40); }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function showNews() {
+    if (!D || ROLE !== '교사' || !$('mdNews')) return;
+    var web = !!(window.WEB && WEB.history && WEB.history.length);
+    var hist = web ? WEB.history : (D.판내역 || []), ver = web ? WEB.version : D.버전;
+    var seenK = newsKey(web ? 'web' : 'lib'), seen = lsGet(seenK), list = [];
+    if (seen !== ver) {
+      for (var i = 0; i < hist.length && list.length < 4; i++) { if (hist[i].version === seen) break; list.push(hist[i]); if (!seen) break; }
+    }
+    var u = D.업데이트, updK = u && u.새버전 ? newsKey('upd:' + u.최신) : '', updShow = false;
+    if (updK) { var t = Number(lsGet(updK) || 0); updShow = !t || Date.now() - t > 7 * 864e5; }
+    if (!list.length && !updShow) return;
+    var h = '';
+    if (updShow) {
+      h += '<div class="note sun upd" style="margin:0 0 12px"><i class="ti ti-cloud-download"></i><div><b>학교 프로그램 새 버전 v' + esc(u.최신) + (u.라이브러리버전 ? ' (라이브러리 ' + esc(u.라이브러리버전) + ')' : '') + '</b>이 나왔어요 (지금 v' + esc(u.현재) + ').' +
+        (u.메모 ? '<div class="unit" style="margin-top:4px">' + esc(String(u.메모).split('\n')[0]) + '</div>' : '') +
+        '<ol><li>학교 스프레드시트 → 확장 프로그램 → Apps Script</li><li>왼쪽 <b>라이브러리</b>의 PE → 버전을 <b>' + esc(u.라이브러리버전 || '가장 큰 숫자') + '</b>로 → 저장</li><li>배포 → 배포 관리 → 연필 → 버전 <b>새 버전</b> → 배포</li></ol></div></div>';
+    }
+    list.forEach(function (x) {
+      var lines = String(x.notes || '').split('\n').filter(function (l) { return l.trim(); });
+      h += '<div class="nv"><h4>v' + esc(x.version) + '<small>' + esc(x.date || '') + '</small></h4><ul>' + lines.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul></div>';
+    });
+    $('newsTitle').textContent = list.length ? (list.length === 1 ? 'v' + list[0].version + '에서 바뀐 것' : '그동안 바뀐 것') : '새 버전이 나왔어요';
+    $('newsBody').innerHTML = h;
+    $('newsGoUpd').classList.toggle('hide', !updShow);
+    var done = function () { if (list.length) lsSet(seenK, ver); else if (seen === null) lsSet(seenK, ver); if (updShow) lsSet(updK, String(Date.now())); $('mdNews').classList.add('hide'); };
+    $('newsOk').onclick = $('newsX').onclick = done;
+    $('newsGoUpd').onclick = function () { done(); showPage('core:settings'); };
+    $('mdNews').classList.remove('hide');
+  }
+
   /* ================= 새 학년도 시작 (v3.1) ================= */
   var NY = null;
   function needApi3(box) {   // 새 화면 + 옛 라이브러리(39 이하)
@@ -916,14 +1027,15 @@ MODS.core.teacher = (function () {
     }).catch(function (e) { btn.disabled = false; setStatus('nyStatus', ''); handleErr(e); });
   };
 
-  /* ================= 세특 초안 (v3.1) ================= */
-  var SK = null, SK_MODS = null;
+  /* ================= 세특 초안 (v3.1 · AI·지우기 v3.1.1) ================= */
+  var SK = null, SK_MODS = null, SK_RUN = null;
   function skBytes(t) { var n = 0; for (var i = 0; i < t.length; i++) { var c = t.charCodeAt(i); n += c === 10 ? 2 : (c < 128 ? 1 : 3); } return n; }
   function skCount(row) {
     var t = row.querySelector('textarea').value, lim = Number($('skLimit').value), b = skBytes(t), el = row.querySelector('.sk-cnt');
     el.textContent = t.length + '자 · ' + b + '/' + (lim * 3) + '바이트';
     el.classList.toggle('over', b > lim * 3);
   }
+  function skApi4() { return D.설정.SERVER_API === undefined || (D.설정.SERVER_API || 0) >= 4; }
   function renderSeteuk() {
     var gs = D.설정.학년범위, cs = range(1, D.설정.반범위);
     var g0 = $('skGrade').value || gs[0], c0 = $('skClass').value || 1;
@@ -932,7 +1044,23 @@ MODS.core.teacher = (function () {
     if (!SK) $('skEmpty').classList.remove('hide');
     if (needApi3('skList')) { $('skEmpty').classList.add('hide'); $('skMake').disabled = true; }
   }
-  function skLoad(force) {
+  function skRows() { return Array.prototype.slice.call($('skList').querySelectorAll('.sk-row')); }
+  function skPicked() { return skRows().filter(function (r) { return r.querySelector('.sk-pick').checked; }); }
+  function skPickUi() {
+    var all = skRows(), p = skPicked();
+    all.forEach(function (r) { r.classList.toggle('picked', r.querySelector('.sk-pick').checked); });
+    $('skAll').checked = all.length > 0 && p.length === all.length; $('skAll').indeterminate = p.length > 0 && p.length < all.length;
+    $('skClear').disabled = !p.length || !!SK_RUN;
+    if (!SK_RUN) $('skAiRun').querySelector('span').textContent = p.length ? '고른 ' + p.length + '명 AI로 다듬기' : '반 전체 AI로 다듬기';
+  }
+  function skKeyUi() {
+    var has = !!(SK && SK.AI);
+    $('skKeyState').textContent = has ? 'AI 키 등록됨 ✓' : 'AI 키 없음 →';
+    $('skAiRun').disabled = !has && !SK_RUN;
+    $('skAiRun').title = has ? '' : 'AI 키를 먼저 넣어 주세요';
+    skRows().forEach(function (r) { var b = r.querySelector('[data-act=ai]'); if (b) b.disabled = !has; });
+  }
+  function skLoad() {
     var g = Number($('skGrade').value), c = Number($('skClass').value);
     var mods = SK_MODS ? SK_MODS.filter(function (m) { return m.켬; }).map(function (m) { return m.key; }) : null;
     $('skList').innerHTML = '<div class="unit" style="padding:10px 2px">기록을 모으는 중…</div>'; $('skEmpty').classList.add('hide');
@@ -944,46 +1072,101 @@ MODS.core.teacher = (function () {
       });
       $('skEmpty').classList.toggle('hide', r.학생.length > 0);
       $('skCopyAll').classList.toggle('hide', !r.학생.length);
+      $('skTools').classList.toggle('hide', !r.학생.length || !skApi4());
+      $('skAll').checked = false; $('skAll').indeterminate = false;
       $('skList').innerHTML = r.학생.map(function (s) {
-        var text = s.저장 || s.초안;
+        var text = s.저장있음 ? s.저장 : s.초안;
         return '<div class="panel sk-row" data-id="' + esc(s.학생ID) + '">' +
-          '<div class="panel-head"><h3><span class="no">' + (s.번호 || '–') + '</span>' + esc(s.이름) + '</h3>' +
-          '<span class="sk-saved">' + (s.저장 ? '저장됨 ' + esc(s.수정일시) : (s.초안 ? '초안' : '기록 없음')) + '</span><div class="spacer"></div><span class="sk-cnt"></span>' +
+          '<div class="panel-head">' + (skApi4() ? '<input type="checkbox" class="sk-pick" title="고르기">' : '<input type="checkbox" class="sk-pick hide">') +
+          '<h3><span class="no">' + (s.번호 || '–') + '</span>' + esc(s.이름) + '</h3>' +
+          '<span class="sk-saved"></span><div class="spacer"></div><span class="sk-cnt"></span>' +
+          (skApi4() ? '<button class="mini ghost" data-act="ai" title="기록과 이 칸의 글로 AI가 새로 써요"><i class="ti ti-sparkles"></i>AI</button>' : '') +
           '<button class="mini ghost" data-act="regen" title="기록에서 다시 만든 초안으로 바꾸기"><i class="ti ti-refresh"></i>초안으로</button>' +
           '<button class="mini soft" data-act="copy"><i class="ti ti-copy"></i>복사</button>' +
           '<button class="mini" data-act="save"><i class="ti ti-device-floppy"></i>저장</button></div>' +
-          '<div class="panel-body"><textarea placeholder="이 학생은 이번 학년도 기록이 아직 없어요. 수업에서 본 모습을 직접 써 주세요.">' + esc(text) + '</textarea>' +
+          '<div class="panel-body"><textarea placeholder="' + (s.조각.length ? '비어 있어요. 직접 쓰거나 [초안으로]·[AI]를 눌러 주세요.' : '이번 학년도 기록이 아직 없어요. 수업에서 본 모습을 몇 마디 써 주시면 AI로 다듬을 수 있어요.') + '">' + esc(text) + '</textarea>' +
           (s.조각.length ? '<div class="sk-ev">' + s.조각.map(function (k) { return '<span><b>' + esc(k.이름) + '</b>' + esc(k.근거) + '</span>'; }).join('') + '</div>' : '') +
           '</div></div>';
       }).join('');
-      Array.prototype.forEach.call($('skList').querySelectorAll('.sk-row'), function (row) {
+      skRows().forEach(function (row) {
         var id = row.getAttribute('data-id'), s = findOne(SK.학생, function (x) { return x.학생ID === id; }), ta = row.querySelector('textarea'), lab = row.querySelector('.sk-saved');
-        var saved = s.저장 || '';
+        var saved = s.저장있음 ? s.저장 : null, how = '';
         var mark = function () {   // 저장한 글(없으면 처음 만든 초안)과 달라지면 "저장 안 됨"
-          var d = ta.value !== (saved !== '' ? saved : s.초안);
+          var d = ta.value !== (saved !== null ? saved : s.초안);
           lab.classList.toggle('dirty', d);
-          lab.textContent = d ? '저장 안 됨' : (saved ? '저장됨 ' + (s.수정일시 || '') : (s.초안 ? '초안' : '기록 없음'));
+          lab.textContent = d ? '저장 안 됨' : (saved !== null ? (saved ? '저장됨 ' + how + (s.수정일시 || '') : '비워 둠') : (s.초안 ? '초안' : '기록 없음'));
         };
         var save = function (quiet) {
           var v = ta.value;
           return api('t_seteukSave', TOKEN, id, v).then(function (x) {
             if (!x.ok) { toast(x.message, 'err'); return; }
-            saved = v; s.저장 = v; s.수정일시 = x.수정일시; lab.classList.remove('dirty'); lab.textContent = '저장됨 ' + x.수정일시;
+            saved = v; s.저장 = v; s.저장있음 = true; s.수정일시 = x.수정일시; mark();
             if (!quiet) toast(s.이름 + ' 저장했어요');
           }).catch(handleErr);
         };
-        ta.oninput = function () { skCount(row); mark(); };
+        row._sk = {
+          ai: function () {   // 한 학생 AI 다듬기 → 칸에 넣고 저장. 돌려주는 값: {ok, 바쁨}
+            var b = row.querySelector('[data-act=ai]');
+            if (b) b.disabled = true; row.classList.add('busy'); lab.classList.remove('dirty'); lab.textContent = 'AI가 쓰는 중…';
+            var mods = SK_MODS.filter(function (m) { return m.켬; }).map(function (m) { return m.key; });
+            return api('t_seteukAI', TOKEN, id, mods, Number($('skLimit').value), ta.value).then(function (x) {
+              if (b) b.disabled = false; row.classList.remove('busy');
+              if (!x.ok) { mark(); toast(s.이름 + ': ' + x.message, 'err'); return x; }
+              ta.value = x.글; skCount(row); how = '(AI) ';
+              return save(true).then(function () { return { ok: true }; });
+            }).catch(function (e) { if (b) b.disabled = false; row.classList.remove('busy'); mark(); handleErr(e); return { ok: false }; });
+          },
+          cleared: function (t) { ta.value = ''; saved = ''; s.저장 = ''; s.저장있음 = true; s.수정일시 = t; skCount(row); mark(); },
+          empty: function () { return !s.조각.length && !ta.value.trim(); }
+        };
+        ta.oninput = function () { skCount(row); how = ''; mark(); };
         ta.onblur = function () { if (lab.classList.contains('dirty')) save(true); };
+        row.querySelector('.sk-pick').onchange = skPickUi;
         row.querySelector('[data-act=save]').onclick = function () { save(false); };
         row.querySelector('[data-act=copy]').onclick = function () { copyText(ta.value); toast(s.이름 + ' 글을 복사했어요'); };
+        var aiB = row.querySelector('[data-act=ai]'); if (aiB) aiB.onclick = function () { row._sk.ai(); };
         row.querySelector('[data-act=regen]').onclick = function () {
           if (ta.value && ta.value !== s.초안 && !confirm('지금 글을 기록에서 만든 초안으로 바꿀까요? (저장 전까지는 시트에 그대로 있어요)')) return;
-          ta.value = s.초안; skCount(row); mark();
+          ta.value = s.초안; skCount(row); how = ''; mark();
         };
-        skCount(row);
+        skCount(row); mark();
       });
+      skPickUi(); skKeyUi();
     }).catch(function (e) { $('skList').innerHTML = ''; handleErr(e); });
   }
+  $('skAll').onchange = function () { var on = this.checked; skRows().forEach(function (r) { r.querySelector('.sk-pick').checked = on; }); skPickUi(); };
+  $('skClear').onclick = function () {
+    var rows = skPicked(); if (!rows.length) return;
+    if (!confirm(rows.length + '명의 세특 글을 지울까요?\n빈칸으로 저장돼요. 나중에 "초안으로"를 누르면 기록에서 만든 초안을 다시 넣을 수 있어요.')) return;
+    api('t_seteukClear', TOKEN, rows.map(function (r) { return r.getAttribute('data-id'); })).then(function (x) {
+      if (!x.ok) { toast(x.message || '지우지 못했어요', 'err'); return; }
+      rows.forEach(function (r) { r._sk.cleared(x.수정일시); r.querySelector('.sk-pick').checked = false; });
+      skPickUi(); toast(x.count + '명의 글을 지웠어요');
+    }).catch(handleErr);
+  };
+  $('skAiRun').onclick = function () {
+    if (SK_RUN) { SK_RUN.stop = true; setStatus('skRunStatus', '멈추는 중…'); return; }
+    if (!SK || !SK.AI) { toast('설정 → AI 키에서 키를 먼저 넣어 주세요', 'err'); return; }
+    var picked = skPicked(), rows = (picked.length ? picked : skRows()).filter(function (r) { return !r._sk.empty(); });
+    if (!rows.length) { toast('AI가 쓸 재료(기록이나 선생님 글)가 있는 학생이 없어요', 'err'); return; }
+    if (!confirm(rows.length + '명의 글을 AI가 차례로 새로 써요. 지금 칸의 글은 AI 글로 바뀌어 저장돼요(선생님이 쓴 내용은 살려서 다듬어요).\n한 명에 몇 초씩 걸려요. 계속할까요?')) return;
+    var run = SK_RUN = { stop: false }, i = 0, done = 0;
+    var btn = $('skAiRun'); btn.querySelector('span').textContent = '멈추기'; btn.disabled = false; $('skClear').disabled = true;
+    var finish = function (msg, kind) { SK_RUN = null; setStatus('skRunStatus', msg, kind || 'ok'); skPickUi(); skKeyUi(); };
+    var next = function () {
+      if (run.stop) return finish('멈췄어요 — ' + done + '명 완료');
+      if (i >= rows.length) return finish(done + '명 AI로 다듬었어요. 꼭 읽어 보고 고쳐 주세요.');
+      var r = rows[i++]; setStatus('skRunStatus', 'AI가 쓰는 중 ' + i + '/' + rows.length + '…');
+      try { r.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+      r._sk.ai().then(function (x) {
+        if (x && x.ok) done++;
+        if (x && x.바쁨) return finish('AI 사용량이 잠시 꽉 찼어요 — ' + done + '명 완료. 1분쯤 뒤 다시 눌러 주세요(이미 한 학생은 빼고 골라도 돼요).', 'err');
+        setTimeout(next, 1500);
+      });
+    };
+    next();
+  };
+  $('skKeyBtn').onclick = function () { showPage('core:settings'); setTimeout(function () { var p = $('setAiPanel'); if (p && p.scrollIntoView) p.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 400); };
   function copyText(t) {
     try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t); return; } } catch (e) {}
     var x = document.createElement('textarea'); x.value = t; x.style.position = 'fixed'; x.style.opacity = '0'; document.body.appendChild(x); x.select();

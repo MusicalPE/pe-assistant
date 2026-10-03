@@ -27,16 +27,19 @@
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '3.1.0';
+var APP_VERSION = '3.1.3';
 
 /* 새 화면(GitHub) 과 주고받는 서버 기능 번호. 서버 입구(?api=rpc·doPost·조각 올리기 등)가 바뀔 때만 올립니다.
    새 화면은 ?api=info 로 이 번호를 읽고, 기대보다 낮으면 그 기능을 숨깁니다. (판 번호와 따로) */
-var SERVER_API = 3;   // 1: 입구(lib 37) · 2: 조각 올리기 whole(모든 인자를 통째로 조각) (lib 38) · 3: 세특 초안·새 학년도 (lib 40)
+var SERVER_API = 4;   // 1: 입구(lib 37) · 2: 조각 올리기 whole(모든 인자를 통째로 조각) (lib 38) · 3: 세특 초안·새 학년도 (lib 40) · 4: 세특 AI·지우기·AI 키 (lib 41~42)
 var 새화면기본주소 = 'https://musicalpe.github.io/pe-app/';
 
 /* 판별 바뀐 내용 — 설정 → 업데이트 칸의 "이번 판에서 바뀐 것" 과 지난 판 보기에 씁니다.
    새 판을 낼 때 맨 앞에 한 항목을 더하고, tools/make-release.js 가 이 표를 manifest.json 의 history 로도 내보냅니다. */
 var APP_HISTORY = [
+  { version: '3.1.3', lib: 43, date: '2026-10-03', notes: '사용 학교 알림 (설정 → 업데이트 아래): 하루 한 번 "이 프로그램을 쓰고 있어요" 신호를 만든 선생님께 보내요. 기본은 익명(무작위 학교 번호·판·학교급·켠 모듈 수·화면 방식)이고, "학교 이름도 알리기"를 고른 학교만 이름을 함께 보내요. GitHub 사용량·서버 확충을 준비하고 업데이트를 꾸준히 이어 가기 위한 것이에요. 학생 이름·기록·비밀번호는 각 학교 스프레드시트에만 있어 보낼 수도 모을 수도 없고, "알리지 않기"로 끌 수 있어요.' },
+  { version: '3.1.2', lib: 42, date: '2026-10-03', notes: 'AI 키를 설정 한 곳에서(설정 → AI 키 · 시험해 보기) — 줄넘기 응원 문구·매트 퀴즈 문제·세특이 모두 이 키를 쓰고, 앞으로 생길 AI 기능도 여기 키를 써요. 줄넘기 설정에 넣어 둔 키는 그대로 쓰여요.' },
+  { version: '3.1.1', lib: 41, date: '2026-10-03', notes: '세특 초안에 "AI로 다듬기" — AI 키가 있으면 학생마다 기록 사실로 서로 다른 문장을 써 줘요. 학생 한 명씩, 또는 고른 학생(안 고르면 반 전체)을 차례로. 선생님이 칸에 쓴 관찰 내용을 가장 먼저 살리고, 이름·성별·학교는 보내지 않으며, 기록에 없는 일은 지어내지 않게 했어요. 쓴 글은 바로 저장되고 "초안으로"로 언제든 되돌릴 수 있어요.\n세특 초안: 학생을 골라 글 지우기(빈칸으로 저장 — 다시 불러와도 빈칸).\n선생님이 로그인하면 새 소식 창 — 판이 바뀌면 "이번에 바뀐 것"을 한 번, 학교 프로그램(라이브러리) 새 버전이 나와 있으면 적용 방법을 함께 안내(적용할 때까지 7일에 한 번).' },
   { version: '3.1.0', lib: 40, date: '2026-10-01', notes: '세특 초안 (홈 → 세특 초안): 학년·반을 고르면 이번 학년도 기록(수행평가 특기사항·PAPS·줄넘기·건강체력교실·FMS·색깔 매트, 고르면 스포츠클럽)으로 학생마다 체육 세부능력 및 특기사항 초안 문장을 만들어요. 고쳐 쓴 글은 세특_초안 시트에 저장되고, 글자·나이스 바이트 수가 보이며, 반 전체를 표로 복사할 수 있어요.\n새 학년도 시작 (설정 → 새 학년도 시작): 학년도 바꾸기·재학생 학년 올리기(마지막 학년 졸업)·이미 졸업·전출한 학생 정리(고르면)를 한 번에. 시작 전에 시트 보관본(사본)을 자동으로 만들고, 끝나면 이어서 할 일을 안내해요.\n여러 학교가 같은 시간에 저장해도 서로 기다리지 않게 저장 잠금을 학교마다 따로. 홈 현황을 2분 동안 기억해 빨라짐(기록이 바뀌면 바로 새로).\n초기화 화면에 한꺼번에 고르기(모든 기록 · 명단까지 전부 · 모듈마다 "이 모듈 모두"). 휴대폰·태블릿에서 위 메뉴를 누르면 그 메뉴 첫 화면이 바로 열림. 색깔 매트 놀이터 설정·끝 화면이 밝은 카드 톤으로(게임 중 화면은 검은 바탕 그대로).' },
   { version: '3.0.2', lib: 39, date: '2026-10-01', notes: '교사 로그인이 빨라졌어요 — 로그인하면 화면이 먼저 뜨고, 홈의 모듈 현황 카드는 그 뒤에 채워져요(예전엔 카드를 다 만든 뒤에야 들어가서 몇 초씩 걸림).\n학생이 로그인하자마자 모듈을 누르면 빈 화면이 남던 것 수정(줄넘기·건강체력교실·매트·PAPS·FMS·수행평가).\n학생용 주소 QR 이 화면 방식을 따라가요("새 화면"이면 찍자마자 새 화면). QR 인쇄가 빈 종이로 나오던 것 수정.\n색깔 매트 놀이터: 게임 화면에 Made by 도장, 게임 중 휴대폰 "뒤로"를 누르면 게임이 닫히고 음악도 멈춤.' },
   { version: '3.0.1', lib: 38, date: '2026-09-30', notes: '설정 → 접속 주소에 학생용 주소 QR 코드가 생겼습니다. 새 태블릿·핸드폰에서 카메라로 찍으면 바로 열리고, "QR 인쇄"로 교실에 붙여 둘 수 있어요(학교마다 자기 주소로 그려짐).\n업데이트 칸의 "지금 버전"이 라이브러리를 올린 뒤에도 몇 시간 동안 옛 번호로 보이던 것 수정.\n(새 화면) 껍데기에 doPost 가 없는 학교에서도 큰 저장(여러 줄 한꺼번에 저장·사진+썸네일)이 조각으로 온전히 올라가게 서버 입구를 넓혔습니다.' },
@@ -115,7 +118,8 @@ function 기본설정_() {
     ['학생로그인',   '숫자판',        '숫자판 | 입력칸 — 학생 비밀번호를 넣는 방식'],
     ['테마',         '민트',          '로그인·메인 화면 색상 테마: ' + 테마들.join(' | ')],
     ['화면방식',     '기존',          '기존 | 새 화면 — 새 화면이면 이 앱 주소로 들어온 사람에게 GitHub 새 화면 버튼을 보여 줍니다. 문제가 생기면 기존으로 (주소 뒤 ?classic=1 은 언제나 기존 화면)'],
-    ['새화면주소',   '',              '비워 두면 기본 새 화면(' + 새화면기본주소 + '). https 주소만']
+    ['새화면주소',   '',              '비워 두면 기본 새 화면(' + 새화면기본주소 + '). https 주소만'],
+    ['사용알림',     '익명',          '익명 | 학교 이름 | 끔 — 만든 선생님에게 하루 한 번 "이 프로그램을 쓰고 있어요" 신호(학생 정보는 보내지 않음). 익명: 무작위 번호·판·학교급·모듈 수만, 학교 이름: 학교 이름도 함께']
   ];
   MODULES.forEach(function (m) {
     rows.push(['모듈.' + m.key, 'Y', m.이름 + ' 모듈 사용 (Y/N)']);
@@ -287,6 +291,23 @@ function 조각끼우기_(v, data) {
 }
 
 /* ---------- 화면 방식 (기존 | 새 화면) ---------- */
+/* 사용 학교 알림 (v3.1.3): 하루 한 번, 업데이트 확인 때 manifest.json 의 usage 주소로 짧은 신호. 학생 정보는 보내지 않음 */
+var 사용알림방식들 = ['익명', '학교 이름', '끔'];
+function 사용알림방식_(s) { var v = str_((s || 설정_()).사용알림); return 사용알림방식들.indexOf(v) >= 0 ? v : '익명'; }
+function 사용알림_(주소, 라이브러리) {
+  try {
+    if (!주소 || !/^https:\/\/script\.google(usercontent)?\.com\//.test(주소)) return;
+    var s = 설정_(), 방식 = 사용알림방식_(s); if (방식 === '끔') return;
+    var 오늘 = 오늘_(); if (속성_('사용알림.날짜') === 오늘) return;
+    var id = 속성_('사용알림.ID'); if (!id) { id = Utilities.getUuid().replace(/-/g, '').slice(0, 12); 속성저장_('사용알림.ID', id); }
+    var 켬 = 모듈상태_(), 모듈수 = Object.keys(켬).filter(function (k) { return 켬[k]; }).length;
+    var q = { id: id, v: APP_VERSION, lib: 라이브러리 || '', lvl: 학교급_().급, mods: 모듈수, screen: 화면방식_(s) === '새 화면' ? 'new' : 'classic' };
+    if (방식 === '학교 이름') q.name = str_(s.학교명).slice(0, 40);
+    var qs = Object.keys(q).map(function (k) { return k + '=' + encodeURIComponent(q[k]); }).join('&');
+    속성저장_('사용알림.날짜', 오늘);   // 실패해도 하루 한 번만 시도
+    UrlFetchApp.fetch(주소 + (주소.indexOf('?') < 0 ? '?' : '&') + qs, { muteHttpExceptions: true, followRedirects: true });
+  } catch (e) {}
+}
 function 화면방식_(s) { return str_((s || 설정_()).화면방식) === '새 화면' ? '새 화면' : '기존'; }
 function 새화면주소_(s) {
   var u = str_((s || 설정_()).새화면주소);
@@ -569,7 +590,7 @@ function 공개설정_() {
     자동나가기분: Math.max(1, Math.min(60, num_(s.자동나가기분) || 3)),
     학생로그인: str_(s.학생로그인) === '입력칸' ? '입력칸' : '숫자판',
     테마: 테마_(s.테마), 테마목록: 테마들.slice(),
-    화면방식: 화면방식_(s), 새화면주소: 새화면주소_(s), SERVER_API: SERVER_API
+    화면방식: 화면방식_(s), 새화면주소: 새화면주소_(s), SERVER_API: SERVER_API, 사용알림: 사용알림방식_(s)
   };
 }
 
@@ -1024,6 +1045,10 @@ function t_saveSettings(token, map) {
     if (['기존', '새 화면'].indexOf(str_(map.화면방식)) < 0) return { ok: false, message: '화면 방식은 기존 또는 새 화면입니다.' };
     put.화면방식 = str_(map.화면방식);
   }
+  if (map.사용알림 !== undefined) {
+    if (사용알림방식들.indexOf(str_(map.사용알림)) < 0) return { ok: false, message: '사용 알림은 익명·학교 이름·끔 중 하나입니다.' };
+    put.사용알림 = str_(map.사용알림);
+  }
 
   // 학교급이 바뀌면 학년 범위와 모듈별 대상 학년을 그 학교급의 기본값으로 되돌리고, 모듈에 알립니다 (PAPS 종목·기준표 등)
   var 급바뀜 = false, 새급 = 학교급_();
@@ -1417,13 +1442,13 @@ function t_seteukDraft(token, 학년, 반, 모듈들) {
   var 순서 = {}; SETEUK_모듈.forEach(function (k, i) { 순서[k] = i; });
   var 상태 = 모듈상태_(), 쓸수있는 = SETEUK_모듈.filter(function (k) { return 상태[k]; });
   return {
-    학년도: Y, 모듈: 쓸수있는.map(function (k) { var m = MODULES.filter(function (x) { return x.key === k; })[0]; return { key: k, 이름: m ? m.이름 : k, 켬: 쓸.indexOf(k) >= 0 }; }),
+    학년도: Y, AI: !!세특키_(), 모듈: 쓸수있는.map(function (k) { var m = MODULES.filter(function (x) { return x.key === k; })[0]; return { key: k, 이름: m ? m.이름 : k, 켬: 쓸.indexOf(k) >= 0 }; }),
     학생: 학생.map(function (s) {
       var 조각 = (재료[s.학생ID] || []).sort(function (a, b) { return 순서[a.모듈] - 순서[b.모듈]; });
       var sv = 저장[s.학생ID];
       return { 학생ID: s.학생ID, 번호: s.번호, 이름: s.이름, 조각: 조각,
                초안: 조각.map(function (c) { return c.글; }).join(' '),
-               저장: sv ? sv.내용 : '', 수정일시: sv ? sv.수정일시 : '' };
+               저장: sv ? sv.내용 : '', 저장있음: !!sv, 수정일시: sv ? sv.수정일시 : '' };
     })
   };
 }
@@ -1440,6 +1465,103 @@ function t_seteukSave(token, 학생ID, 내용) {
     else appendRow_(SETEUK, SETEUK_H, { 학생ID: id, 학년도: Y, 이름: s.이름, 내용: 내용, 수정일시: now });
     return { ok: true, 수정일시: now };
   });
+}
+
+/** 고른 학생들의 세특 글 지우기 — 빈칸으로 저장(다시 불러와도 빈칸, "초안으로"를 누르면 기록 초안) (v3.1.1) */
+function t_seteukClear(token, ids) {
+  교사확인_(token);
+  var Y = String(num_(설정_().학년도) || new Date().getFullYear()), now = 지금_();
+  return withLock_(function () {
+    시트준비_(SETEUK, SETEUK_H);
+    var m = 세특저장맵_(Y), 새것 = [], n = 0;
+    (ids || []).forEach(function (id) {
+      id = str_(id); var s = 학생찾기_(id); if (!s) return;
+      if (m[id]) setCells_(SETEUK, SETEUK_H, m[id]._row, { 내용: '', 수정일시: now });
+      else 새것.push({ 학생ID: id, 학년도: Y, 이름: s.이름, 내용: '', 수정일시: now });
+      n++;
+    });
+    if (새것.length) appendRows_(SETEUK, SETEUK_H, 새것);
+    return { ok: true, count: n, 수정일시: now };
+  });
+}
+
+/* ---------- 세특 AI 다듬기 (v3.1.1) ----------
+   Gemini 키(줄넘기 응원 문구·매트 퀴즈와 같은 키, _속성 GEMINI_KEY)가 있으면 학생마다 기록 사실로 다른 문장을 써 줍니다.
+   이름·성별·학교는 보내지 않고, 기록에 없는 일은 지어내지 말라고 묶어 둡니다. 결과는 선생님이 읽고 고치는 초안. */
+var SETEUK_KEY = 'GEMINI_KEY';
+function 세특키_() { return AI키_(); }
+/* ---------- AI 키 한 곳 (설정 → AI 키) (v3.1.1) ----------
+   줄넘기 응원 문구 · 매트 퀴즈 문제 · 세특 AI 다듬기, 그리고 앞으로 생길 AI 기능이 모두 이 키(_속성 GEMINI_KEY) 하나를 씁니다. */
+var AI_KEY = 'GEMINI_KEY', AI_ERR = 'GEMINI_LAST_ERROR';
+function AI키_() { try { return 속성_(AI_KEY) || ''; } catch (e) { return ''; } }
+function t_aiInfo(token) {
+  교사확인_(token);
+  var k = AI키_();
+  return { 키: !!k, 끝: k ? k.slice(-4) : '', 모델: 캐시읽기_('rope_gemini_model') || '', 오류: (function () { try { return 속성_(AI_ERR) || ''; } catch (e) { return ''; } })() };
+}
+function t_aiKey(token, key) {
+  교사확인_(token);
+  key = str_(key);
+  if (key && !/^[A-Za-z0-9_\-]{20,80}$/.test(key)) return { ok: false, message: '키 모양이 아니에요. aistudio.google.com 에서 받은 키를 그대로 붙여 넣어 주세요.' };
+  속성저장_(AI_KEY, key || null); 속성저장_(AI_ERR, null);
+  캐시지우기_('rope_ai_' + 오늘_()); 캐시지우기_('rope_gemini_model'); 캐시지우기_('rope_gemini_blocked');
+  var out = t_aiInfo(token); out.ok = true; return out;
+}
+function t_seteukKey(token, key) { var r = t_aiKey(token, key); return r.ok ? { ok: true, 키: r.키 } : r; }   // 3.1.1 초기 화면 호환
+/** 키가 실제로 되는지 짧게 물어봅니다 */
+function t_aiTest(token) {
+  교사확인_(token);
+  var k = AI키_(); if (!k) return { ok: false, message: '키가 없어요.' };
+  try {
+    var t = rope_gemini호출_(k, '체육 수업을 시작하는 초등학생들에게 건네는 짧은 인사 한 문장을 존댓말로 써 줘. 문장만.', 0);
+    try { 속성저장_(AI_ERR, null); } catch (e2) {}
+    return { ok: true, 답: String(t).slice(0, 120), 모델: 캐시읽기_('rope_gemini_model') || '' };
+  } catch (e) {
+    var m = (e && e.message) || String(e);
+    try { 속성저장_(AI_ERR, (지금_() + ' ' + m).slice(0, 300)); } catch (e3) {}
+    return { ok: false, message: /API key not valid|API_KEY_INVALID/i.test(m) ? '키가 맞지 않아요. 복사할 때 앞뒤가 빠지지 않았는지 확인해 주세요.' : /429|quota|RESOURCE_EXHAUSTED/i.test(m) ? '지금은 사용량이 꽉 찼어요. 1분쯤 뒤 다시 해 보세요.' : m.slice(0, 200) };
+  }
+}
+function 세특AI글_(조각, 선생님글, 이름, 한도, seed) {
+  var 지움 = function (t) { t = str_(t); if (이름) t = t.split(이름).join('').split(이름.slice(1)).join(''); return t; };
+  var 사실 = 조각.map(function (c) { return '- ' + c.이름 + ': ' + 지움(c.글) + (c.근거 ? ' (기록: ' + 지움(c.근거).replace(/\s*·\s*(매우잘함|잘함|보통|노력요함|상|중|하)(?=\s*(·|$))/g, '') + ')' : ''); });
+  var 최대 = Math.round(한도 * 0.85), 최소 = Math.round(한도 * 0.45);
+  var 말투 = ['꾸준함과 성장 과정이 드러나게', '구체적인 활동 장면이 그려지게', '친구와의 협력과 태도가 드러나게', '스스로 도전하는 모습이 드러나게'][seed % 4];
+  return '너는 ' + 학교급_().이름 + ' 체육 교사로서 학교생활기록부의 "체육 교과 세부능력 및 특기사항"을 쓴다.\n' +
+    '아래는 한 학생의 이번 학년도 체육 활동 기록이다. 이 사실만 바탕으로 한 문단을 써라.\n' +
+    '규칙:\n' +
+    '1. 학생 이름·성별·학교 이름을 쓰지 않는다. 주어 없이 쓴다.\n' +
+    '2. 기록에 없는 사건·수치·대회·수상은 절대 지어내지 않는다. 태도와 성장은 기록에서 자연스럽게 읽히는 만큼만 쓴다.\n' +
+    '3. PAPS 등급 숫자, 순위, 평가 단계 이름(상·중·하, 잘함 등)은 쓰지 않는다. 횟수·시간은 꼭 필요할 때만 쓴다.\n' +
+    '4. 문장 끝은 "~함.", "~임.", "~보임."처럼 명사형으로 끝낸다. 존댓말·느낌표·따옴표·목록 기호·줄바꿈을 쓰지 않는다.\n' +
+    '5. 공백 포함 ' + 최소 + '~' + 최대 + '자.\n' +
+    '6. 같은 반 다른 학생 글과 겹치지 않도록 첫 문장과 표현을 새로 고르고, ' + 말투 + ' 쓴다.\n' +
+    (str_(선생님글) ? '\n[선생님이 쓴 글 — 이 내용과 관찰을 가장 먼저 살려서 다듬기]\n' + 지움(선생님글) + '\n' : '') +
+    '\n[활동 기록]\n' + (사실.length ? 사실.join('\n') : '- (모듈 기록 없음)') + '\n\n문단만 출력해.';
+}
+/** 한 학생의 AI 초안. 선생님글 = 지금 칸의 글(기록에서 만든 초안과 다르면 그것을 살려 다듬음) */
+function t_seteukAI(token, 학생ID, 모듈들, 한도, 선생님글) {
+  교사확인_(token);
+  var key = 세특키_();
+  if (!key) return { ok: false, message: 'AI 키가 없어요. 설정 → AI 키에서 넣어 주세요.' };
+  var s = 학생찾기_(str_(학생ID)); if (!s) return { ok: false, message: '학생을 찾을 수 없습니다.' };
+  var Y = num_(설정_().학년도) || new Date().getFullYear();
+  var 쓸 = (모듈들 && 모듈들.length) ? 모듈들 : SETEUK_모듈.filter(function (k) { return k !== 'CLUB'; });
+  var 조각 = 세특재료_([s], 쓸, Y)[s.학생ID] || [];
+  var 초안 = 조각.map(function (c) { return c.글; }).join(' ');
+  var 내글 = str_(선생님글); if (내글 === 초안) 내글 = '';
+  if (!조각.length && !내글) return { ok: false, message: '이번 학년도 기록이 없어 AI가 쓸 재료가 없어요. 관찰한 내용을 먼저 몇 마디 써 주세요.' };
+  한도 = Math.max(150, Math.min(1500, num_(한도) || 500));
+  var seed = 0; String(s.학생ID).split('').forEach(function (c) { seed += c.charCodeAt(0); });
+  try {
+    var t = rope_gemini호출_(key, 세특AI글_(조각, 내글, s.이름, 한도, seed), 0);
+    t = String(t).replace(/^["'“”‘’\s]+|["'“”‘’\s]+$/g, '').replace(/^[-*•]\s*/gm, '').replace(/\s*\n+\s*/g, ' ').trim();
+    if (s.이름) t = t.split(s.이름).join('');
+    return { ok: true, 글: t };
+  } catch (e) {
+    var m = e.message || String(e);
+    return { ok: false, message: /429|quota|RESOURCE_EXHAUSTED/i.test(m) ? 'AI 사용량이 잠시 꽉 찼어요. 1분쯤 뒤에 다시 해 주세요.' : 'AI가 글을 쓰지 못했어요: ' + m.slice(0, 160), 바쁨: /429|quota|RESOURCE_EXHAUSTED/i.test(m) };
+  }
 }
 
 /* ================= 초기화 ================= */

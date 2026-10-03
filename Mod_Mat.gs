@@ -428,7 +428,7 @@ function mat_gemini키_() {
 }
 function mat_gemini문제_(학년군, 교과, 영역, 주제, 개수) {
   var key = mat_gemini키_();
-  if (!key) throw new Error('Gemini API 키가 없습니다. 줄넘기 → 설정의 AI 응원 문구 칸에 키를 넣어 주세요.');
+  if (!key) throw new Error('AI 키가 없습니다. 설정 → AI 키에서 넣어 주세요.');
   if (typeof rope_gemini호출_ !== 'function') throw new Error('줄넘기 모듈(Mod_Rope.gs)이 있어야 AI 문제를 받을 수 있습니다.');
   개수 = Math.max(1, Math.min(20, num_(개수) || 10));
   var 기존 = rows_(MAT.문제).filter(function (r) { return str_(r.상태) !== '버림'; }).map(function (r) { return str_(r.문제); }).slice(-60);
