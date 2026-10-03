@@ -27,7 +27,7 @@
 
 var SS_ID = '';   // 비워 두면 이 스크립트가 붙어 있는 스프레드시트
 
-var APP_VERSION = '3.1.4';
+var APP_VERSION = '3.1.5';
 
 /* 새 화면(GitHub) 과 주고받는 서버 기능 번호. 서버 입구(?api=rpc·doPost·조각 올리기 등)가 바뀔 때만 올립니다.
    새 화면은 ?api=info 로 이 번호를 읽고, 기대보다 낮으면 그 기능을 숨깁니다. (판 번호와 따로) */
@@ -37,6 +37,7 @@ var 새화면기본주소 = 'https://musicalpe.github.io/pe-app/';
 /* 판별 바뀐 내용 — 설정 → 업데이트 칸의 "이번 판에서 바뀐 것" 과 지난 판 보기에 씁니다.
    새 판을 낼 때 맨 앞에 한 항목을 더하고, tools/make-release.js 가 이 표를 manifest.json 의 history 로도 내보냅니다. */
 var APP_HISTORY = [
+  { version: '3.1.5', lib: 45, date: '2026-10-04', notes: '업데이트할 때 "새 배포"를 누르면 학생용 주소가 바뀌는 문제 대비 — 적용 순서 안내에 "새 배포는 누르지 마세요"를 크게 넣었어요. 그래도 주소가 바뀌면 선생님이 로그인할 때 "학생용 주소가 바뀌었어요"(QR 다시 인쇄) 알림이 뜨고, 옛 주소(교실 QR·즐겨찾기)로 들어온 사람에게는 "새 주소로 열기" 버튼이 나와요. 새 화면을 쓰는 기기는 저절로 새 주소로 옮겨 가요. (이 판 이후의 주소 변경부터)' },
   { version: '3.1.4', lib: 44, date: '2026-10-04', notes: '(만든 선생님 학교 전용) 사용 학교 현황을 프로그램 설정 화면에서 바로 봐요 — 받는 쪽이 따로 시트가 아니라 만든 선생님의 학교 프로그램 안(숨긴 시트 _사용학교)에 쌓여요. 다른 학교에는 이 칸이 나오지 않고 받지도 않아요.' },
   { version: '3.1.3', lib: 43, date: '2026-10-03', notes: '사용 학교 알림 (설정 → 업데이트 아래): 하루 한 번 "이 프로그램을 쓰고 있어요" 신호를 만든 선생님께 보내요. 기본은 익명(무작위 학교 번호·판·학교급·켠 모듈 수·화면 방식)이고, "학교 이름도 알리기"를 고른 학교만 이름을 함께 보내요. GitHub 사용량·서버 확충을 준비하고 업데이트를 꾸준히 이어 가기 위한 것이에요. 학생 이름·기록·비밀번호는 각 학교 스프레드시트에만 있어 보낼 수도 모을 수도 없고, "알리지 않기"로 끌 수 있어요.' },
   { version: '3.1.2', lib: 42, date: '2026-10-03', notes: 'AI 키를 설정 한 곳에서(설정 → AI 키 · 시험해 보기) — 줄넘기 응원 문구·매트 퀴즈 문제·세특이 모두 이 키를 쓰고, 앞으로 생길 AI 기능도 여기 키를 써요. 줄넘기 설정에 넣어 둔 키는 그대로 쓰여요.' },
@@ -148,6 +149,8 @@ function doGet(e, ctx) {
   속성이사_(ctx && ctx.legacyProps);
   var 준비결과 = 준비_();
   var 설정 = 설정_();
+  var 새주소 = 주소기록_();
+  if (새주소 && !p.stay) return 옛주소화면_(p, 새주소, 설정);   // 이 주소는 옛 배포 — 새 주소로 안내 (?stay=1 이면 그대로)
   if (화면방식_(설정) === '새 화면' && !p.classic) return 넘겨주기화면_(p, 설정);   // ?classic=1 이면 기존 화면 (탈출구)
   var tpl = HtmlService.createTemplateFromFile('App');
   tpl.mods = 모듈상태_();          // { PAPS: true, ... } 켜져 있고 설치된 것만 true
@@ -232,7 +235,7 @@ function 입구정보_() {
   return {
     SERVER_API: SERVER_API, 판: APP_VERSION,
     제목: str_(s.프로그램이름) || 기본프로그램이름, 학생용이름: str_(s.학생용이름) || 기본학생용이름, 학교명: str_(s.학교명),
-    테마: 테마_(s.테마), 모듈: 모듈상태_(), 화면방식: 화면방식_(s), 앱주소: 앱주소_()
+    테마: 테마_(s.테마), 모듈: 모듈상태_(), 화면방식: 화면방식_(s), 앱주소: 앱주소_(), 새주소: 주소기록_() || ''
   };
 }
 
@@ -370,6 +373,56 @@ function 넘겨주기화면_(p, 설정) {
     '<a class="go" href="' + h(go) + '" target="_top">새 화면으로 열기</a>' +
     '<p style="font-size:13px">이 주소와 즐겨찾기는 앞으로도 그대로 쓰면 돼요.</p>' +
     '<p style="margin-top:14px"><a class="sub" href="' + h(classic) + '" target="_top">새 화면이 안 열리면 → 기존 화면으로 열기</a></p></div>';
+  return HtmlService.createHtmlOutput(html).setTitle(이름).addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/* ---------- 학생용 주소가 바뀌었는지 알아채기 (v3.1.5) ----------
+   "배포 관리" 대신 "새 배포"를 누르면 웹앱 주소가 새로 생기고 옛 주소(교실 QR·즐겨찾기)는 옛 판으로 남습니다.
+   학교 시트에 가장 새 판으로 도는 주소를 기억해 두고, 더 새 판의 주소가 나타나면 그 주소로 바꾸며 선생님께 알리고,
+   옛 판 주소로 들어온 사람에게는 새 주소로 가는 버튼을 보여 줍니다. (이 기능이 든 판 이후의 주소 변경부터) */
+function 주소판비교_(a, b) {
+  if (typeof 버전비교_ === 'function') return 버전비교_(a, b);
+  var x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+  for (var i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) < (y[i] || 0) ? -1 : 1; }
+  return 0;
+}
+/** 지금 주소를 기록. 이 주소가 옛 배포면 새 주소를, 아니면 null */
+function 주소기록_() {
+  try {
+    var me = 앱주소_(), myId = 배포ID_(me);
+    if (!myId) return null;
+    var cur = 속성_('앱주소.최신'), curV = 속성_('앱주소.최신판') || '0';
+    if (!cur) { 속성저장_('앱주소.최신', me); 속성저장_('앱주소.최신판', APP_VERSION); return null; }
+    if (배포ID_(cur) === myId) { if (주소판비교_(APP_VERSION, curV) > 0) 속성저장_('앱주소.최신판', APP_VERSION); return null; }
+    var c = 주소판비교_(APP_VERSION, curV);
+    if (c > 0) {   // 내가 더 새 판 → 새 주소로 등록하고 선생님께 알림
+      속성저장_('앱주소.이전', cur); 속성저장_('앱주소.최신', me); 속성저장_('앱주소.최신판', APP_VERSION); 속성저장_('앱주소.바뀜', 지금_());
+      return null;
+    }
+    return c < 0 ? cur : null;   // 같은 판의 두 주소는 그대로 둠
+  } catch (e) { return null; }
+}
+function 주소바뀜정보_() {
+  var t = 속성_('앱주소.바뀜'); if (!t) return null;
+  return { 언제: t, 이전: 속성_('앱주소.이전') || '', 지금: 속성_('앱주소.최신') || 앱주소_() };
+}
+function t_addrAck(token) { 교사확인_(token); 속성저장_('앱주소.바뀜', null); return { ok: true }; }
+function 옛주소화면_(p, 새주소, 설정) {
+  var teacher = p.page === 'teacher', go = 새주소 + (teacher ? '?page=teacher' : ''), stay = 앱주소_() + '?stay=1' + (teacher ? '&page=teacher' : '');
+  var 이름 = teacher ? (str_(설정.프로그램이름) || 기본프로그램이름) : (str_(설정.학생용이름) || 기본학생용이름);
+  var h = function (x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); };
+  var html = '<style>' +
+    'body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F2FAF7;color:#16232E;font:16px/1.6 "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;padding:20px;box-sizing:border-box}' +
+    '.box{max-width:460px;width:100%;background:#fff;border:1px solid #D7EAE3;border-radius:20px;padding:30px 26px;text-align:center;box-shadow:0 14px 40px -18px rgba(22,35,46,.25)}' +
+    'h1{font-size:22px;margin:0 0 4px}p{margin:6px 0;color:#557069;font-size:15px}' +
+    'a.go{display:block;margin:22px 0 12px;background:#14A085;color:#fff;text-decoration:none;font-weight:800;font-size:21px;padding:18px;border-radius:16px}' +
+    'a.sub{color:#557069;font-size:13px}.school{color:#14A085;font-weight:800;font-size:14px}</style>' +
+    '<div class="box">' + (str_(설정.학교명) ? '<div class="school">' + h(설정.학교명) + '</div>' : '') +
+    '<h1>' + h(이름) + '</h1><p>이 주소는 예전 주소예요. 새 주소에서 열어 주세요.</p>' +
+    '<a class="go" href="' + h(go) + '" target="_top">새 주소로 열기</a>' +
+    '<p style="font-size:13px">즐겨찾기나 QR 은 새 주소로 바꿔 두면 좋아요. (선생님께 알려 주세요)</p>' +
+    '<p style="margin-top:14px"><a class="sub" href="' + h(stay) + '" target="_top">그래도 이 주소로 열기</a></p></div>';
   return HtmlService.createHtmlOutput(html).setTitle(이름).addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -906,7 +959,7 @@ function t_boot(token) {
     설정: 공개설정_(), 모듈: 모듈목록_(), 학생: 학생목록_(true).map(학생명단행_),
     오늘: 오늘_(), 앱URL: url, 시트URL: ss_().getUrl(), 기본비번여부: hash_(기본교사비번) === saved, 버전: APP_VERSION,
     업데이트: (typeof 업데이트_확인_ === 'function') ? 업데이트_확인_(false) : null,
-    판내역: APP_HISTORY
+    판내역: APP_HISTORY, 주소바뀜: 주소바뀜정보_()
   };
 }
 
