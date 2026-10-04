@@ -137,7 +137,7 @@
           <div class="field"><label>학생 하루 입력 횟수 제한</label><input type="number" id="rpSetMaxIn" min="1" max="50"></div>
           <div class="field"><label>한 번에 입력 가능한 최대 횟수</label><input type="number" id="rpSetMaxCnt" min="1"></div>
           <div class="field"><label>대상 학년</label><div class="chks" id="rpSetGrades" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
-          <div class="field"><label>학생 입력 자동 확인</label><label class="chk sm"><input type="checkbox" id="rpSetAuto"><span>교사 확인 없이 바로 인정</span></label></div>
+          <div class="field"><label>학생 입력 자동 확인</label><label class="chk sm"><input type="checkbox" id="rpSetAuto"><span>교사 확인 없이 바로 인정</span></label><span class="unit hide" id="rpSetAutoNat">전국 현황판 참여 중에는 끌 수 없어요 — 선생님이 확인한 기록만 현황판에 올라가요.</span></div>
         </div>
         <div class="panel-head" style="padding:10px 0 6px;border:0"><h3><i class="ti ti-list-details"></i>줄넘기 종류</h3><div class="spacer"></div><span class="unit">학생이 기록을 넣을 때 고르는 종류입니다. 위에서부터 순서대로 선택지·그래프에 나옵니다.</span></div>
         <div class="grid g3" style="margin-bottom:12px">
@@ -468,6 +468,7 @@ MODS.ROPE.teacher = (function () {
     $('rpNatBoard').classList.toggle('hide', !n.on); $('rpNatHall').classList.toggle('hide', !n.on); $('rpNatSend').disabled = !n.on;
     $('rpNatBoard').href = n.board; $('rpNatHall').href = n.hall;
     $('rpNatErr').classList.toggle('hide', !n.lastErr); $('rpNatErrTxt').textContent = n.lastErr ? '최근 보내기 실패: ' + n.lastErr : '';
+    if ($('rpSetAuto')) { $('rpSetAuto').disabled = !!n.on; if (n.on) { $('rpSetAuto').checked = false; $('rpSetAuto').parentNode.classList.remove('on'); } $('rpSetAutoNat').classList.toggle('hide', !n.on); }
 
   }
   function natLoad() { api('rope_t_natGet', TOKEN).then(function (n) { $('rpNatPanel').classList.remove('hide'); natPaint(n); }).catch(function () { $('rpNatPanel').classList.add('hide'); }); }   // 옛 라이브러리(47 미만)면 함수가 없어 숨김
@@ -475,9 +476,11 @@ MODS.ROPE.teacher = (function () {
     var on = $('rpNatOn').checked;
     if (on && (!$('rpNatName').value.trim() || !$('rpNatTeacher').value.trim())) { setStatus('rpNatStatus', '참여하려면 학교 이름과 담당 교사를 적어 주세요.', 'err'); return; }
     if (!on && NAT && NAT.on && !confirm('참여를 끄면 현황판에서 우리 학교 기록이 모두 지워져요. 끌까요?')) { $('rpNatOn').checked = true; return; }
+    if (on && !(NAT && NAT.on) && $('rpSetAuto').checked && !confirm('전국 현황판에 참여하면 학생이 입력한 기록은 선생님이 확인해야 현황판에 올라가요.\n"학생 입력 자동 확인"을 끌게요. 계속할까요?')) { $('rpNatOn').checked = false; return; }
     var b = this; b.disabled = true; setStatus('rpNatStatus', on ? '저장하고 보내는 중…' : '저장하는 중…');
     api('rope_t_natSave', TOKEN, { on: on, name: $('rpNatName').value.trim(), teacher: $('rpNatTeacher').value.trim(), contact: $('rpNatContact').value.trim(), showName: $('rpNatShow').checked }).then(function (r) {
       b.disabled = false; natPaint(r.nat); setStatus('rpNatStatus', r.message || '저장했습니다.', r.ok ? 'ok' : 'err'); if (r.ok) toast(r.message || '저장했습니다.');
+      if (r.자동확인끔) toast('"학생 입력 자동 확인"을 껐어요. 학생 기록은 기록 확인에서 확인해 주세요.');
     }).catch(function (e) { b.disabled = false; setStatus('rpNatStatus', (e && e.message) || String(e), 'err'); });
   };
   $('rpNatSend').onclick = function () {

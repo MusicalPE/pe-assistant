@@ -163,7 +163,7 @@ function rope_설정_() {
   return {
     하루목표: Math.max(1, num_(out.하루목표) || 100),
     대상학년: 목록_(out.대상학년).map(Number).filter(function (g) { return g >= 1 && g <= 학교급_().최대학년; }),
-    자동확인: str_(out.자동확인).toUpperCase() === 'Y',
+    자동확인: str_(out.자동확인).toUpperCase() === 'Y' && !nat_설정_().on,   // 전국 현황판 참여 중엔 늘 선생님 확인 (v3.1.8)
     하루최대입력: Math.max(1, num_(out.하루최대입력) || 10),
     한번최대횟수: Math.max(1, num_(out.한번최대횟수) || 3000),
     학급목표: Math.max(0, num_(out.학급목표) || 0),
@@ -551,7 +551,10 @@ function rope_t_saveSettings(token, map) {
   var put = {};
   if (map.하루목표 !== undefined) put['줄넘기.하루목표'] = String(Math.max(1, Math.min(100000, num_(map.하루목표) || 100)));
   if (map.대상학년 !== undefined) put['줄넘기.대상학년'] = (Array.isArray(map.대상학년) ? map.대상학년 : 목록_(map.대상학년)).map(Number).filter(function (g) { return g >= 1 && g <= 학교급_().최대학년; }).join(',');
-  if (map.자동확인 !== undefined) put['줄넘기.자동확인'] = map.자동확인 ? 'Y' : 'N';
+  if (map.자동확인 !== undefined) {
+    if (map.자동확인 && nat_설정_().on) throw new Error('전국 현황판에 참여 중에는 학생 입력 자동 확인을 켤 수 없어요. 선생님이 확인한 기록만 현황판에 올라가요.');
+    put['줄넘기.자동확인'] = map.자동확인 ? 'Y' : 'N';
+  }
   if (map.하루최대입력 !== undefined) put['줄넘기.하루최대입력'] = String(Math.max(1, Math.min(50, num_(map.하루최대입력) || 10)));
   if (map.한번최대횟수 !== undefined) put['줄넘기.한번최대횟수'] = String(Math.max(1, Math.min(100000, num_(map.한번최대횟수) || 3000)));
   if (map.학급목표 !== undefined) put['줄넘기.학급목표'] = String(Math.max(0, num_(map.학급목표) || 0));
@@ -581,7 +584,8 @@ function rope_gemini여부_() { try { return !!속성_(ROPE_GEMINI_KEY); } catch
 function rope_gemini오류_() { try { return 속성_(ROPE_GEMINI_ERR_KEY) || ''; } catch (e) { return ''; } }
 function rope_t_getSettings(token) { 교사확인_(token); return { 설정: rope_설정_(), gemini: rope_gemini여부_(), geminiError: rope_gemini오류_(), geminiModel: 캐시읽기_('rope_gemini_model') || '' }; }
 
-/* ================= 전국 현황판 참여 (v3.1.7) =================
+/* ================= 전국 현황판 참여 (v3.1.7 · 승인 규칙 v3.1.8) =================
+   · 참여 중에는 "학생 입력 자동 확인"이 꺼짐(켤 수 없음) — 선생님이 확인한 기록과 카메라 기록만 현황판에 올라감
    줄넘기 기록 관리(MusicalPE/jumprope)의 수집기·현황판에 이 학교의 날짜별 합계를 보냅니다. 두 프로그램 학교가 같은 현황판에서 겨룹니다.
    · 수집기 주소는 https://musicalpe.github.io/jumprope/national.json 의 collector (6시간 캐시) — 코드에 박아 두지 않음
    · 서버(Apps Script)에서 보냄 → 학교 키·담당 교사는 학생·브라우저에 안 드러남
@@ -701,6 +705,7 @@ function rope_t_natSave(token, map) {
   if (켬) {
     if (!o.key) o.key = Utilities.getUuid();
     o.on = true; nat_설정저장_(o);
+    if (str_(설정_()['줄넘기.자동확인']).toUpperCase() === 'Y') { 설정저장_({ '줄넘기.자동확인': 'N' }); 결과.자동확인끔 = true; }   // 승인 없는 기록은 현황판에 못 올라가게
     try { 결과.보낸날 = nat_보고_(null); 결과.message = '보냈어요. (' + 결과.보낸날 + '일치) 현황판에는 몇 분 안에 반영됩니다.'; }
     catch (e) { o = nat_설정_(); o.lastErr = (지금_() + ' ' + e.message).slice(0, 200); nat_설정저장_(o); 결과.ok = false; 결과.message = '설정은 저장했지만 보내지 못했어요: ' + e.message; }
   } else {

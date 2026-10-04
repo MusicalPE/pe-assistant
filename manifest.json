@@ -1,9 +1,15 @@
 {
-  "version": "3.1.7",
-  "libraryVersion": 48,
+  "version": "3.1.8",
+  "libraryVersion": 49,
   "date": "2026-10-04",
-  "notes": "v3.1.7 — 줄넘기 전국 현황판 참여(줄넘기 기록 관리 프로그램과 같은 현황판). 48: 참여 칸을 줄넘기 설정 화면에만.\n껍데기(Shell.gs)는 그대로입니다.",
+  "notes": "v3.1.8 — 전국 현황판 참여 중에는 학생 입력 자동 확인을 끔(선생님이 확인한 기록만 현황판에).\n껍데기(Shell.gs)는 그대로입니다.",
   "history": [
+    {
+      "version": "3.1.8",
+      "lib": 49,
+      "date": "2026-10-04",
+      "notes": "전국 현황판 참여 중에는 \"학생 입력 자동 확인\"이 꺼져요(켤 수 없음) — 선생님이 확인한 기록과 카메라 판정기 기록만 현황판에 올라가서, 아무 숫자나 올리는 일을 막아요. 참여를 켤 때 자동 확인이 켜져 있으면 물어보고 꺼 줘요."
+    },
     {
       "version": "3.1.7",
       "lib": 48,
@@ -207,8 +213,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "c15af03e77955b69",
-      "bytes": 118310
+      "sha256": "7dc81d17fac5cf57",
+      "bytes": 118682
     },
     {
       "name": "Eval_S.html",
@@ -333,8 +339,8 @@
     {
       "name": "Mod_Rope.gs",
       "type": "SERVER_JS",
-      "sha256": "31e08f293c2a68ba",
-      "bytes": 65934
+      "sha256": "c127a8547817f2bd",
+      "bytes": 66644
     },
     {
       "name": "PAPS_Data.gs",
@@ -363,8 +369,8 @@
     {
       "name": "Rope_T.html",
       "type": "HTML",
-      "sha256": "c2c41da0aaa26756",
-      "bytes": 48204
+      "sha256": "bbe50d4f3b63b45d",
+      "bytes": 49011
     },
     {
       "name": "Updater.gs",
