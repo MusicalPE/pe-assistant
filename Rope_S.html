@@ -63,6 +63,41 @@
 #rope_S .media-view .th{width:56px;height:42px;border-radius:8px;overflow:hidden;background:#111;display:flex;align-items:center;justify-content:center;color:#fff;}
 #rope_S .media-view .th img{width:100%;height:100%;object-fit:cover;}
 #rope_S .media-view small{display:block;font-size:11px;color:var(--ink-3);font-weight:600;}
+/* 나의 급수 (v3.1.9) — 칩·여행 막대 모양은 교사 화면(Rope_T)과 같음 */
+.lv-chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;border:1px solid rgba(0,0,0,.12);white-space:nowrap;line-height:1.4;}
+.lv-chip.lv-none{background:var(--soft);color:var(--ink-3);}
+.lv-chip .cnt{font-weight:700;opacity:.8;}
+#rope_S .lv-now{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+#rope_S .lv-now .lv-chip{font-size:16px;padding:7px 16px;}
+#rope_S .lv-next{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff;}
+#rope_S .lv-next .h{font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#rope_S .lv-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line-2);font-size:14px;}
+#rope_S .lv-item:last-child{border-bottom:none;}
+#rope_S .lv-item i{font-size:18px;color:var(--ink-3);}
+#rope_S .lv-item.on{color:var(--ink-3);text-decoration:line-through;}
+#rope_S .lv-item.on i{color:var(--green,#1E8E3E);}
+#rope_S .lv-item .g{margin-left:auto;font-weight:700;color:var(--ink-2);white-space:nowrap;}
+#rope_S .lv-steps{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px;}
+#rope_S .lv-steps .lv-chip{font-size:11px;padding:2px 8px;opacity:.45;}
+#rope_S .lv-steps .lv-chip.got{opacity:1;}
+#rope_S .lv-dist{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.jr-wrap{padding:4px 0 2px;}
+.jr-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:28px;}
+.jr-head h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.02em;}
+.jr-head h3 small{font-size:12px;color:var(--ink-3);font-weight:600;margin-left:6px;}
+.jr-head .jr-num{font-size:14px;color:var(--ink-2);}
+.jr-head .jr-num b{font-size:20px;color:var(--accent-ink);letter-spacing:-.03em;}
+.jr-track{position:relative;height:14px;border-radius:99px;background:var(--soft);margin:0 14px 34px;}
+.jr-fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,var(--accent-dk),var(--accent));transition:width .6s ease;}
+.jr-me{position:absolute;top:-22px;transform:translateX(-50%);font-size:22px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2));}
+.jr-stop{position:absolute;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;}
+.jr-stop i{display:block;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--line);box-sizing:border-box;}
+.jr-stop.on i{background:var(--accent);border-color:var(--accent);}
+.jr-stop b{position:absolute;top:14px;font-size:11px;color:var(--ink-3);white-space:nowrap;font-weight:700;}
+.jr-stop.on b{color:var(--ink-2);}
+.jr-stop.first b{left:0;transform:none;}
+.jr-stop.last b{right:0;}
+.jr-foot{font-size:12.5px;color:var(--ink-2);margin-top:-14px;}
 </style>
 
 <div class="mroot hide" data-mod="ROPE" data-role="S" id="rope_S">
@@ -114,6 +149,14 @@
         </div>
       </div>
       <div>
+        <div class="panel hide" style="margin:0 0 14px" id="rsLevelPanel">
+          <div class="panel-head"><h3><i class="ti ti-stairs-up"></i>나의 급수</h3><div class="spacer"></div><span class="unit">선생님이 보고 인증해요</span></div>
+          <div class="panel-body" id="rsLevelBody"></div>
+        </div>
+        <div class="panel hide" style="margin:0 0 14px" id="rsJourneyPanel">
+          <div class="panel-head"><h3><i class="ti ti-map-pin"></i>우리 반 줄넘기 여행</h3><div class="spacer"></div><span class="unit">1회 = 1m</span></div>
+          <div class="panel-body" id="rsJourneyBody"></div>
+        </div>
         <div class="panel hide" style="margin:0 0 14px" id="rsCoopPanel">
           <div class="panel-head"><h3><i class="ti ti-users-group"></i>우리 반 공동 목표</h3></div>
           <div class="panel-body" id="rsCoopBody"></div>
@@ -277,6 +320,24 @@ MODS.ROPE.student = (function () {
     $('rsCoopPanel').classList.toggle('hide', !c.학급목표);
     if (c.학급목표) $('rsCoopBody').innerHTML = '<div class="goal-line"><div class="prog"><i style="width:' + c.진행 + '%"></i></div><b>' + c.진행 + '%</b></div>' +
       '<div class="unit" style="margin-top:6px">우리 반 ' + c.인원 + '명이 함께 ' + fmt(c.총) + '회 / 목표 ' + fmt(c.학급목표) + '회' + (c.총 >= c.학급목표 ? ' · 달성했어요! 🎉' : ' · ' + fmt(c.학급목표 - c.총) + '회 남았어요') + ' · 오늘 ' + c.오늘기록인원 + '명 참여</div>';
+    // 나의 급수 (v3.1.9)
+    var L = D.급수;
+    $('rsLevelPanel').classList.toggle('hide', !L);
+    if (L) {
+      var chip = function (o, small) { return !o || !o.색 ? '<span class="lv-chip lv-none">아직 없음</span>' : '<span class="lv-chip" style="background:' + o.색 + ';color:' + (lvDark(o.색) ? '#fff' : '#1F2937') + '">' + esc(o.이름) + (small ? '' : ' 줄넘기') + '</span>'; };
+      var h = '<div class="lv-now">' + chip(L.급수 >= 0 ? { 이름: L.급수이름, 색: L.급수색 } : null) + '<span class="unit">' + (L.끝 ? '모든 급수를 땄어요! 🏆' : L.급수 >= 0 ? (L.딴날 ? L.딴날 + ' 인증' : '') : '첫 급수에 도전해 보세요') + '</span></div>';
+      if (L.다음) h += '<div class="lv-next"><div class="h">다음 도전 ' + chip({ 이름: L.다음.이름, 색: L.다음.색 }) + '<span class="unit">' + L.다음.항목.filter(function (it) { return it.통과; }).length + ' / ' + L.다음.항목.length + ' 통과</span></div>' +
+        L.다음.항목.map(function (it) { return '<div class="lv-item' + (it.통과 ? ' on' : '') + '"><i class="ti ' + (it.통과 ? 'ti-circle-check' : 'ti-circle') + '"></i>' + esc(it.이름) + '<span class="g">' + esc(it.기준 ? (/^\d+$/.test(it.기준) ? it.기준 + '회' : it.기준) : '성공') + '</span></div>'; }).join('') + '</div>';
+      h += '<div class="lv-steps">' + L.표.map(function (o, i) { return '<span class="lv-chip' + (i <= L.급수 ? ' got' : '') + '" style="background:' + o.색 + ';color:' + (lvDark(o.색) ? '#fff' : '#1F2937') + '">' + esc(o.이름) + '</span>'; }).join('') + '</div>';
+      if (L.반분포) {
+        var keys = Object.keys(L.반분포).map(Number).sort(function (a, b) { return b - a; });
+        h += '<div class="unit" style="margin-top:12px">우리 반 급수</div><div class="lv-dist">' + keys.map(function (k) { return (k < 0 ? '<span class="lv-chip lv-none">아직 없음' : '<span class="lv-chip" style="background:' + L.표[k].색 + ';color:' + (lvDark(L.표[k].색) ? '#fff' : '#1F2937') + '">' + esc(L.표[k].이름)) + ' <span class="cnt">' + L.반분포[k] + '명</span></span>'; }).join('') + '</div>';
+      }
+      $('rsLevelBody').innerHTML = h;
+    }
+    // 우리 반 줄넘기 여행 (v3.1.9)
+    $('rsJourneyPanel').classList.toggle('hide', !D.여행);
+    if (D.여행) $('rsJourneyBody').innerHTML = journeyHtml(D.여행);
     var got = D.배지.filter(function (b) { return b.달성; });
     $('rsBadgeSum').textContent = got.length + ' / ' + D.배지.length + '개';
     var unit = { 누적: '회', 달성일: '일', 연속: '일', 기록일: '일', 하루최고: '회' };
@@ -304,6 +365,19 @@ MODS.ROPE.student = (function () {
       if (d.요약.오늘 >= d.요약.하루목표 && before < d.요약.하루목표) celebrate();
     }).catch(function (e) { $('rsSave').disabled = false; setStatus('rsSaveStatus', (e && e.message) || String(e), 'err'); });
   };
+  /* 급수 칩 글자색 · 여행 막대 (교사 화면과 같은 그림, v3.1.9) */
+  function lvDark(c) { if (!/^#(?:[0-9a-f]{2}){3}$/i.test(c || '')) return false; var n = parseInt(c.slice(1), 16); return (((n >> 16) & 255) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 < 150; }
+  function kmText(m) { return m >= 100000 ? Math.round(m / 1000).toLocaleString() : (m / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }); }
+  function journeyHtml(j) {
+    var goal = j.km * 1000, m = Math.max(0, Number(j.총) || 0), laps = Math.floor(m / goal), cur = m - laps * goal, p = Math.min(100, cur / goal * 100);
+    var at = j.정거장[0][0], next = j.정거장[j.정거장.length - 1];
+    j.정거장.forEach(function (s) { if (cur >= s[1] * 1000) at = s[0]; });
+    for (var i = 0; i < j.정거장.length; i++) if (j.정거장[i][1] * 1000 > cur) { next = j.정거장[i]; break; }
+    var stops = j.정거장.map(function (s, i) { return '<span class="jr-stop' + (cur >= s[1] * 1000 ? ' on' : '') + (i === 0 ? ' first' : i === j.정거장.length - 1 ? ' last' : '') + '" style="left:' + (s[1] / j.km * 100) + '%"><i></i><b>' + esc(s[0]) + '</b></span>'; }).join('');
+    return '<div class="jr-wrap"><div class="jr-head"><h3>' + esc(j.이름) + '<small>약 ' + j.km.toLocaleString() + 'km</small></h3><div class="jr-num"><b>' + kmText(cur) + 'km</b> 왔어요' + (laps ? ' · <b>' + laps + '번</b> 완주!' : '') + '</div></div>' +
+      '<div class="jr-track"><div class="jr-fill" style="width:' + p.toFixed(2) + '%"></div><span class="jr-me" style="left:' + p.toFixed(2) + '%">🏃</span>' + stops + '</div>' +
+      '<div class="jr-foot">우리 반이 지금 <b>' + esc(at) + '</b> 지나는 중 · 다음 <b>' + esc(next[0]) + '</b>까지 <b>' + fmt(Math.max(0, next[1] * 1000 - cur)) + '회</b> 남았어요</div></div>';
+  }
   function celebrate() {
     var box = $('rsCelebrate'), em = ['🎉', '✨', '🏅', '💪', '⭐'], h = '';
     for (var i = 0; i < 24; i++) h += '<span style="left:' + Math.random() * 100 + '%;animation-delay:' + (Math.random() * .6) + 's">' + em[i % em.length] + '</span>';

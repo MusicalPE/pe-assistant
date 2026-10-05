@@ -12,6 +12,7 @@
  *   줄넘기_기록 : 기록ID, 입력일시, 날짜, 시각, 학생ID, 횟수, 상태(대기/확인/반려/짝대기/짝반려), 확인일시, 입력자(학생/교사), 메모,
  *                 짝학생ID, 짝확인일시, 짝메모, 사진파일ID, 사진썸네일ID, 사진파일명,  ← 짝 체크 (v1.6)
  *                 종류                                                          ← 줄넘기 종류 (v1.6, 단독판 1.4)
+ *   줄넘기_급수 : 학생ID, 급수, 항목, 통과일, 입력자   ← 급수 인증 (v3.1.9) · 급수표는 ROPE_급수기본 또는 _속성 줄넘기.급수표
  *
  * 짝 체크 (선택) : 설정 줄넘기.짝체크 가 Y 이면 학생이 기록을 넣을 때 같은 반 짝을 고릅니다.
  *   학생 입력 → 짝대기 → 짝이 "맞아요"(사진은 선택) → 대기 → 교사 확인 → 확인.   짝이 "아니에요" 면 짝반려.
@@ -22,9 +23,10 @@
  * 응원 문구 : 스크립트 속성 GEMINI_KEY 가 있으면 Gemini, 없으면 기본 문구
  *******************************************************/
 
-var ROPE = { 기록: '줄넘기_기록' };
+var ROPE = { 기록: '줄넘기_기록', 급수: '줄넘기_급수' };
 var ROPE_H = { 기록: ['기록ID', '입력일시', '날짜', '시각', '학생ID', '횟수', '상태', '확인일시', '입력자', '메모',
-                     '짝학생ID', '짝확인일시', '짝메모', '사진파일ID', '사진썸네일ID', '사진파일명', '종류'] };
+                     '짝학생ID', '짝확인일시', '짝메모', '사진파일ID', '사진썸네일ID', '사진파일명', '종류'],
+               급수: ['학생ID', '급수', '항목', '통과일', '입력자'] };   // 급수 인증 (v3.1.9): 누가 몇 급 몇 번 항목을 언제 통과했는지 한 줄씩
 var ROPE_기본종류 = '모아뛰기,엇갈아뛰기,이중뛰기,십자뛰기';
 var ROPE_종류없음 = '(종류 없음)';   // 종류 기능이 생기기 전에 넣은 기록
 var ROPE_FOLDER_KEY = 'ROPE_PHOTO_FOLDER_ID';
@@ -68,9 +70,34 @@ function rope_기본설정_() {
     ['판정기주소',   'https://musicalpe.github.io/jump-rope-checker/', '카메라 줄넘기 판정기 페이지 주소 (https). 비우면 학생 화면에 "카메라로 뛰기" 버튼이 안 나옴'],
     ['판정기최소',   '10',   '판정기가 보낸 기록을 받을 최소 횟수 (그보다 적으면 기록하지 않음)'],
     ['판정기민감도', '10',   '판정기 민감도 6~16 (작을수록 살짝 떠도 셈, 클수록 높이 떠야 셈). 학생은 못 바꿈'],
-    ['체력합산',     'N',    'Y 면 건강체력교실에서 카메라로 뛴 줄넘기도 줄넘기 기록에 함께 넣음 (한 운동이 두 모듈에 기록됨)']
+    ['체력합산',     'N',    'Y 면 건강체력교실에서 카메라로 뛴 줄넘기도 줄넘기 기록에 함께 넣음 (한 운동이 두 모듈에 기록됨)'],
+    ['급수사용',     'Y',    'Y 면 급수 인증(한국줄넘기협회 급수표) 메뉴와 학생 화면의 "나의 급수"를 씀 (v3.1.9)'],
+    ['급수메인',     'Y',    'Y 면 학급 현황·학생 화면에 우리 반 급수 분포를 보여 줌'],
+    ['여행코스',     '',     '우리 반 줄넘기 여행 코스: busan(서울→부산) | korea(국토 한 바퀴) | jeju(서울→제주) | earth(지구 한 바퀴) · 비우면 안 씀. 줄넘기 1회 = 1m'],
+    ['여행시작일',   '',     '여행 거리를 세기 시작한 날 (yyyy-mm-dd · 비우면 모든 확인 기록)']
   ];
 }
+
+/* 급수표 기본값 — 한국줄넘기협회 급수 (줄넘기 기록 관리 2.2 와 같음). 학교에 맞게 고치면 _속성 줄넘기.급수표 에 저장 */
+var ROPE_급수기본 = [
+  { 이름: '흰',   색: '#FFFFFF', 항목: [['양발 모아 뛰기', '100'], ['번갈아 스텝', '50'], ['엇걸어 풀어 스텝', '10'], ['이중 뛰기', '20'], ['뒤로 뛰기', '30']] },
+  { 이름: '노랑', 색: '#FFD60A', 항목: [['양발 모아 뛰기', '150'], ['번갈아 스텝', '70'], ['엇걸어 풀어 스텝', '20'], ['이중 뛰기', '30'], ['뒤로 뛰기', '50']] },
+  { 이름: '초록', 색: '#1E8E3E', 항목: [['이중 뛰기', '50'], ['솔개 뛰기', '1'], ['송골매 뛰기', '1'], ['옆 떨쳐 앞으로 뛰기', ''], ['옆 떨쳐 엇걸어 스텝', ''], ['옆 떨쳐 EB', '4'], ['뒤로 이중 뛰기', '5']] },
+  { 이름: '파랑', 색: '#2F56C8', 항목: [['이중 뛰기', '70'], ['솔개 뛰기', '5'], ['송골매 뛰기', '5'], ['1.5옆 떨쳐 앞으로 뛰기', ''], ['옆 떨쳐 엇걸어 스텝', ''], ['옆 떨쳐 EB', '10'], ['뒤로 이중 뛰기', '20']] },
+  { 이름: '밤',   색: '#6B2A20', 항목: [['이중 뛰기', '100'], ['솔개 뛰기', '10'], ['송골매 뛰기', '10'], ['1.5중 옆 떨쳐 연결', '1'], ['뒤로 이중 뛰기', '30']] },
+  { 이름: '주황', 색: '#F07C1E', 항목: [['이중 뛰기', '120'], ['솔개 뛰기', '15'], ['송골매 뛰기', '15'], ['1.5중 옆 떨쳐 연결', '2'], ['뒤로 이중 뛰기', '40']] },
+  { 이름: '빨강', 색: '#E01B1B', 항목: [['이중 뛰기', '150'], ['십자매 뛰기', '2'], ['1.5중 옆 떨쳐 연결', '10'], ['뒤로 이중 뛰기', '50']] },
+  { 이름: '검은', 색: '#1A1A1A', 항목: [['이중 뛰기', '100'], ['십자매 뛰기', '5'], ['1.5중 옆 떨쳐 연결', '10'], ['TS / 토드연결', '5회/2회'], ['뒤로 이중 뛰기', '60']] },
+  { 이름: '와이어', 색: '#9CA3AF', 항목: [['이중 뛰기', '300'], ['3중 뛰기', '10'], ['TS 스텝', '10'], ['TS 이중 뛰기', '2'], ['토드 연결', '5'], ['뒤로 이중 뛰기', '20']] }
+];
+var ROPE_급수표KEY = '줄넘기.급수표';
+/* 우리 반 줄넘기 여행 코스 — 1회 = 1m. 정거장: [이름, km] */
+var ROPE_여행코스 = {
+  busan: { 이름: '서울 → 부산', km: 400, 정거장: [['서울', 0], ['수원', 30], ['천안', 85], ['대전', 150], ['김천', 230], ['대구', 290], ['부산', 400]] },
+  korea: { 이름: '국토 한 바퀴', km: 1200, 정거장: [['서울', 0], ['강릉', 230], ['포항', 490], ['부산', 600], ['목포', 860], ['전주', 1000], ['서울', 1200]] },
+  jeju:  { 이름: '서울 → 제주 (배 타고)', km: 560, 정거장: [['서울', 0], ['대전', 150], ['광주', 300], ['목포', 370], ['제주', 560]] },
+  earth: { 이름: '지구 한 바퀴', km: 40075, 정거장: [['출발', 0], ['서울→부산 거리 10번', 4000], ['베이징~모스크바쯤', 10000], ['반 바퀴', 20037], ['3/4', 30056], ['한 바퀴', 40075]] }
+};
 
 /* ================= 공통 뼈대에 끼우는 훅 ================= */
 
@@ -125,7 +152,8 @@ function rope_hooks_() {
       return rope_배지_(y).map(function (b) { return { id: 'ROPE-' + b.id, 이름: b.이름, 설명: b.설명, 아이콘: b.아이콘, 달성: b.달성, 진행: b.진행, 값: b.값, 기준: b.기준 }; });
     },
     초기화정보: function () {
-      return [{ key: '기록', 이름: '줄넘기 기록 (학생 입력·교사 입력 모두 · 짝 확인 사진 파일도 휴지통으로)', 수: rows_(ROPE.기록).length }];
+      return [{ key: '기록', 이름: '줄넘기 기록 (학생 입력·교사 입력 모두 · 짝 확인 사진 파일도 휴지통으로)', 수: rows_(ROPE.기록).length },
+              { key: '급수', 이름: '줄넘기 급수 인증 (통과한 항목 · 급수표는 그대로)', 수: rows_(ROPE.급수).length }];
     },
     초기화: function (opts) {
       opts = opts || {};
@@ -136,6 +164,7 @@ function rope_hooks_() {
         rope_휴지통_(파일);
         res.기록 = 시트비우기_(ROPE.기록);
       }
+      if (opts.급수 && findSheet_(ROPE.급수)) res.급수 = 시트비우기_(ROPE.급수);
       rope_캐시지우기_();
       return res;
     },
@@ -143,8 +172,9 @@ function rope_hooks_() {
       var set = {};
       (ids || []).forEach(function (id) { set[String(id)] = true; });
       var n = 행지우기_(ROPE.기록, function (o) { return set[str_(o.학생ID)] === true; });
+      var m = 행지우기_(ROPE.급수, function (o) { return set[str_(o.학생ID)] === true; });   // 급수 인증도 함께 (v3.1.9)
       rope_캐시지우기_();
-      return { 기록: n };
+      return { 기록: n, 급수: m };
     },
     /** 학교급이 바뀌면 대상 학년을 비워 전체 학년으로 (지난 학교급의 학년 번호가 남지 않게) */
     학교급변경: function (급) {
@@ -176,9 +206,20 @@ function rope_설정_() {
     판정기최소: Math.max(1, Math.min(1000, num_(out.판정기최소) || 10)),
     판정기민감도: Math.max(6, Math.min(16, num_(out.판정기민감도) || 10)),
     체력합산: str_(out.체력합산).toUpperCase() === 'Y',
+    급수사용: str_(out.급수사용).toUpperCase() !== 'N',
+    급수메인: str_(out.급수메인).toUpperCase() !== 'N',
+    여행코스: ROPE_여행코스[str_(out.여행코스)] ? str_(out.여행코스) : '',
+    여행시작일: 날짜정리_(out.여행시작일) || '',
     학년도: str_(all.학년도)
   };
 }
+/** 화면용 여행 정보 (코스를 안 골랐으면 null). 총: 시작일 이후 확인 합계 */
+function rope_여행_(s, 총) {
+  if (!s.여행코스) return null;
+  var c = ROPE_여행코스[s.여행코스];
+  return { 코스: s.여행코스, 이름: c.이름, km: c.km, 정거장: c.정거장, 시작일: s.여행시작일, 총: 총 || 0 };
+}
+function rope_캐시지우기_() { 캐시지우기_('rope_rec'); 캐시지우기_('rope_lv'); }
 /** 종류 목록 정리: 쉼표·줄바꿈으로 나누고 빈 것·중복 제거, 최대 20개 */
 function rope_종류정리_(v) {
   var seen = {}, out = [];
@@ -189,7 +230,6 @@ function rope_종류정리_(v) {
   });
   return out.slice(0, 20);
 }
-function rope_캐시지우기_() { 캐시지우기_('rope_rec'); }
 function rope_시각_(v) {
   if (v instanceof Date) return ('0' + v.getHours()).slice(-2) + ':' + ('0' + v.getMinutes()).slice(-2);
   var m = str_(v).match(/(\d{1,2}):(\d{2})/);
@@ -258,11 +298,12 @@ function rope_학급현황_(학년, 반, 기록, s) {
     .filter(function (st) { return !s.대상학년.length || s.대상학년.indexOf(st.학년) >= 0; });
   var by = {};
   학생.forEach(function (st) { by[st.학생ID] = { 학생ID: st.학생ID, 학년: st.학년, 반: st.반, 번호: st.번호, 이름: st.이름, 누적: 0, 오늘: 0, 이번주: 0, 날짜맵: {}, 대기: 0, 종류별: {} }; });
-  var 본종류 = {};
+  var 본종류 = {}, 여행총 = 0, 여행시작 = s.여행코스 ? s.여행시작일 : null;
   기록.forEach(function (r) {
     var o = by[r.학생ID]; if (!o) return;
     if (r.상태 === '대기' || r.상태 === '짝대기') { o.대기++; return; }
     if (r.상태 !== '확인') return;
+    if (여행시작 !== null && (!여행시작 || r.날짜 >= 여행시작)) 여행총 += r.횟수;
     o.누적 += r.횟수; o.날짜맵[r.날짜] = (o.날짜맵[r.날짜] || 0) + r.횟수;
     var t = r.종류 || ROPE_종류없음; o.종류별[t] = (o.종류별[t] || 0) + r.횟수; 본종류[t] = true;
     if (r.날짜 === 오늘) o.오늘 += r.횟수;
@@ -279,9 +320,15 @@ function rope_학급현황_(학년, 반, 기록, s) {
   Object.keys(본종류).forEach(function (t) { if (종류들.indexOf(t) < 0) 종류들.push(t); });
   var 총 = 0, 오늘총 = 0, 달성 = 0;
   list.forEach(function (o) { 총 += o.누적; 오늘총 += o.오늘; if (o.오늘 >= s.하루목표) 달성++; });
-  var top = function (key) { var best = null; list.forEach(function (o) { if (o[key] > 0 && (!best || o[key] > best[key])) best = o; }); return best ? { 이름: best.이름, 학년: best.학년, 반: best.반, 값: best[key] } : null; };
+  // 왕: 가장 큰 값. 같은 값이면 공동 1위 — 공동: [{이름,학년,반}] 모두 (v3.1.9)
+  var top = function (key) {
+    var best = null; list.forEach(function (o) { if (o[key] > 0 && (!best || o[key] > best[key])) best = o; });
+    if (!best) return null;
+    var 공동 = list.filter(function (o) { return o[key] === best[key]; }).sort(function (a, b) { return (a.학년 - b.학년) || (a.반 - b.반) || (a.번호 - b.번호); }).map(function (o) { return { 이름: o.이름, 학년: o.학년, 반: o.반 }; });
+    return { 이름: 공동[0].이름, 학년: 공동[0].학년, 반: 공동[0].반, 값: best[key], 공동: 공동 };
+  };
   return { 학생: list, 종류들: 종류들, 총: 총, 오늘총: 오늘총, 달성: 달성, 오늘기록인원: list.filter(function (o) { return o.오늘 > 0; }).length,
-           왕: { 오늘: top('오늘'), 이번주: top('이번주'), 연속: top('연속'), 누적: top('누적') } };
+           왕: { 오늘: top('오늘'), 이번주: top('이번주'), 연속: top('연속'), 누적: top('누적') }, 여행: rope_여행_(s, 여행총) };
 }
 
 /** 학급별 비교 (오늘 목표 달성률 순). 현황.학생을 학년-반으로 묶음 */
@@ -446,6 +493,7 @@ function rope_t_getClass(token, 학년, 반) {
   기록.forEach(function (r) { if (r.상태 === '확인' && set[r.학생ID] && idx[r.날짜] !== undefined) { 일별[idx[r.날짜]].횟수 += r.횟수; (인원[r.날짜] = 인원[r.날짜] || {})[r.학생ID] = true; } });
   일별.forEach(function (x) { x.인원 = Object.keys(인원[x.날짜] || {}).length; });
   현황.일별 = 일별;
+  현황.급수 = s.급수사용 ? rope_급수분포_(현황.학생) : null;   // v3.1.9
   return 현황;
 }
 
@@ -566,6 +614,10 @@ function rope_t_saveSettings(token, map) {
   if (map.판정기최소 !== undefined) put['줄넘기.판정기최소'] = String(Math.max(1, Math.min(1000, num_(map.판정기최소) || 10)));
   if (map.판정기민감도 !== undefined) put['줄넘기.판정기민감도'] = String(Math.max(6, Math.min(16, num_(map.판정기민감도) || 10)));
   if (map.체력합산 !== undefined) put['줄넘기.체력합산'] = map.체력합산 ? 'Y' : 'N';
+  if (map.급수사용 !== undefined) put['줄넘기.급수사용'] = map.급수사용 ? 'Y' : 'N';
+  if (map.급수메인 !== undefined) put['줄넘기.급수메인'] = map.급수메인 ? 'Y' : 'N';
+  if (map.여행코스 !== undefined) put['줄넘기.여행코스'] = ROPE_여행코스[str_(map.여행코스)] ? str_(map.여행코스) : ' ';
+  if (map.여행시작일 !== undefined) put['줄넘기.여행시작일'] = 날짜정리_(map.여행시작일) || ' ';
   if (map.종류 !== undefined) {
     var 목록 = rope_종류정리_(map.종류);
     if (!목록.length && map.종류사용 !== false) throw new Error('줄넘기 종류를 한 개 이상 적어 주세요. (종류를 쓰지 않으려면 "종류 고르기"를 끄세요)');
@@ -583,6 +635,104 @@ function rope_t_saveSettings(token, map) {
 function rope_gemini여부_() { try { return !!속성_(ROPE_GEMINI_KEY); } catch (e) { return false; } }
 function rope_gemini오류_() { try { return 속성_(ROPE_GEMINI_ERR_KEY) || ''; } catch (e) { return ''; } }
 function rope_t_getSettings(token) { 교사확인_(token); return { 설정: rope_설정_(), gemini: rope_gemini여부_(), geminiError: rope_gemini오류_(), geminiModel: 캐시읽기_('rope_gemini_model') || '' }; }
+
+/* ================= 급수 인증 (v3.1.9 · 줄넘기 기록 관리 2.2 의 급수 인증을 옮김) =================
+   · 급수표(이름·색·항목·기준)는 ROPE_급수기본, 학교가 고치면 _속성 줄넘기.급수표 (JSON)
+   · 시트 줄넘기_급수 에는 "누가 몇 급(0~) 몇 번 항목(0~)을 언제 통과했는지"만 한 줄씩 (첫 저장 때 만들어짐)
+   · 지금 급수 = 앞 급수부터 모든 항목을 통과한 만큼 (rope_급수계산_). 앞 급수를 못 딴 학생은 화면에서 잠김 */
+function rope_급수표_() {
+  var t = null;
+  try { t = JSON.parse(속성_(ROPE_급수표KEY) || 'null'); } catch (e) { t = null; }
+  var 표 = rope_급수표정리_(t);
+  return { 표: 표.length ? 표 : ROPE_급수기본, 사용자표: 표.length > 0 };
+}
+/** 급수표 검사·정리: [{이름, 색, 항목:[[이름, 기준]]}] 최대 15급, 급마다 항목 1~12 */
+function rope_급수표정리_(t) {
+  if (!Array.isArray(t)) return [];
+  var out = [];
+  t.slice(0, 15).forEach(function (l) {
+    if (!l) return;
+    var 이름 = str_(l.이름 || l.name).replace(/\s*줄넘기$/, '').slice(0, 10), 색 = str_(l.색 || l.color);
+    var 항목 = (Array.isArray(l.항목) ? l.항목 : Array.isArray(l.items) ? l.items : []).slice(0, 12).map(function (it) {
+      return Array.isArray(it) ? [str_(it[0]).slice(0, 30), str_(it[1]).slice(0, 12)] : [str_(it).slice(0, 30), ''];
+    }).filter(function (it) { return it[0]; });
+    if (!이름 || !항목.length) return;
+    out.push({ 이름: 이름, 색: /^#[0-9a-fA-F]{6}$/.test(색) ? 색 : '#CCCCCC', 항목: 항목 });
+  });
+  return out;
+}
+/** { 학생ID: [[급수, 항목, 통과일], ...] } — 캐시 */
+function rope_급수통과_() {
+  return 캐시_('rope_lv', function () {
+    var out = {};
+    rows_(ROPE.급수).forEach(function (r) {
+      var id = str_(r.학생ID); if (!id) return;
+      (out[id] = out[id] || []).push([num_(r.급수), num_(r.항목), 날짜정리_(r.통과일) || str_(r.통과일).slice(0, 10)]);
+    });
+    return out;
+  });
+}
+/** 학생 한 명: { 급수: 딴 급수 번호(-1 = 아직), 다음: 도전 중 급수 번호, 끝: 모두 땄는지, 통과: {"급수|항목": 날짜}, 날짜: {급수: 딴 날} } */
+function rope_급수계산_(표, 줄들) {
+  var map = {}; (줄들 || []).forEach(function (r) { map[r[0] + '|' + r[1]] = r[2] || ''; });
+  var 급수 = -1, 날짜 = {};
+  for (var i = 0; i < 표.length; i++) {
+    var 항목 = 표[i].항목 || [], 전부 = true, 마지막 = '';
+    if (!항목.length) break;
+    for (var j = 0; j < 항목.length; j++) { var d = map[i + '|' + j]; if (d === undefined) { 전부 = false; break; } if (d > 마지막) 마지막 = d; }
+    if (!전부) break;
+    급수 = i; 날짜[i] = 마지막;
+  }
+  return { 급수: 급수, 다음: Math.min(급수 + 1, 표.length - 1), 끝: 급수 >= 표.length - 1, 통과: map, 날짜: 날짜 };
+}
+/** 학생 목록의 급수 분포: [{급수:i, 이름, 색, 학생:[{학생ID,이름,학년,반,번호}]}] (아직 없음은 급수 -1) */
+function rope_급수분포_(학생들) {
+  var T = rope_급수표_(), 통과 = rope_급수통과_(), by = {};
+  학생들.forEach(function (st) { var lv = rope_급수계산_(T.표, 통과[st.학생ID]).급수; (by[lv] = by[lv] || []).push({ 학생ID: st.학생ID, 이름: st.이름, 학년: st.학년, 반: st.반, 번호: st.번호 }); });
+  var out = [];
+  for (var i = T.표.length - 1; i >= -1; i--) out.push({ 급수: i, 이름: i < 0 ? '아직 없음' : T.표[i].이름, 색: i < 0 ? '' : T.표[i].색, 학생: by[i] || [] });
+  return out;
+}
+/** 교사: 급수표 + 통과 기록 전체 (급수 인증 화면) */
+function rope_t_levelsGet(token) {
+  교사확인_(token);
+  var T = rope_급수표_(), s = rope_설정_();
+  return { 표: T.표, 사용자표: T.사용자표, 통과: rope_급수통과_(), 급수사용: s.급수사용, 급수메인: s.급수메인, 오늘: 오늘_() };
+}
+/** 교사: 통과 저장. changes = [{ 학생ID, 급수, 항목, 통과: true|false, 날짜? }] — 통과는 한 줄 추가(있으면 그대로), 취소는 그 줄 삭제 */
+function rope_t_levelsSave(token, changes) {
+  교사확인_(token);
+  var T = rope_급수표_(), 학생 = 학생맵_(true), 오늘 = 오늘_();
+  return withLock_(function () {
+    if (!findSheet_(ROPE.급수)) 시트준비_(ROPE.급수, ROPE_H.급수, { 색: ROPE_색 });
+    var 있음 = {}; rows_(ROPE.급수).forEach(function (r) { 있음[str_(r.학생ID) + '|' + num_(r.급수) + '|' + num_(r.항목)] = true; });
+    var 추가 = [], 지울 = {};
+    (Array.isArray(changes) ? changes : []).slice(0, 2000).forEach(function (c) {
+      var id = str_(c && c.학생ID), lv = Math.round(num_(c.급수)), it = Math.round(num_(c.항목));
+      if (!학생[id] || !(lv >= 0 && lv < T.표.length) || !(it >= 0 && it < T.표[lv].항목.length)) return;
+      var k = id + '|' + lv + '|' + it;
+      if (c.통과) { if (있음[k]) return; 있음[k] = true; 추가.push({ 학생ID: id, 급수: lv, 항목: it, 통과일: 날짜정리_(c.날짜) || 오늘, 입력자: '교사' }); }
+      else if (있음[k]) 지울[k] = true;
+    });
+    var 지운수 = Object.keys(지울).length ? 행지우기_(ROPE.급수, function (o) { return 지울[str_(o.학생ID) + '|' + num_(o.급수) + '|' + num_(o.항목)] === true; }) : 0;
+    if (추가.length) appendRows_(ROPE.급수, ROPE_H.급수, 추가);
+    rope_캐시지우기_();
+    return { ok: true, 추가: 추가.length, 삭제: 지운수, 통과: rope_급수통과_() };
+  });
+}
+/** 교사: 급수표 바꾸기 (null 이면 기본표로) */
+function rope_t_levelsTable(token, 표) {
+  교사확인_(token);
+  if (표 === null || 표 === undefined || (Array.isArray(표) && !표.length)) { 속성지우기_(ROPE_급수표KEY); }
+  else {
+    var 정리 = rope_급수표정리_(표);
+    if (!정리.length) throw new Error('급수표를 읽을 수 없어요. 급수마다 이름과 항목 한 개 이상이 필요해요.');
+    속성저장_(ROPE_급수표KEY, JSON.stringify(정리));
+  }
+  rope_캐시지우기_();
+  var T = rope_급수표_();
+  return { ok: true, 표: T.표, 사용자표: T.사용자표 };
+}
 
 /* ================= 전국 현황판 참여 (v3.1.7 · 승인 규칙 v3.1.8) =================
    · 참여 중에는 "학생 입력 자동 확인"이 꺼짐(켤 수 없음) — 선생님이 확인한 기록과 카메라 기록만 현황판에 올라감
@@ -657,16 +807,21 @@ function nat_days_(o, 날짜들) {
       return [nat_studentKey_(o.key, id), nat_mask_(e.st.이름), String(e.st.학년).slice(0, 4), Math.min(30000, e.n), Math.min(30000, e.cam)]; }).slice(0, 1200) };
   });
 }
+/** 등록 학생 수 (대상 학년만) — 전체와 학년별 (학년별은 수집기 4판의 학년별 순위용, v3.1.9) */
 function nat_등록수_() {
-  var s = rope_설정_();
-  return 학생목록_(false).filter(function (st) { return !s.대상학년.length || s.대상학년.indexOf(Number(st.학년)) >= 0; }).length;
+  var s = rope_설정_(), by = {}, n = 0;
+  학생목록_(false).forEach(function (st) {
+    if (s.대상학년.length && s.대상학년.indexOf(Number(st.학년)) < 0) return;
+    n++; var g = String(st.학년).slice(0, 4); by[g] = (by[g] || 0) + 1;
+  });
+  return { 전체: n, 학년별: by };
 }
 /** 보고. 날짜들이 없으면 전체(이번 달+지난 달). 돌려주는 값: 보낸 날 수 */
 function nat_보고_(날짜들) {
   var o = nat_설정_(); if (!o.on || !o.key) return 0;
-  var days = nat_days_(o, 날짜들);
+  var days = nat_days_(o, 날짜들), 등록 = nat_등록수_();
   var payload = { key: o.key, showName: !!o.showName, name: o.showName ? o.name : '', schoolName: o.name, teacher: o.teacher, contact: o.contact,
-                  registered: nat_등록수_(), app: 'pe-assistant ' + APP_VERSION, days: days };
+                  registered: 등록.전체, registeredByGrade: 등록.학년별, app: 'pe-assistant ' + APP_VERSION, days: days };
   nat_호출_('report', payload);
   if (!날짜들) { o.lastFull = 지금_(); } o.lastErr = ''; nat_설정저장_(o);
   return days.length;
@@ -722,6 +877,33 @@ function rope_t_natSend(token) {
   try { var n = nat_보고_(null); return { ok: true, message: '보냈어요. (' + n + '일치) 현황판에는 몇 분 안에 반영됩니다.', nat: nat_공개_() }; }
   catch (e) { o = nat_설정_(); o.lastErr = (지금_() + ' ' + e.message).slice(0, 200); nat_설정저장_(o); return { ok: false, message: '보내지 못했어요: ' + e.message, nat: nat_공개_() }; }
 }
+/** 교사: 기록실(지난 달)에서 우리 학교가 받은 순위 — 상장 인쇄용 (v3.1.9)
+ *  돌려주는 값: { 달목록: ['2026-09', …], 달: '2026-09', 상: [{ 종류: '학교'|'학생'|'학교안', 순위, 제목, 값, 학생?: {학년,반,번호,이름} }] }
+ *  학생 키(sha)는 서버에서 우리 학생과 맞춰 실명으로 바꿉니다 — 키는 밖으로 나가지 않음 */
+function rope_t_natHall(token, 달) {
+  교사확인_(token);
+  var o = nat_설정_(); if (!o.key) return { 달목록: [], 달: '', 상: [], message: '전국 현황판에 참여한 적이 없어요.' };
+  var url = nat_수집기주소_(false) + '?api=hall' + (달 ? '&month=' + encodeURIComponent(str_(달)) : '');
+  var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+  var j; try { j = JSON.parse(res.getContentText()); } catch (e) { throw new Error('기록실을 읽지 못했어요 (' + res.getResponseCode() + ')'); }
+  if (!j.ok) throw new Error(str_(j.error) || '기록실을 읽지 못했어요');
+  var r = j.result || {}, m = r.month, pid = nat_publicId_(o.key);
+  var out = { 달목록: r.list || [], 달: m ? m.month : '', 상: [] };
+  if (!m) { out.message = '아직 기록실에 오른 달이 없어요. (달이 끝나야 기록실에 올라가요)'; return out; }
+  var 키맵 = {}; 학생목록_(true).forEach(function (st) { 키맵[nat_studentKey_(o.key, st.학생ID)] = { 학년: st.학년, 반: st.반, 번호: st.번호, 이름: st.이름 }; });
+  var 종류 = { total: ['학교 합계', function (s) { return Number(s.total).toLocaleString() + '회'; }], avg: ['1인당 평균', function (s) { return Number(s.avg).toLocaleString() + '회'; }], rate: ['참여율', function (s) { return s.rate + '%'; }] };
+  Object.keys(종류).forEach(function (k) {
+    ((m.schools || {})[k] || []).forEach(function (s) { if (s.pid === pid) out.상.push({ 종류: '학교', 순위: s.rank, 제목: 종류[k][0], 값: 종류[k][1](s) }); });
+  });
+  (m.students || []).forEach(function (x) {
+    var st = x.k && 키맵[x.k]; if (!(st || x.pid === pid)) return;
+    out.상.push({ 종류: '학생', 순위: x.rank, 제목: '학생 순위 전국', 값: Number(x.c).toLocaleString() + '회', 학생: st || { 이름: x.n, 학년: x.g } });
+  });
+  var ins = (m.inSchool || []).filter(function (s) { return s.pid === pid; })[0];
+  if (ins) { var rank = 0; (ins.top || []).forEach(function (x, i) { rank = (i > 0 && ins.top[i - 1].c === x.c) ? rank : i + 1; out.상.push({ 종류: '학교안', 순위: rank, 제목: '우리 학교', 값: Number(x.c).toLocaleString() + '회', 학생: 키맵[x.k] || { 이름: x.n, 학년: x.g } }); }); }
+  if (!out.상.length) out.message = out.달 + ' 기록실에 우리 학교가 없어요.';
+  return out;
+}
 
 /* ================= 학생 API ================= */
 
@@ -750,11 +932,29 @@ function rope_s_view_(me) {
     요약: y, 기록: 내기록.slice().reverse(), 오늘입력: 오늘입력, 배지: rope_배지_(y),
     학급: { 총: 반.총, 오늘총: 반.오늘총, 인원: 반.학생.length, 오늘기록인원: 반.오늘기록인원, 달성: 반.달성, 학급목표: s.학급목표, 진행: rope_pct_(반.총, s.학급목표) },
     짝후보: 짝후보, 짝요청수: 짝요청수,
+    급수: s.급수사용 ? rope_s_급수_(me, 반) : null,   // v3.1.9 나의 급수 + (급수메인) 우리 반 급수 분포
+    여행: 반.여행,
     문구: rope_응원문구_(반),
     현황판: (function () { var o = nat_설정_(); return o.on && o.key ? NAT_BASE + 'board.html?me=' + nat_publicId_(o.key) : ''; })()   // 참여 중이면 학생 화면에 링크만 (키는 안 보냄)
   };
 }
 function rope_s_boot(token) { return rope_s_view_(학생확인_(token)); }
+/** 학생 화면의 급수: 나의 급수·다음 도전 항목(통과 여부) + 우리 반 분포(이름 없이 수만) */
+function rope_s_급수_(me, 반) {
+  var T = rope_급수표_(), 통과 = rope_급수통과_(), s = rope_설정_();
+  var my = rope_급수계산_(T.표, 통과[me.학생ID]);
+  var 다음 = T.표[my.다음] || null;
+  var out = {
+    표: T.표.map(function (l) { return { 이름: l.이름, 색: l.색 }; }),
+    급수: my.급수, 급수이름: my.급수 >= 0 ? T.표[my.급수].이름 : '', 급수색: my.급수 >= 0 ? T.표[my.급수].색 : '', 딴날: my.날짜[my.급수] || '', 끝: my.끝,
+    다음: 다음 && !my.끝 ? { 번호: my.다음, 이름: 다음.이름, 색: 다음.색, 항목: 다음.항목.map(function (it, j) { return { 이름: it[0], 기준: it[1], 통과: my.통과[my.다음 + '|' + j] !== undefined }; }) } : null
+  };
+  if (s.급수메인) {
+    var 분포 = {}; 반.학생.forEach(function (st) { var lv = rope_급수계산_(T.표, 통과[st.학생ID]).급수; 분포[lv] = (분포[lv] || 0) + 1; });
+    out.반분포 = 분포;
+  }
+  return out;
+}
 
 /** 학생 기록 입력. m = { 횟수, 시각?, 메모? } — 날짜는 오늘로 고정 */
 function rope_s_addRecord(token, m) {

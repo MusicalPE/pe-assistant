@@ -8,6 +8,9 @@
 #rope_T .king .k .v{font-size:12.5px;color:var(--ink-2);}
 #rope_T .stu-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line-2);font-size:13.5px;}
 #rope_T .stu-row:last-child{border-bottom:none;}
+/* 학생별 누적: 오른쪽 열(그래프·목표·여행·급수·학급 비교) 높이만큼만 보이고 그 아래는 표 안에서 스크롤 */
+#rope_T .stu-list{overflow-y:auto;padding-right:4px;}
+#rope_T .stu-list .sec{position:sticky;top:0;background:var(--card);font-size:11.5px;font-weight:800;color:var(--ink-3);padding:8px 0 4px;border-bottom:1px solid var(--line-2);z-index:1;}
 #rope_T .stu-row .n{width:130px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #rope_T .stu-row .prog{flex:1;}
 #rope_T .stu-row .v{width:150px;text-align:right;color:var(--ink-2);font-size:12.5px;white-space:nowrap;}
@@ -33,6 +36,61 @@
 #rope_T tr.peerwait td{color:var(--ink-3);}
 #rope_T .peer-toggle{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff;font-weight:700;cursor:pointer;}
 #rope_T .peer-toggle.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink);}
+/* 급수 (v3.1.9) */
+.lv-chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;border:1px solid rgba(0,0,0,.12);white-space:nowrap;line-height:1.4;}
+.lv-chip.lv-none{background:var(--soft);color:var(--ink-3);}
+.lv-chip .cnt{font-weight:700;opacity:.8;}
+#rope_T .lv-dist{display:flex;gap:6px;flex-wrap:wrap;}
+#rope_T .lv-dist button{all:unset;cursor:pointer;}
+#rope_T .lv-dist button.on .lv-chip{outline:2px solid var(--accent);outline-offset:1px;}
+#rope_T .lv-names{margin-top:8px;font-size:13px;color:var(--ink-2);line-height:1.7;}
+#rope_T .lv-table th{white-space:normal;vertical-align:bottom;font-size:12px;line-height:1.35;text-align:center;}
+#rope_T .lv-table th:first-child{text-align:left;}
+#rope_T .lv-table th input[type=checkbox]{display:block;margin:4px auto 0;}
+#rope_T .lv-table th small{display:block;color:var(--ink-3);font-weight:600;}
+#rope_T .lv-table td{text-align:center;}
+#rope_T .lv-table td.name{text-align:left;white-space:nowrap;}
+#rope_T .lv-table input[type=checkbox]{width:20px;height:20px;}
+#rope_T .lv-table tr.locked td{color:var(--ink-3);}
+#rope_T .lv-table tr.locked td.name::after{content:' 🔒';font-size:11px;}
+#rope_T .lv-table tr.up td.name{color:var(--accent-ink);}
+/* 우리 반 줄넘기 여행 — 교사·학생 화면 공통 */
+.jr-wrap{padding:4px 0 2px;}
+.jr-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:28px;}
+.jr-head h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.02em;}
+.jr-head h3 small{font-size:12px;color:var(--ink-3);font-weight:600;margin-left:6px;}
+.jr-head .jr-num{font-size:14px;color:var(--ink-2);}
+.jr-head .jr-num b{font-size:20px;color:var(--accent-ink);letter-spacing:-.03em;}
+.jr-track{position:relative;height:14px;border-radius:99px;background:var(--soft);margin:0 14px 34px;}
+.jr-fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,var(--accent-dk),var(--accent));transition:width .6s ease;}
+.jr-me{position:absolute;top:-22px;transform:translateX(-50%);font-size:22px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2));}
+.jr-stop{position:absolute;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;}
+.jr-stop i{display:block;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--line);box-sizing:border-box;}
+.jr-stop.on i{background:var(--accent);border-color:var(--accent);}
+.jr-stop b{position:absolute;top:14px;font-size:11px;color:var(--ink-3);white-space:nowrap;font-weight:700;}
+.jr-stop.on b{color:var(--ink-2);}
+.jr-stop.first b{left:0;transform:none;}
+.jr-stop.last b{right:0;}
+.jr-foot{font-size:12.5px;color:var(--ink-2);margin-top:-14px;}
+/* 인증서·상장 (A4 가로) — 미리보기와 인쇄(.print-area) 공통 */
+.rp-certs{display:grid;gap:16px;}
+.rp-cert{width:100%;aspect-ratio:297/210;background:#fff;border:1px solid var(--line);border-radius:8px;padding:3.2%;box-sizing:border-box;container-type:inline-size;page-break-after:always;break-after:page;}
+.rp-cert .in{height:100%;box-sizing:border-box;border:.9cqw double #B08D3C;outline:.25cqw solid #B08D3C;outline-offset:-1.6cqw;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3cqw 7cqw;color:#2b2b2b;font-family:'Noto Serif KR','Nanum Myeongjo','Batang',serif;}
+.rp-cert .title{font-size:6cqw;font-weight:800;letter-spacing:.3em;margin-bottom:1.4cqw;}
+.rp-cert.level .title{letter-spacing:.12em;font-size:5cqw;}
+.rp-cert .badge .lv-chip{font-size:2.4cqw;padding:.5cqw 2.2cqw;border-radius:999px;}
+.rp-cert .rank{display:inline-block;font-size:2.6cqw;font-weight:800;color:#9A7322;border:.25cqw solid #B08D3C;border-radius:999px;padding:.4cqw 2.4cqw;}
+.rp-cert .who{font-size:3cqw;margin:2.4cqw 0 1.6cqw;}
+.rp-cert .body{font-size:2.2cqw;line-height:1.9;}
+.rp-cert .items{font-size:1.6cqw;color:#555;}
+.rp-cert .small{font-size:1.6cqw;color:#666;}
+.rp-cert .date{font-size:2cqw;margin-top:2.6cqw;}
+.rp-cert .from{font-size:2.4cqw;font-weight:700;margin-top:1.2cqw;line-height:1.5;}
+@media print{
+  .print-area.rp-print .rp-cert{width:297mm;height:210mm;aspect-ratio:auto;border:0;border-radius:0;margin:0;}
+  .print-area.rp-print .rp-cert:last-child{page-break-after:auto;break-after:auto;}
+  .print-area.rp-print .lv-chip{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
 </style>
 
 <div class="mroot hide" data-mod="ROPE" data-role="T" id="rope_T">
@@ -50,12 +108,13 @@
     <div class="note sun" id="rpDashMsg"><i class="ti ti-message-heart"></i><div id="rpDashMsgTxt"></div></div>
     <div class="kpis" id="rpDashKpis"></div>
     <div class="king" id="rpKings"></div>
-    <div class="grid g2" style="align-items:start">
-      <div class="panel" style="margin:0">
+    <div class="grid g2 dash-g2" style="align-items:start">
+      <div class="panel stu-panel" style="margin:0">
         <div class="panel-head"><h3><i class="ti ti-users"></i>학생별 누적</h3><div class="spacer"></div>
+          <select id="rpDashCls" style="padding:5px 8px;font-size:12.5px;margin-right:6px" title="이 표만 반별로 봅니다"><option value="">전체 보기</option></select>
           <select id="rpDashType" class="hide" style="padding:5px 8px;font-size:12.5px;margin-right:6px"><option value="">모든 종류</option></select>
           <select id="rpDashSort" style="padding:5px 8px;font-size:12.5px"><option value="번호">번호순</option><option value="누적">누적 많은 순</option><option value="오늘">오늘 많은 순</option><option value="연속">연속 일수 순</option></select></div>
-        <div class="panel-body" id="rpDashStudents" style="padding-top:6px"></div>
+        <div class="panel-body stu-list" id="rpDashStudents" style="padding-top:0"></div>
       </div>
       <div>
         <div class="panel" style="margin:0 0 14px">
@@ -65,6 +124,14 @@
         <div class="panel" style="margin:0 0 14px">
           <div class="panel-head"><h3><i class="ti ti-target-arrow"></i>학급 공동 목표</h3></div>
           <div class="panel-body" id="rpDashClassGoal"></div>
+        </div>
+        <div class="panel hide" style="margin:0 0 14px" id="rpDashJourneyPanel">
+          <div class="panel-head"><h3><i class="ti ti-map-pin"></i>우리 반 줄넘기 여행</h3><div class="spacer"></div><span class="unit">1회 = 1m · 확인된 기록만</span></div>
+          <div class="panel-body" id="rpDashJourney"></div>
+        </div>
+        <div class="panel hide" style="margin:0 0 14px" id="rpDashLevelPanel">
+          <div class="panel-head"><h3><i class="ti ti-stairs-up"></i>우리 반 급수</h3><div class="spacer"></div><button class="mini ghost" id="rpDashLevelGo"><i class="ti ti-pencil"></i>급수 인증</button></div>
+          <div class="panel-body"><div class="lv-dist" id="rpDashLevels"></div><div class="lv-names" id="rpDashLevelNames"></div></div>
         </div>
         <div class="panel" style="margin:0">
           <div class="panel-head"><h3><i class="ti ti-podium"></i>학급 비교</h3><span class="unit">오늘 목표 달성률 순</span></div>
@@ -79,6 +146,7 @@
     <div class="page-head"><h2>기록 확인</h2><span class="sub">학생이 입력한 횟수를 확인하면 누적·순위·그래프에 반영됩니다. 짝 체크를 켠 날에는 짝이 맞다고 한 기록이 여기로 옵니다 — 최종 확인은 선생님이 합니다.</span></div>
     <div class="bar">
       <button id="rpBtnApproveSel"><i class="ti ti-checks"></i>선택 확인</button>
+      <button class="soft" id="rpBtnApproveAll" title="짝 확인을 기다리는 것 빼고, 선생님 확인을 기다리는 기록을 모두 확인"><i class="ti ti-check"></i>모두 확인</button>
       <button class="danger" id="rpBtnRejectSel"><i class="ti ti-x"></i>선택 반려</button>
       <div class="field"><label>반려 사유 (선택)</label><input type="text" id="rpRejectMemo" placeholder="예: 횟수가 너무 커요" style="width:200px"></div>
       <div class="spacer"></div>
@@ -125,6 +193,63 @@
     </div>
   </div>
 
+  <!-- ===== 급수 인증 (v3.1.9) ===== -->
+  <div class="page hide" id="rope_tp_levels">
+    <div class="page-head"><h2>급수 인증</h2><span class="sub">급수표의 항목을 선생님이 직접 보고 통과한 칸을 체크해요. 한 급수의 항목을 모두 통과하면 그 급수를 딴 것으로 봐요. 앞 급수를 못 딴 학생은 잠겨요.</span></div>
+    <div class="note hide" id="rpLvOld"><i class="ti ti-info-circle"></i><div><b>라이브러리 50 이상이 필요해요.</b> 설정 → 업데이트에서 라이브러리를 올리면 급수 인증을 쓸 수 있어요.</div></div>
+    <div class="note hide" id="rpLvOff"><i class="ti ti-info-circle"></i><div>줄넘기 설정에서 <b>급수 인증 사용</b>이 꺼져 있어요. 켜면 학생 화면에 "나의 급수"가 보여요. (여기서는 체크할 수 있어요)</div></div>
+    <div id="rpLvBody">
+      <div class="bar">
+        <div class="field"><label>학년</label><select id="rpLvGrade"></select></div>
+        <div class="field"><label>반</label><select id="rpLvClass"></select></div>
+        <div class="field"><label>급수</label><select id="rpLvLevel"></select></div>
+        <div class="field"><label>통과일</label><input type="date" id="rpLvDate"></div>
+        <div class="spacer"></div>
+        <label class="chk sm"><input type="checkbox" id="rpLvMain"><span>학급 현황·학생 화면에 우리 반 급수 보이기</span></label>
+        <button class="ghost" id="rpLvTableBtn"><i class="ti ti-table"></i>급수표 고치기</button>
+      </div>
+      <div class="panel hide" id="rpLvTablePanel">
+        <div class="panel-head"><h3><i class="ti ti-table"></i>급수표</h3><div class="spacer"></div><span class="unit" id="rpLvTableState"></span></div>
+        <div class="panel-body">
+          <div class="unit" style="margin-bottom:8px">급수 하나는 <b>"이름 #색상"</b> 한 줄 다음에 <b>"항목, 기준"</b>을 한 줄씩, 급수 사이는 빈 줄로 띄워요. 기준을 비우면 "성공"으로 봐요. 이미 체크한 칸은 급수·항목 <b>순서(번호)</b>로 남아 있으니, 학기 중에는 이름만 고치고 순서는 바꾸지 않는 편이 좋아요.</div>
+          <textarea id="rpLvTableText" rows="14" style="width:100%;font-family:ui-monospace,monospace;font-size:13px"></textarea>
+        </div>
+        <div class="savebar"><span class="status" id="rpLvTableStatus"></span><div class="spacer"></div><button class="ghost" id="rpLvTableReset"><i class="ti ti-restore"></i>기본 급수표로</button><button id="rpLvTableSave"><i class="ti ti-device-floppy"></i>급수표 저장</button></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3 id="rpLvTitle"><i class="ti ti-stairs-up"></i>급수 인증표</h3><div class="spacer"></div><span class="unit" id="rpLvInfo"></span></div>
+        <div class="scroll-x"><table class="lv-table"><thead id="rpLvHead"></thead><tbody id="rpLvRows"></tbody></table></div>
+        <div class="empty hide" id="rpLvEmpty"><i class="ti ti-users"></i><strong>이 반에 학생이 없습니다</strong></div>
+        <div class="savebar"><span class="status" id="rpLvStatus"></span><div class="spacer"></div><button id="rpLvSave"><i class="ti ti-device-floppy"></i>저장</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 인증서 · 상장 (v3.1.9) ===== -->
+  <div class="page hide" id="rope_tp_certs">
+    <div class="page-head"><h2>인증서 · 상장</h2><span class="sub">급수 인증서는 학생마다 <b>지금 딴 급수</b> 한 장씩, 전국 현황판 상장은 지난달 <b>기록실</b>에 오른 우리 학교·학생(전국 1~3등, 우리 학교 안 1~3등)에게 나와요. A4 가로로 인쇄되고, 인쇄 창에서 "PDF로 저장"을 고르면 파일로 받아요.</span></div>
+    <div class="note hide" id="rpCtOld"><i class="ti ti-info-circle"></i><div><b>라이브러리 50 이상이 필요해요.</b> 설정 → 업데이트에서 라이브러리를 올리면 쓸 수 있어요.</div></div>
+    <div id="rpCtBody">
+      <div class="panel">
+        <div class="panel-body">
+          <div class="grid g3" style="margin-bottom:10px">
+            <div class="field"><label>종류</label><select id="rpCtKind"><option value="level">급수 인증서</option><option value="nat">전국 현황판 순위 상장</option></select></div>
+            <div class="field" data-ct="level"><label>학년</label><select id="rpCtGrade"></select></div>
+            <div class="field" data-ct="level"><label>반</label><select id="rpCtClass"></select></div>
+            <div class="field hide" data-ct="nat"><label>기록실 달</label><select id="rpCtMonth"></select></div>
+            <div class="field"><label>학교 이름</label><input type="text" id="rpCtSchool" maxlength="40"></div>
+            <div class="field"><label>발급 날짜</label><input type="date" id="rpCtDate"></div>
+            <div class="field"><label>직함</label><select id="rpCtRole"><option value="담임">담임</option><option value="체육 교사">체육 교사</option><option value="체육 전담 교사">체육 전담 교사</option><option value="">(직함 없이)</option><option value="__custom">직접 입력</option></select><input type="text" id="rpCtRoleCustom" class="hide" placeholder="예: 체육부장" maxlength="20" style="margin-top:6px"></div>
+            <div class="field"><label>선생님 이름</label><input type="text" id="rpCtTeacher" maxlength="30"></div>
+          </div>
+          <div class="unit" id="rpCtHint"></div>
+        </div>
+        <div class="savebar"><span class="status" id="rpCtStatus"></span><div class="spacer"></div><button class="ghost" id="rpCtMake"><i class="ti ti-eye"></i>미리보기</button><button id="rpCtPrint"><i class="ti ti-printer"></i>인쇄 · PDF 저장</button></div>
+      </div>
+      <div class="rp-certs" id="rpCtPreview"></div>
+    </div>
+  </div>
+
   <!-- ===== 설정 ===== -->
   <div class="page hide" id="rope_tp_settings">
     <div class="page-head"><h2>줄넘기 설정</h2></div>
@@ -138,6 +263,12 @@
           <div class="field"><label>한 번에 입력 가능한 최대 횟수</label><input type="number" id="rpSetMaxCnt" min="1"></div>
           <div class="field"><label>대상 학년</label><div class="chks" id="rpSetGrades" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
           <div class="field"><label>학생 입력 자동 확인</label><label class="chk sm"><input type="checkbox" id="rpSetAuto"><span>교사 확인 없이 바로 인정</span></label><span class="unit hide" id="rpSetAutoNat">전국 현황판 참여 중에는 끌 수 없어요 — 선생님이 확인한 기록만 현황판에 올라가요.</span></div>
+          <div class="field"><label>급수 인증</label><label class="chk sm"><input type="checkbox" id="rpSetLevels"><span>급수 인증 사용 (학생 화면에 "나의 급수")</span></label><span class="unit">급수표는 급수 인증 화면에서 고쳐요.</span></div>
+        </div>
+        <div class="panel-head" style="padding:10px 0 6px;border:0"><h3><i class="ti ti-map-pin"></i>우리 반 줄넘기 여행</h3><div class="spacer"></div><span class="unit">확인된 줄넘기를 1회 = 1m 로 바꿔 여행 코스를 따라 나아가요. 학급 현황과 학생 화면에 진행 막대가 보여요.</span></div>
+        <div class="grid g3" style="margin-bottom:12px">
+          <div class="field"><label>코스</label><select id="rpSetJourney"><option value="">(안 함)</option><option value="busan">서울 → 부산 (400km)</option><option value="korea">국토 한 바퀴 (1,200km)</option><option value="jeju">서울 → 제주, 배 타고 (560km)</option><option value="earth">지구 한 바퀴 (40,075km)</option></select></div>
+          <div class="field"><label>세기 시작한 날 (비우면 모든 기록)</label><input type="date" id="rpSetJourneyFrom"><span class="unit">새로 출발하려면 오늘 날짜를 넣어요. 그 전 기록은 거리에 들어가지 않아요.</span></div>
         </div>
         <div class="panel-head" style="padding:10px 0 6px;border:0"><h3><i class="ti ti-list-details"></i>줄넘기 종류</h3><div class="spacer"></div><span class="unit">학생이 기록을 넣을 때 고르는 종류입니다. 위에서부터 순서대로 선택지·그래프에 나옵니다.</span></div>
         <div class="grid g3" style="margin-bottom:12px">
@@ -202,15 +333,19 @@
 MODS.ROPE = MODS.ROPE || {};
 MODS.ROPE.teacher = (function () {
   var B = null, DASH = null, PEND = [], ST = null, THUMB = {};
-  var pages = ['dash', 'pending', 'input', 'students', 'settings'];
+  var pages = ['dash', 'pending', 'input', 'students', 'levels', 'certs', 'settings'];
   var nav = [
     { section: '줄넘기' },
     { id: 'dash', label: '학급 현황', icon: 'chart-bar' },
     { id: 'pending', label: '기록 확인', icon: 'checklist' },
     { id: 'input', label: '수업 중 입력', icon: 'pencil-plus' },
     { id: 'students', label: '학생별 기록', icon: 'user-search' },
+    { id: 'levels', label: '급수 인증', icon: 'stairs-up' },
+    { id: 'certs', label: '인증서 · 상장', icon: 'certificate' },
     { id: 'settings', label: '줄넘기 설정', icon: 'adjustments' }
   ];
+  /* 옛 라이브러리(50 미만)면 급수·인증서 서버 기능이 없음 — SERVER_API 6 부터 */
+  function api6() { var s = CTX && CTX.설정 ? CTX.설정 : {}; return s.SERVER_API === undefined || (s.SERVER_API || 0) >= 6; }
   var ROOT = $('rope_T');
   function qa(sel, root) { return Array.prototype.slice.call((root || ROOT).querySelectorAll(sel)); }
   function roster() { return (CTX && CTX.학생 ? CTX.학생 : []).filter(function (s) { return s.상태 === '재학'; }); }
@@ -219,7 +354,7 @@ MODS.ROPE.teacher = (function () {
   function label(s) { return s.학년 + '-' + s.반 + '-' + s.번호 + ' ' + s.이름; }
 
   function init(ctx) { B = null; DASH = null; ST = null; THUMB = {}; api('rope_t_boot', TOKEN).then(function (b) { B = b; setNavCount('ROPE', 'pending', b.대기); }).catch(handleErr); }
-  function reset() { B = null; DASH = null; PEND = []; ST = null; THUMB = {}; }
+  function reset() { B = null; DASH = null; PEND = []; ST = null; THUMB = {}; LV = null; HALL = null; }
   /* 짝이 올린 사진 — 썸네일 단추 */
   function mediaButton(r) {
     if (!r || !r.사진파일ID) return '';
@@ -239,7 +374,7 @@ MODS.ROPE.teacher = (function () {
   }
   function show(p) {
     pages.forEach(function (id) { $('rope_tp_' + id).classList.toggle('hide', id !== p); });
-    var fn = { dash: loadDash, pending: loadPending, input: renderInput, students: renderStudents, settings: loadSettings }[p];
+    var fn = { dash: loadDash, pending: loadPending, input: renderInput, students: renderStudents, levels: loadLevels, certs: loadCerts, settings: loadSettings }[p];
     if (!fn) return;
     if (!B) { api('rope_t_boot', TOKEN).then(function (b) { B = b; fn(); }).catch(handleErr); return; }
     fn();
@@ -265,7 +400,7 @@ MODS.ROPE.teacher = (function () {
       dashInit = true;
       var fc = fillGC($('rpDashGrade'), $('rpDashClass'), true);
       $('rpDashGrade').onchange = function () { fc(); loadDash(); };
-      $('rpDashClass').onchange = loadDash; $('rpDashReload').onclick = loadDash; $('rpDashSort').onchange = renderDashStudents; $('rpDashType').onchange = renderDashStudents;
+      $('rpDashClass').onchange = loadDash; $('rpDashReload').onclick = loadDash; $('rpDashSort').onchange = renderDashStudents; $('rpDashType').onchange = renderDashStudents; $('rpDashCls').onchange = renderDashStudents;
     }
     api('rope_t_getClass', TOKEN, Number($('rpDashGrade').value), Number($('rpDashClass').value)).then(function (d) { DASH = d; renderDash(); }).catch(handleErr);
   }
@@ -279,7 +414,13 @@ MODS.ROPE.teacher = (function () {
       kpiTile('오늘 합계', fmt(d.오늘총), '회', 'jump-rope', 'coral') +
       kpiTile('목표 달성', d.달성, '명', 'target-arrow', 'sun') +
       kpiTile('누적 합계', fmt(d.총), '회', 'sum', 'violet');
-    var king = function (icon, lab, o, unit) { return '<div class="k"><i class="ti ti-' + icon + '"></i><div><div class="l">' + lab + '</div><div class="n">' + (o ? esc(o.이름) : '아직 없음') + '</div><div class="v">' + (o ? (g ? '' : o.학년 + '-' + o.반 + ' · ') + fmt(o.값) + unit : '') + '</div></div></div>'; };
+    // 공동 1위는 모두 (3명까지 이름, 그 뒤는 "외 n명")
+    var king = function (icon, lab, o, unit) {
+      var co = (o && o.공동 && o.공동.length > 1) ? o.공동 : null;
+      var names = co ? co.slice(0, 3).map(function (x) { return esc(x.이름); }).join(' · ') + (co.length > 3 ? ' 외 ' + (co.length - 3) + '명' : '') : (o ? esc(o.이름) : '아직 없음');
+      var where = o ? (co ? (g ? '' : co.slice(0, 3).map(function (x) { return x.학년 + '-' + x.반; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(',') + ' · ') : (g ? '' : o.학년 + '-' + o.반 + ' · ')) : '';
+      return '<div class="k"><i class="ti ti-' + icon + '"></i><div><div class="l">' + lab + (co ? ' <span class="tag sun" style="font-size:10px">공동 1위 ' + co.length + '명</span>' : '') + '</div><div class="n"' + (co ? ' style="font-size:14px"' : '') + '>' + names + '</div><div class="v">' + (o ? where + fmt(o.값) + unit : '') + '</div></div></div>';
+    };
     $('rpKings').innerHTML = king('crown', '오늘의 줄넘기왕', d.왕.오늘, '회') + king('trophy', '이번 주 줄넘기왕', d.왕.이번주, '회') + king('flame', '연속 기록왕', d.왕.연속, '일 연속') + king('mountain', '누적 1위', d.왕.누적, '회');
     renderDashStudents();
     var max = Math.max.apply(null, d.일별.map(function (x) { return x.횟수; }).concat([1]));
@@ -289,9 +430,28 @@ MODS.ROPE.teacher = (function () {
     var goal = d.학급목표;
     $('rpDashClassGoal').innerHTML = goal ? '<div class="goal-line"><div class="prog"><i style="width:' + pct(d.총, goal) + '%"></i></div><b>' + pct(d.총, goal) + '%</b></div><div class="unit">누적 ' + fmt(d.총) + '회 / 목표 ' + fmt(goal) + '회' + (d.총 >= goal ? ' · 달성! 🎉' : ' · ' + fmt(goal - d.총) + '회 남음') + '</div>'
       : '<div class="unit">설정에서 학급 공동 목표를 정하면 여기에 진행률이 보입니다.</div>';
+    // 우리 반 줄넘기 여행 (v3.1.9)
+    $('rpDashJourneyPanel').classList.toggle('hide', !d.여행);
+    if (d.여행) $('rpDashJourney').innerHTML = journeyHtml(d.여행);
+    // 우리 반 급수 분포 (v3.1.9)
+    $('rpDashLevelPanel').classList.toggle('hide', !d.급수);
+    if (d.급수) {
+      var has = d.급수.filter(function (l) { return l.학생.length; });
+      $('rpDashLevels').innerHTML = has.map(function (l) { return '<button type="button" data-lv="' + l.급수 + '">' + lvChip(l, l.학생.length) + '</button>'; }).join('') || '<span class="unit">아직 급수를 딴 학생이 없어요. 급수 인증에서 통과한 항목을 체크해 보세요.</span>';
+      $('rpDashLevelNames').innerHTML = '';
+      qa('#rpDashLevels [data-lv]').forEach(function (b) {
+        b.onclick = function () {
+          var on = b.classList.contains('on'); qa('#rpDashLevels [data-lv]').forEach(function (x) { x.classList.remove('on'); });
+          if (on) { $('rpDashLevelNames').innerHTML = ''; return; }
+          b.classList.add('on'); var l = findOne(d.급수, function (x) { return String(x.급수) === b.dataset.lv; });
+          $('rpDashLevelNames').innerHTML = '<b>' + esc(l.이름) + (l.급수 >= 0 ? ' 줄넘기' : '') + '</b> ' + l.학생.length + '명 — ' + l.학생.map(function (s) { return (g ? '' : s.학년 + '-' + s.반 + ' ') + esc(s.이름); }).join(', ');
+        };
+      });
+    }
     $('rpDashRank').innerHTML = (d.학급비교 || []).map(function (r, i) {
       return '<tr' + (i === 0 && r.달성률 ? ' style="font-weight:800"' : '') + '><td>' + (i === 0 && r.달성률 ? '🥇 ' : '') + (i + 1) + '</td><td class="name">' + r.학년 + '학년 ' + r.반 + '반 <span class="unit">' + r.인원 + '명</span></td><td>' + r.달성률 + '% <span class="unit">(' + r.오늘달성 + '명)</span></td><td>' + fmt(r.오늘총) + '회</td><td>' + fmt(r.평균) + '회</td><td>' + r.평균기록일 + '일</td></tr>';
     }).join('') || '<tr><td colspan="6" class="unit" style="padding:12px">학급이 없습니다.</td></tr>';
+    fitStudentList();   // 오른쪽 열이 다 그려진 뒤 높이 맞춤
   }
   function renderDashStudents() {
     var d = DASH, k = $('rpDashSort').value, list = d.학생.slice();
@@ -301,18 +461,40 @@ MODS.ROPE.teacher = (function () {
     tsel.classList.toggle('hide', !showType);
     if (showType) { var cur = tsel.value; tsel.innerHTML = '<option value="">모든 종류</option>' + types.map(function (t) { return '<option' + (t === cur ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join(''); }
     var ft = showType ? tsel.value : '';
+    // 표 안에서만 반 고르기 (큰 학교용 · 전체 보기 가능) — v3.2.16
+    var csel = $('rpDashCls'), cmap = {}, ckeys = [];
+    d.학생.forEach(function (o) { var k = o.학년 + '-' + o.반; if (!cmap[k]) { cmap[k] = true; ckeys.push(k); } });
+    ckeys.sort(function (a, b) { var x = a.split('-').map(Number), y = b.split('-').map(Number); return (x[0] - y[0]) || (x[1] - y[1]); });
+    var ccur = csel.value; csel.innerHTML = '<option value="">전체 보기</option>' + ckeys.map(function (k) { return '<option value="' + k + '"' + (k === ccur ? ' selected' : '') + '>' + k.split('-')[0] + '학년 ' + k.split('-')[1] + '반</option>'; }).join('');
+    csel.classList.toggle('hide', ckeys.length < 2);
+    var cf = ckeys.length >= 2 ? csel.value : '';
+    if (cf) list = list.filter(function (o) { return o.학년 + '-' + o.반 === cf; });
     var val = function (o) { return ft ? ((o.종류별 || {})[ft] || 0) : o.누적; };
     if (k === '번호') list.sort(function (a, b) { return (a.학년 - b.학년) || (a.반 - b.반) || (a.번호 - b.번호); });
     else if (k === '누적') list.sort(function (a, b) { return val(b) - val(a); });
     else list.sort(function (a, b) { return b[k] - a[k]; });
     var max = Math.max.apply(null, list.map(val).concat([1]));
+    var lastSec = null;
     $('rpDashStudents').innerHTML = list.map(function (o) {
+      var sec = '';
+      if (!cf && k === '번호' && ckeys.length >= 2) { var sk = o.학년 + '-' + o.반; if (sk !== lastSec) { lastSec = sk; sec = '<div class="sec">' + o.학년 + '학년 ' + o.반 + '반</div>'; } }
       var by = o.종류별 || {}, keys = Object.keys(by).filter(function (t) { return by[t] > 0; });
       var detail = (!ft && keys.length > 1) ? ' <span class="unit">(' + keys.map(function (t) { return esc(t) + ' ' + fmt(by[t]); }).join(' · ') + ')</span>' : '';
-      return '<div class="stu-row"><span class="n">' + esc(label(o)) + '</span><div class="prog"><i style="width:' + pct(val(o), max) + '%"></i></div>' +
+      return sec + '<div class="stu-row"><span class="n">' + esc(label(o)) + '</span><div class="prog"><i style="width:' + pct(val(o), max) + '%"></i></div>' +
         '<span class="v">' + fmt(val(o)) + '회' + (ft ? '' : ' · 오늘 ' + fmt(o.오늘) + (o.오늘 >= d.하루목표 ? ' ✓' : '') + (o.연속 ? ' · ' + o.연속 + '일' : '')) + (o.대기 ? ' <span class="tag sun">대기 ' + o.대기 + '</span>' : '') + '</span>' + detail + '</div>';
     }).join('') || '<div class="unit" style="padding:10px 0">대상 학생이 없습니다.</div>';
+    fitStudentList();
   }
+  /* 학생별 누적 표: 오른쪽 열(그래프·목표·여행·급수·학급 비교)이 끝나는 높이까지만 보이고 그 아래는 표 안 스크롤. 한 열(좁은 화면)이면 70vh */
+  function fitStudentList() {
+    var list = $('rpDashStudents'), panel = list.closest('.panel'), right = panel.parentNode.querySelector(':scope > div:last-child');
+    if (!right || right === panel) return;
+    var twoCol = right.getBoundingClientRect().left > panel.getBoundingClientRect().left + 10;
+    if (!twoCol) { list.style.maxHeight = '70vh'; return; }
+    var head = panel.querySelector('.panel-head');
+    list.style.maxHeight = Math.max(240, right.offsetHeight - (head ? head.offsetHeight : 0) - 12) + 'px';
+  }
+  window.addEventListener('resize', function () { if (DASH && CURRENT && CURRENT.mod === 'ROPE' && CURRENT.page === 'dash') fitStudentList(); });
 
   /* ================= 기록 확인 ================= */
   var pendInit = false;
@@ -353,7 +535,237 @@ MODS.ROPE.teacher = (function () {
   }
   $('rpChkAll').onchange = function () { qa('#rpPendRows input[data-id]').forEach(function (c) { c.checked = $('rpChkAll').checked; }); };
   $('rpBtnApproveSel').onclick = function () { setStatus_(selIds(), '확인'); };
+  $('rpBtnApproveAll').onclick = function () {   // 선생님 확인을 기다리는 것만 (짝 확인 중은 빼고) — v3.1.9
+    var ids = PEND.filter(function (r) { return r.상태 === '대기'; }).map(function (r) { return r.기록ID; });
+    if (!ids.length) { toast('확인을 기다리는 기록이 없어요.', 'err'); return; }
+    if (!confirm(ids.length + '건을 모두 확인할까요?')) return;
+    setStatus_(ids, '확인');
+  };
   $('rpBtnRejectSel').onclick = function () { setStatus_(selIds(), '반려'); };
+
+  /* ================= 공통 그림: 급수 칩 · 여행 막대 (v3.1.9) ================= */
+  function lvDark(c) { if (!/^#(?:[0-9a-f]{2}){3}$/i.test(c || '')) return false; var n = parseInt(c.slice(1), 16); return (((n >> 16) & 255) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 < 150; }
+  /* l = {급수, 이름, 색} · 급수 < 0 이면 "아직 없음" */
+  function lvChip(l, cnt, small) {
+    if (!l || l.급수 < 0 || !l.색) return '<span class="lv-chip lv-none">' + (small ? '-' : '아직 없음') + (cnt !== undefined ? ' <span class="cnt">' + cnt + '명</span>' : '') + '</span>';
+    return '<span class="lv-chip" style="background:' + l.색 + ';color:' + (lvDark(l.색) ? '#fff' : '#1F2937') + '">' + esc(l.이름) + (small ? '' : ' 줄넘기') + (cnt !== undefined ? ' <span class="cnt">' + cnt + '명</span>' : '') + '</span>';
+  }
+  function kmText(m) { return m >= 100000 ? Math.round(m / 1000).toLocaleString() : (m / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }); }
+  /* j = { 이름, km, 정거장:[[이름,km]], 총(회), 시작일 } — 1회 = 1m */
+  function journeyHtml(j) {
+    var goal = j.km * 1000, m = Math.max(0, Number(j.총) || 0), laps = Math.floor(m / goal), cur = m - laps * goal, p = Math.min(100, cur / goal * 100);
+    var at = j.정거장[0][0], next = j.정거장[j.정거장.length - 1];
+    j.정거장.forEach(function (s) { if (cur >= s[1] * 1000) at = s[0]; });
+    for (var i = 0; i < j.정거장.length; i++) if (j.정거장[i][1] * 1000 > cur) { next = j.정거장[i]; break; }
+    var stops = j.정거장.map(function (s, i) { return '<span class="jr-stop' + (cur >= s[1] * 1000 ? ' on' : '') + (i === 0 ? ' first' : i === j.정거장.length - 1 ? ' last' : '') + '" style="left:' + (s[1] / j.km * 100) + '%"><i></i><b>' + esc(s[0]) + '</b></span>'; }).join('');
+    return '<div class="jr-wrap"><div class="jr-head"><h3>' + esc(j.이름) + '<small>약 ' + j.km.toLocaleString() + 'km</small></h3><div class="jr-num"><b>' + kmText(cur) + 'km</b> 왔어요' + (laps ? ' · <b>' + laps + '번</b> 완주!' : '') + '</div></div>' +
+      '<div class="jr-track"><div class="jr-fill" style="width:' + p.toFixed(2) + '%"></div><span class="jr-me" style="left:' + p.toFixed(2) + '%">🏃</span>' + stops + '</div>' +
+      '<div class="jr-foot">지금 <b>' + esc(at) + '</b> 지나는 중 · 다음 <b>' + esc(next[0]) + '</b>까지 <b>' + fmt(Math.max(0, next[1] * 1000 - cur)) + '회</b> 남았어요' + (j.시작일 ? ' · ' + j.시작일 + '부터' : '') + '</div></div>';
+  }
+
+  /* ================= 급수 인증 (v3.1.9) ================= */
+  var LV = null, lvInit = false;   // LV = { 표, 사용자표, 통과, 급수사용, 급수메인 }
+  function lvOf(id) {   // 학생 한 명: { 급수, 다음, 끝, 통과:{"급수|항목":날짜}, 날짜:{급수:날} }
+    var map = {}; (LV.통과[id] || []).forEach(function (r) { map[r[0] + '|' + r[1]] = r[2] || ''; });
+    var lv = -1, dates = {};
+    for (var i = 0; i < LV.표.length; i++) {
+      var items = LV.표[i].항목 || [], all = true, last = '';
+      if (!items.length) break;
+      for (var j = 0; j < items.length; j++) { var d = map[i + '|' + j]; if (d === undefined) { all = false; break; } if (d > last) last = d; }
+      if (!all) break;
+      lv = i; dates[i] = last;
+    }
+    return { 급수: lv, 다음: Math.min(lv + 1, LV.표.length - 1), 끝: lv >= LV.표.length - 1, 통과: map, 날짜: dates };
+  }
+  function lvLabel(i) { var l = LV.표[i]; return l ? l.이름 + ' 줄넘기' : ''; }
+  function lvGoal(v) { v = String(v == null ? '' : v).trim(); return !v ? '성공' : (/^\d+$/.test(v) ? v + '회' : v); }
+  function lvTableText(t) { return t.map(function (l) { return l.이름 + ' ' + l.색 + '\n' + l.항목.map(function (it) { return it[0] + (it[1] ? ', ' + it[1] : ''); }).join('\n'); }).join('\n\n'); }
+  function lvTableParse(text) {
+    var out = [];
+    String(text || '').replace(/\r/g, '').split(/\n\s*\n/).forEach(function (block) {
+      var lines = block.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+      if (!lines.length) return;
+      var m = lines[0].match(/^(.+?)\s+(#[0-9a-fA-F]{6})$/);
+      var lv = { 이름: (m ? m[1] : lines[0]).replace(/\s*줄넘기$/, '').slice(0, 10), 색: m ? m[2] : '#CCCCCC', 항목: [] };
+      lines.slice(1, 13).forEach(function (x) { var i = x.lastIndexOf(','); lv.항목.push(i > 0 ? [x.slice(0, i).trim().slice(0, 30), x.slice(i + 1).trim().slice(0, 12)] : [x.slice(0, 30), '']); });
+      if (lv.항목.length) out.push(lv);
+    });
+    return out.slice(0, 15);
+  }
+  function lvStudents() { var g = Number($('rpLvGrade').value), c = Number($('rpLvClass').value); return roster().filter(function (s) { return Number(s.학년) === g && Number(s.반) === c; }).sort(function (a, b) { return a.번호 - b.번호; }); }
+  function loadLevels() {
+    if (!api6()) { $('rpLvOld').classList.remove('hide'); $('rpLvBody').classList.add('hide'); return; }
+    if (!lvInit) {
+      lvInit = true;
+      var fc = fillGC($('rpLvGrade'), $('rpLvClass'), false);
+      $('rpLvGrade').onchange = function () { fc(); lvPickCommon(); lvGrid(); };
+      $('rpLvClass').onchange = function () { lvPickCommon(); lvGrid(); };
+      $('rpLvLevel').onchange = lvGrid;
+      $('rpLvDate').value = B.오늘;
+    }
+    api('rope_t_levelsGet', TOKEN).then(function (r) {
+      LV = r; $('rpLvBody').classList.remove('hide');
+      $('rpLvOff').classList.toggle('hide', !!r.급수사용);
+      $('rpLvMain').checked = !!r.급수메인; $('rpLvMain').parentNode.classList.toggle('on', !!r.급수메인);
+      $('rpLvTableState').textContent = r.사용자표 ? '학교에서 고친 급수표' : '기본 급수표 (한국줄넘기협회)';
+      $('rpLvTableText').value = lvTableText(r.표);
+      var keep = $('rpLvLevel').value;
+      $('rpLvLevel').innerHTML = r.표.map(function (l, i) { return '<option value="' + i + '">' + esc(l.이름) + ' 줄넘기</option>'; }).join('');
+      if (keep !== '' && r.표[Number(keep)]) $('rpLvLevel').value = keep; else lvPickCommon();
+      lvGrid();
+    }).catch(function (e) { if (/찾지 못/.test((e && e.message) || '')) { $('rpLvOld').classList.remove('hide'); $('rpLvBody').classList.add('hide'); } else handleErr(e); });
+  }
+  /* 이 반 학생들이 가장 많이 도전 중인 급수를 기본으로 */
+  function lvPickCommon() {
+    if (!LV) return;
+    var cnt = {}, best = 0, pick = 0;
+    lvStudents().forEach(function (s) { var n = lvOf(s.학생ID).다음; cnt[n] = (cnt[n] || 0) + 1; if (cnt[n] > best) { best = cnt[n]; pick = n; } });
+    $('rpLvLevel').value = String(pick);
+  }
+  function lvGrid() {
+    if (!LV) return;
+    var lv = Number($('rpLvLevel').value) || 0, L = LV.표[lv], list = lvStudents();
+    $('rpLvEmpty').classList.toggle('hide', !!list.length);
+    if (!L) return;
+    $('rpLvTitle').innerHTML = '<i class="ti ti-stairs-up"></i>' + lvChip({ 급수: lv, 이름: L.이름, 색: L.색 }) + ' 인증표';
+    $('rpLvHead').innerHTML = '<tr><th style="text-align:left">번호 · 이름<small>지금 급수</small></th>' + L.항목.map(function (it, j) { return '<th>' + esc(it[0]) + '<small>' + esc(lvGoal(it[1])) + '</small><input type="checkbox" data-col="' + j + '" title="이 항목을 모두 체크" style="margin-top:4px"></th>'; }).join('') + '<th>모두</th></tr>';
+    var locked = 0;
+    $('rpLvRows').innerHTML = list.map(function (s) {
+      var me = lvOf(s.학생ID), lock = me.급수 < lv - 1; if (lock) locked++;
+      return '<tr data-sid="' + s.학생ID + '"' + (lock ? ' class="locked"' : '') + '><td class="name">' + s.번호 + '. ' + esc(s.이름) + ' ' + lvChip(me.급수 >= 0 ? { 급수: me.급수, 이름: LV.표[me.급수].이름, 색: LV.표[me.급수].색 } : null, undefined, true) + '</td>' +
+        L.항목.map(function (it, j) { var on = me.통과[lv + '|' + j] !== undefined; return '<td><input type="checkbox" data-item="' + j + '"' + (on ? ' checked' : '') + (lock && !on ? ' disabled title="앞 급수를 먼저 따야 해요"' : '') + '></td>'; }).join('') +
+        '<td><button class="mini ghost" data-all' + (lock ? ' disabled' : '') + ' title="이 학생의 모든 항목 체크 / 다시 누르면 모두 해제"><i class="ti ti-checks"></i></button></td></tr>';
+    }).join('');
+    $('rpLvInfo').textContent = list.length + '명' + (locked ? ' · 잠김 ' + locked + '명 (앞 급수를 못 땀)' : '') + ' · 모든 항목을 통과하면 ' + lvLabel(lv) + ' 급수';
+    // 한 학생 "모두": 다 체크돼 있으면 모두 해제, 아니면 모두 체크 (잠긴 칸은 건드리지 않음)
+    qa('#rpLvRows [data-all]').forEach(function (b) { b.onclick = function () { var cs = qa('input[data-item]', b.closest('tr')).filter(function (c) { return !c.disabled; }); var all = cs.length && cs.every(function (c) { return c.checked; }); cs.forEach(function (c) { c.checked = !all; }); }; });
+    qa('#rpLvHead [data-col]').forEach(function (h) { h.onchange = function () { qa('#rpLvRows input[data-item="' + h.dataset.col + '"]').forEach(function (c) { if (!c.disabled) c.checked = h.checked; }); }; });
+    setStatus('rpLvStatus', '');
+  }
+  $('rpLvSave').onclick = function () {
+    if (!LV) return;
+    var lv = Number($('rpLvLevel').value) || 0, date = $('rpLvDate').value || B.오늘, changes = [], before = {};
+    qa('#rpLvRows tr[data-sid]').forEach(function (tr) {
+      var id = tr.dataset.sid, me = lvOf(id); before[id] = me.급수;
+      qa('input[data-item]', tr).forEach(function (c) { var j = Number(c.dataset.item), had = me.통과[lv + '|' + j] !== undefined; if (c.checked !== had) changes.push({ 학생ID: id, 급수: lv, 항목: j, 통과: c.checked, 날짜: date }); });
+    });
+    if (!changes.length) { setStatus('rpLvStatus', '바뀐 칸이 없어요.', 'err'); return; }
+    var b = this; b.disabled = true; setStatus('rpLvStatus', '저장 중…');
+    api('rope_t_levelsSave', TOKEN, changes).then(function (r) {
+      b.disabled = false; LV.통과 = r.통과; DASH = null;
+      var up = lvStudents().filter(function (s) { return lvOf(s.학생ID).급수 > before[s.학생ID]; });
+      if (up.length) toast('🎉 ' + up.map(function (s) { return s.이름; }).join(', ') + ' 급수 인증!');
+      lvGrid();
+      setStatus('rpLvStatus', '저장했어요. (' + changes.length + '칸)' + (up.length ? ' 급수가 오른 학생: ' + up.map(function (s) { return s.이름 + '(' + lvLabel(lvOf(s.학생ID).급수) + ')'; }).join(', ') : ''), 'ok');
+      if (up.length) qa('#rpLvRows tr[data-sid]').forEach(function (tr) { if (up.some(function (s) { return s.학생ID === tr.dataset.sid; })) tr.classList.add('up'); });
+    }).catch(function (e) { b.disabled = false; setStatus('rpLvStatus', (e && e.message) || String(e), 'err'); });
+  };
+  $('rpLvMain').onchange = function () {
+    var on = this.checked;
+    api('rope_t_saveSettings', TOKEN, { 급수메인: on }).then(function (r) { B.설정 = r.설정; LV.급수메인 = on; DASH = null; toast(on ? '학급 현황과 학생 화면에 우리 반 급수가 보여요.' : '우리 반 급수 표시를 꺼요.'); }).catch(handleErr);
+  };
+  $('rpLvTableBtn').onclick = function () { $('rpLvTablePanel').classList.toggle('hide'); };
+  $('rpLvTableSave').onclick = function () {
+    var t = lvTableParse($('rpLvTableText').value);
+    if (!t.length) { setStatus('rpLvTableStatus', '급수표를 읽을 수 없어요. 급수마다 "이름 #색상" 줄과 항목 한 줄 이상이 필요해요.', 'err'); return; }
+    if (!confirm('급수표를 바꿀까요? 이미 체크한 칸은 급수·항목 순서대로 남아요.')) return;
+    api('rope_t_levelsTable', TOKEN, t).then(function (r) { LV.표 = r.표; LV.사용자표 = r.사용자표; setStatus('rpLvTableStatus', '저장했어요.', 'ok'); toast('급수표를 저장했어요.'); DASH = null; loadLevels(); }).catch(function (e) { setStatus('rpLvTableStatus', (e && e.message) || String(e), 'err'); });
+  };
+  $('rpLvTableReset').onclick = function () {
+    if (!confirm('기본 급수표(한국줄넘기협회)로 되돌릴까요?')) return;
+    api('rope_t_levelsTable', TOKEN, null).then(function (r) { LV.표 = r.표; LV.사용자표 = r.사용자표; setStatus('rpLvTableStatus', '기본 급수표로 돌렸어요.', 'ok'); DASH = null; loadLevels(); }).catch(function (e) { setStatus('rpLvTableStatus', (e && e.message) || String(e), 'err'); });
+  };
+  $('rpDashLevelGo').onclick = function () { showPage('ROPE:levels'); };
+
+  /* ================= 인증서 · 상장 (v3.1.9) ================= */
+  var ctInit = false, HALL = null;
+  function ctRole() { var v = $('rpCtRole').value; return v === '__custom' ? $('rpCtRoleCustom').value.trim() : v; }
+  function ctDateKo(ymd) { var m = String(ymd || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? Number(m[1]) + '년 ' + Number(m[2]) + '월 ' + Number(m[3]) + '일' : String(ymd || ''); }
+  function ctMonthKo(ym) { var m = String(ym || '').match(/^(\d{4})-(\d{2})$/); return m ? Number(m[1]) + '년 ' + Number(m[2]) + '월' : String(ym || ''); }
+  function ctPage(o) {
+    return '<div class="rp-cert ' + o.cls + '"><div class="in"><div class="title">' + o.title + '</div>' + (o.badge ? '<div class="badge">' + o.badge + '</div>' : '') +
+      '<div class="who">' + o.who + '</div><div class="body">' + o.body + '</div><div class="date">' + esc(ctDateKo($('rpCtDate').value)) + '</div>' +
+      '<div class="from">' + esc($('rpCtSchool').value.trim()) + ($('rpCtTeacher').value.trim() ? '<br>' + (ctRole() ? esc(ctRole()) + ' ' : '') + esc($('rpCtTeacher').value.trim()) : '') + '</div></div></div>';
+  }
+  function loadCerts() {
+    if (!api6()) { $('rpCtOld').classList.remove('hide'); $('rpCtBody').classList.add('hide'); return; }
+    if (!ctInit) {
+      ctInit = true;
+      var fc = fillGC($('rpCtGrade'), $('rpCtClass'), false);
+      $('rpCtGrade').onchange = function () { fc(); $('rpCtPreview').innerHTML = ''; };
+      $('rpCtClass').onchange = function () { $('rpCtPreview').innerHTML = ''; };
+      $('rpCtDate').value = B.오늘;
+      var cs = CTX && CTX.설정 ? CTX.설정 : {};
+      $('rpCtSchool').value = cs.학교명 || '';
+      var saved = {}; try { saved = JSON.parse(localStorage.getItem('pe_rope_cert') || '{}') || {}; } catch (e) {}
+      $('rpCtRole').value = saved.role !== undefined ? saved.role : '담임'; $('rpCtRoleCustom').value = saved.custom || ''; $('rpCtTeacher').value = saved.teacher || cs.담당자 || '';
+      if (!$('rpCtRole').value) $('rpCtRole').value = saved.role === '' ? '' : '담임';
+      $('rpCtRoleCustom').classList.toggle('hide', $('rpCtRole').value !== '__custom');
+      var remember = function () { try { localStorage.setItem('pe_rope_cert', JSON.stringify({ role: $('rpCtRole').value, custom: $('rpCtRoleCustom').value, teacher: $('rpCtTeacher').value })); } catch (e) {} };
+      $('rpCtRole').onchange = function () { $('rpCtRoleCustom').classList.toggle('hide', this.value !== '__custom'); if (this.value === '__custom') $('rpCtRoleCustom').focus(); remember(); };
+      $('rpCtRoleCustom').onchange = remember; $('rpCtTeacher').onchange = remember;
+      $('rpCtKind').onchange = function () {
+        var k = this.value; qa('[data-ct]').forEach(function (el) { el.classList.toggle('hide', el.dataset.ct !== k); }); $('rpCtPreview').innerHTML = ''; setStatus('rpCtStatus', '');
+        $('rpCtHint').textContent = k === 'level' ? '이 반에서 급수를 딴 학생마다 지금 급수의 인증서 한 장씩 나와요. (아직 급수가 없는 학생은 빠짐)' : '전국 현황판에 참여한 학교만. 지난달까지 끝난 달의 기록실에서 우리 학교가 받은 순위(학교 합계·1인당 평균·참여율 전국 1~3위, 학생 전국 1~3위, 우리 학교 안 1~3위)를 상장으로 만들어요.';
+        if (k === 'nat' && !HALL) ctHall('');
+      };
+      $('rpCtMonth').onchange = function () { ctHall(this.value); };
+      $('rpCtKind').onchange();
+    }
+    $('rpCtBody').classList.remove('hide');
+  }
+  function ctHall(month) {
+    setStatus('rpCtStatus', '기록실을 읽는 중…'); $('rpCtPreview').innerHTML = '';
+    api('rope_t_natHall', TOKEN, month).then(function (r) {
+      HALL = r;
+      $('rpCtMonth').innerHTML = (r.달목록 || []).map(function (m) { return '<option value="' + m + '"' + (m === r.달 ? ' selected' : '') + '>' + ctMonthKo(m) + '</option>'; }).join('') || '<option value="">(아직 없음)</option>';
+      setStatus('rpCtStatus', r.message || (ctMonthKo(r.달) + ' · 상 ' + r.상.length + '개'), r.message ? 'err' : 'ok');
+    }).catch(function (e) { HALL = null; if (/찾지 못/.test((e && e.message) || '')) { $('rpCtOld').classList.remove('hide'); $('rpCtBody').classList.add('hide'); } else setStatus('rpCtStatus', (e && e.message) || String(e), 'err'); });
+  }
+  /* 미리보기 만들기 → Promise<장수> */
+  function ctMake() {
+    var k = $('rpCtKind').value, pages = [];
+    if (!$('rpCtSchool').value.trim()) { setStatus('rpCtStatus', '학교 이름을 적어 주세요.', 'err'); return Promise.resolve(0); }
+    if (k === 'level') {
+      var ready = LV ? Promise.resolve(LV) : api('rope_t_levelsGet', TOKEN).then(function (r) { LV = r; return r; });
+      return ready.then(function () {
+        var g = Number($('rpCtGrade').value), c = Number($('rpCtClass').value);
+        roster().filter(function (s) { return Number(s.학년) === g && Number(s.반) === c; }).sort(function (a, b) { return a.번호 - b.번호; }).forEach(function (s) {
+          var me = lvOf(s.학생ID); if (me.급수 < 0) return;
+          var L = LV.표[me.급수];
+          pages.push(ctPage({ cls: 'level', title: '줄넘기 급수 인증서', badge: lvChip({ 급수: me.급수, 이름: L.이름, 색: L.색 }),
+            who: s.학년 + '학년 ' + s.반 + '반 ' + s.번호 + '번 <b>' + esc(s.이름) + '</b>',
+            body: '위 학생은 줄넘기 <b>' + esc(lvLabel(me.급수)) + '</b> 급수의 모든 과제<br><span class="items">' + L.항목.map(function (it) { return esc(it[0]) + ' ' + esc(lvGoal(it[1])); }).join(' · ') + '</span><br>를 걸리지 않고 성공하였기에 이 인증서를 드립니다.' + (me.날짜[me.급수] ? '<br><span class="small">인증일 ' + esc(ctDateKo(me.날짜[me.급수])) + '</span>' : '') }));
+        });
+        $('rpCtPreview').innerHTML = pages.join('');
+        setStatus('rpCtStatus', pages.length ? pages.length + '장' : '이 반에는 아직 급수를 딴 학생이 없어요.', pages.length ? 'ok' : 'err');
+        return pages.length;
+      });
+    }
+    if (!HALL || !HALL.상 || !HALL.상.length) { setStatus('rpCtStatus', (HALL && HALL.message) || '기록실 자료가 없어요.', 'err'); return Promise.resolve(0); }
+    var ml = ctMonthKo(HALL.달), school = $('rpCtSchool').value.trim();
+    var who = function (st) { return st ? ((st.학년 ? esc(st.학년) + '학년 ' : '') + (st.반 ? esc(st.반) + '반 ' : '') + '<b>' + esc(st.이름) + '</b>') : ''; };
+    HALL.상.forEach(function (a) {
+      if (a.종류 === '학교') pages.push(ctPage({ cls: 'award', title: '상　　장', badge: '<span class="rank">전국 ' + a.순위 + '위</span>', who: '<b>' + esc(school) + '</b>', body: ml + ' 전국 줄넘기 현황판에서 <b>' + esc(a.제목) + ' 전국 ' + a.순위 + '위</b>(' + esc(a.값) + ')를 차지하여<br>이 상장을 드립니다.' }));
+      else if (a.종류 === '학생') pages.push(ctPage({ cls: 'award', title: '상　　장', badge: '<span class="rank">전국 ' + a.순위 + '위</span>', who: who(a.학생), body: ml + ' 전국 줄넘기 현황판 <b>학생 순위 전국 ' + a.순위 + '위</b>(' + esc(a.값) + ')에 올라<br>꾸준히 노력한 모범이 되었기에 이 상장을 드립니다.' }));
+      else pages.push(ctPage({ cls: 'award', title: '상　　장', badge: '<span class="rank">우리 학교 ' + a.순위 + '위</span>', who: who(a.학생), body: ml + ' 줄넘기 기록에서 <b>' + esc(school) + ' ' + a.순위 + '위</b>(' + esc(a.값) + ')를 차지하여<br>이 상장을 드립니다.' }));
+    });
+    $('rpCtPreview').innerHTML = pages.join('');
+    setStatus('rpCtStatus', ml + ' · ' + pages.length + '장', 'ok');
+    return Promise.resolve(pages.length);
+  }
+  $('rpCtMake').onclick = function () { ctMake(); };
+  $('rpCtPrint').onclick = function () {
+    (($('rpCtPreview').children.length) ? Promise.resolve(1) : ctMake()).then(function (n) {
+      if (!n || !$('rpCtPreview').children.length) return;
+      var area = document.getElementById('rpPrintArea');
+      if (!area) { area = document.createElement('div'); area.id = 'rpPrintArea'; area.className = 'print-area rp-print'; document.body.appendChild(area); }
+      area.innerHTML = '<style>@page{size:A4 landscape;margin:0;}</style>' + $('rpCtPreview').innerHTML;
+      document.body.classList.add('printing');
+      setTimeout(function () { window.print(); }, 80);
+    });
+  };
+  window.addEventListener('afterprint', function () { var a = document.getElementById('rpPrintArea'); if (a) { a.innerHTML = ''; document.body.classList.remove('printing'); } });
 
   /* ================= 수업 중 입력 ================= */
   var inInit = false;
@@ -449,6 +861,8 @@ MODS.ROPE.teacher = (function () {
       $('rpSetCamUrl').value = s.판정기주소 || ''; $('rpSetCamMin').value = s.판정기최소 || 10;
       $('rpSetCamSens').value = s.판정기민감도 || 10; paintSens();
       $('rpSetCamFit').checked = !!s.체력합산; $('rpSetCamFit').parentNode.classList.toggle('on', !!s.체력합산);
+      $('rpSetLevels').checked = s.급수사용 !== false; $('rpSetLevels').parentNode.classList.toggle('on', s.급수사용 !== false);
+      $('rpSetJourney').value = s.여행코스 || ''; $('rpSetJourneyFrom').value = s.여행시작일 || '';
       api('rope_t_mediaInfo', TOKEN).then(function (m) { $('rpSetPeerInfo').innerHTML = m.파일수 ? '사진 ' + m.파일수 + '장' + (m.폴더URL ? ' · <a href="' + esc(m.폴더URL) + '" target="_blank">드라이브 폴더 열기</a>' : '') : '아직 올라온 사진이 없습니다. 첫 사진이 올라오면 시트 옆에 "줄넘기 짝 확인 사진" 폴더가 생깁니다.'; }).catch(function () {});
       $('rpSetGrades').innerHTML = allGrades().map(function (g) { var on = s.대상학년.indexOf(g) > -1; return '<label class="chk sm' + (on ? ' on' : '') + '"><input type="checkbox" value="' + g + '"' + (on ? ' checked' : '') + '><span>' + g + '학년</span></label>'; }).join('');
       $('rpSetGemini').value = ''; $('rpSetGemini').placeholder = r.gemini ? '(등록됨 · 바꾸려면 새 키 입력, 지우려면 "삭제")' : 'AIza…';
@@ -507,10 +921,11 @@ MODS.ROPE.teacher = (function () {
               짝체크: $('rpSetPeer').checked, 짝사진: $('rpSetPeerPhoto').checked, 짝사진보관: $('rpSetPeerKeep').value,
               종류사용: $('rpSetTypeOn').checked, 종류: $('rpSetTypes').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean),
               판정기주소: $('rpSetCamUrl').value.trim(), 판정기최소: Number($('rpSetCamMin').value) || 10, 판정기민감도: Number($('rpSetCamSens').value) || 10, 체력합산: $('rpSetCamFit').checked };
+    if (api6()) { m.급수사용 = $('rpSetLevels').checked; m.여행코스 = $('rpSetJourney').value; m.여행시작일 = $('rpSetJourneyFrom').value; }
     var k = $('rpSetGemini').value.trim();
     if (k === '삭제') m.geminiKey = ''; else if (k) m.geminiKey = k;
     setStatus('rpSetStatus', '저장 중…');
-    api('rope_t_saveSettings', TOKEN, m).then(function (r) { B.설정 = r.설정; setStatus('rpSetStatus', '저장했습니다.', 'ok'); toast('저장했습니다.'); DASH = null; loadSettings(); }).catch(function (e) { setStatus('rpSetStatus', (e && e.message) || String(e), 'err'); });
+    api('rope_t_saveSettings', TOKEN, m).then(function (r) { B.설정 = r.설정; LV = null; setStatus('rpSetStatus', '저장했습니다.', 'ok'); toast('저장했습니다.'); DASH = null; loadSettings(); }).catch(function (e) { setStatus('rpSetStatus', (e && e.message) || String(e), 'err'); });
   };
 
   return { nav: nav, init: init, show: show, reset: reset, pendingPage: 'pending' };

@@ -17,6 +17,10 @@
 .mod-toggle .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0;}
 .mod-toggle b{display:block;letter-spacing:-.02em;}
 .mod-toggle small{color:var(--ink-3);font-size:12.5px;}
+.mod-toggle .ord{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+.mod-toggle .ord button{all:unset;cursor:pointer;width:26px;height:20px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--ink-2);background:#fff;}
+.mod-toggle .ord button:hover{border-color:var(--accent);color:var(--accent-ink);}
+.mod-toggle .ord button:disabled{opacity:.3;cursor:default;}
 .mod-toggle.off{opacity:.6;}
 .mod-toggle .sw{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-2);flex-shrink:0;white-space:nowrap;}
 .mod-toggle .txt{flex:1 1 auto;min-width:0;}
@@ -450,6 +454,17 @@ MODS.core.teacher = (function () {
   $('dashGoStudents').onclick = function () { go('core', 'students'); };
 
   /* ================= 학생 명단 ================= */
+  /* 모듈 ▲▼ (v3.3.0): 줄을 옮기고 양 끝 단추는 비활성 */
+  function modOrderBtns() {
+    var rows = Array.prototype.slice.call($('setMods').querySelectorAll('[data-modrow]'));
+    rows.forEach(function (row, i) {
+      var up = row.querySelector('[data-up]'), dn = row.querySelector('[data-down]'); if (!up) return;
+      up.disabled = i === 0; dn.disabled = i === rows.length - 1;
+      up.onclick = function () { var prev = row.previousElementSibling; if (prev && prev.hasAttribute('data-modrow')) { row.parentNode.insertBefore(row, prev); modOrderBtns(); } };
+      dn.onclick = function () { var next = row.nextElementSibling; if (next && next.hasAttribute('data-modrow')) { row.parentNode.insertBefore(next, row); modOrderBtns(); } };
+    });
+  }
+  function modOrder() { return Array.prototype.map.call($('setMods').querySelectorAll('[data-modrow]'), function (r) { return r.getAttribute('data-modrow'); }); }
   function applyRoster(r) { if (D) D.홈 = null; if (r && r.학생) { D.학생 = r.학생; if (D.학생 && CTX) CTX.학생 = D.학생; } }
   function studentById(id) { return findOne(D.학생, function (s) { return s.학생ID === id; }); }
   function filtered() {
@@ -662,11 +677,13 @@ MODS.core.teacher = (function () {
       $('setClasses').value = s.반범위; $('setLoginMode').value = s.학생로그인; $('setIdle').value = s.자동나가기분;
       $('setUsageBox').classList.toggle('hide', !s.사용알림); if (s.사용알림) $('setUsage').value = s.사용알림;
       drawThemes(s.테마 || '민트');
+      var canOrder = (st.설정.SERVER_API === undefined || (st.설정.SERVER_API || 0) >= 7);   // 메뉴 순서는 라이브러리 51 부터
       $('setMods').innerHTML = st.모듈목록.map(function (m) {
-        return '<div class="mod-toggle' + (m.설치 ? '' : ' off') + '"><span class="ic" style="background:' + colorVar(m.색) + '"><i class="ti ti-' + m.아이콘 + '"></i></span>' +
+        return '<div class="mod-toggle' + (m.설치 ? '' : ' off') + '" data-modrow="' + m.key + '">' + (canOrder ? '<span class="ord" title="사이드바 메뉴 순서"><button type="button" data-up>▲</button><button type="button" data-down>▼</button></span>' : '') + '<span class="ic" style="background:' + colorVar(m.색) + '"><i class="ti ti-' + m.아이콘 + '"></i></span>' +
           '<div class="txt"><b>' + esc(m.이름) + '</b><small>' + esc(m.설명) + (m.설치 ? '' : ' · 파일이 아직 없습니다 (Mod_… 와 …_T.html 을 넣으면 켜집니다)') + '</small></div>' +
           '<label class="sw"><input type="checkbox" data-mod="' + m.key + '"' + (m.켜짐 ? ' checked' : '') + (m.설치 ? '' : ' disabled') + '>' + (m.설치 ? '사용' : '미설치') + '</label></div>';
-      }).join('');
+      }).join('') + (canOrder ? '<div class="unit">▲▼ 로 사이드바 메뉴 순서를 바꾸고 저장하면 바로 반영돼요. 학생 화면도 같은 순서예요.</div>' : '');
+      modOrderBtns();
       var url = D.앱URL;
       $('setLinks').innerHTML = (url
         ? '<div class="field" style="margin-bottom:10px"><label>학생용 주소 (태블릿에 즐겨찾기)</label><input type="text" readonly value="' + esc(url) + '" onclick="this.select()"></div>' +
@@ -801,6 +818,8 @@ MODS.core.teacher = (function () {
       반범위: Number($('setClasses').value), 학생로그인: $('setLoginMode').value, 자동나가기분: Number($('setIdle').value), 모듈: 모듈 };
     if ($('setScreen')) map.화면방식 = $('setScreen').value;
     if (!$('setUsageBox').classList.contains('hide')) map.사용알림 = $('setUsage').value;
+    var orderBefore = (D.모듈 || []).map(function (m) { return m.key; }).join(','), orderNow = modOrder().join(',');
+    if ($('setMods').querySelector('[data-up]') && orderBefore !== orderNow) map.메뉴순서 = modOrder();
     var btn = this; btn.disabled = true; setStatus('setStatus', '저장 중…');
     api('t_saveSettings', TOKEN, map).then(function (r) {
       btn.disabled = false;
@@ -813,6 +832,10 @@ MODS.core.teacher = (function () {
       MODLIST = r.모듈목록.filter(function (m) { return m.사용; });
       var after = MODLIST.map(function (m) { return m.key; }).join(',');
       fillSelects();
+      // 순서만 바뀐 것(같은 모듈 집합)은 사이드바를 바로 다시 그림
+      if (before !== after && before.split(',').sort().join() === after.split(',').sort().join() && typeof buildSidebar === 'function') {
+        MODLIST.forEach(function (m) { MODCOLOR[m.key] = m.색; }); buildSidebar('교사', MODLIST); showPage('core:settings'); before = after;
+      }
       if (r.학교급바뀜) { renderSettings(); setStatus('setStatus', r.설정.학교급이름 + '로 바꿨습니다. ' + (r.바뀐것 || []).join(' · ') + '. 로그아웃 후 다시 들어오면 메뉴에 반영됩니다.', 'ok'); toast(r.설정.학교급이름 + '로 바뀌었습니다. 로그아웃 후 다시 들어와 주세요.'); return; }
       setStatus('setStatus', '저장했습니다' + (before !== after ? '. 모듈이 바뀌어 다시 로그인하면 메뉴에 반영됩니다.' : ''), 'ok');
       if (before !== after) toast('모듈 설정이 바뀌었습니다. 로그아웃 후 다시 들어오면 메뉴에 반영됩니다.');
