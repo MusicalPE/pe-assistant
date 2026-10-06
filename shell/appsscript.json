@@ -2,7 +2,7 @@
   "timeZone": "Asia/Seoul",
   "dependencies": {
     "libraries": [
-      { "userSymbol": "PE", "libraryId": "LIBRARY_SCRIPT_ID", "version": "1", "developmentMode": false }
+      { "userSymbol": "PE", "libraryId": "1lCxSywFMSoGbnlymVfsRzEvBeweAXKVCjhigTMwpKlSC-lRGSwpR7QxT", "version": "51", "developmentMode": false }
     ]
   },
   "exceptionLogging": "STACKDRIVER",
