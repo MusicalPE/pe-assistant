@@ -1,9 +1,21 @@
 {
-  "version": "3.3.0",
-  "libraryVersion": 51,
-  "date": "2026-10-05",
-  "notes": "v3.3.0 — 사이드바 모듈 순서(설정 → 모듈 ▲▼), 줄넘기 급수 인증·인증서·여행(3.1.9)까지 모은 3.3.\n껍데기(Shell.gs)는 그대로입니다.",
+  "version": "3.3.2",
+  "libraryVersion": 53,
+  "date": "2026-10-11",
+  "notes": "줄넘기: 국토 대장정(출발 도시)·내 줄넘기로 뛰기(블루투스)·Jump Earth! 이름 · 사용 학교 알림 받기 판단 고침",
   "history": [
+    {
+      "version": "3.3.2",
+      "lib": 53,
+      "date": "2026-10-11",
+      "notes": "줄넘기 기록 관리 2.4 와 같은 줄넘기 — ① 우리 반 줄넘기 여행이 \"국토 대장정\" 하나로: 줄넘기 설정에서 우리 학교 출발 도시(전국 시·군)를 고르면 거기서 출발해 한 바퀴 돌고 돌아와요(약 1,600km, 제주는 여수에서 배). 무지개 줄 길 위를 줄넘기 친구가 뛰고 산·들판·바다가 바뀌는 새 그림. 예전에 다른 코스를 골랐던 학교도 국토 대장정으로 이어서 가요. ② \"내 줄넘기로 뛰기\" — JUMPITNOW 스마트 줄넘기를 블루투스로 바로 연결해 뛰면 줄넘기가 센 횟수가 화면에 실시간으로 보이고 끝내면 그대로 기록돼요(줄넘기 설정에서 켬 · 자동 확인이 꺼져 있으면 선생님 확인 뒤 반영 · 안드로이드 크롬·크롬북·PC 크롬/엣지). ③ 전국 현황판·기록실 이름을 Jump Earth! · Jumpers! 로. 새 화면 3.3.7 과 함께."
+    },
+    {
+      "version": "3.3.1",
+      "lib": 52,
+      "date": "2026-10-07",
+      "notes": "로그인 직후가 훨씬 빨라져요 — 새 화면이 로그인할 때 모듈마다 따로 보내던 요청(10개 안팎)을 한 번에 묶어 보내고 서버가 차례로 처리해 한꺼번에 돌려줍니다(모아 부르기). 전에는 같은 순간에 들어온 요청을 구글이 한 줄로 세워서 뒤쪽 요청이 30~50초씩 기다렸어요. 새 화면 3.3.6 과 함께."
+    },
     {
       "version": "3.3.0",
       "lib": 51,
@@ -207,8 +219,8 @@
     {
       "name": "App.html",
       "type": "HTML",
-      "sha256": "9365e960c7a67611",
-      "bytes": 62924
+      "sha256": "723c097b7dc14558",
+      "bytes": 84014
     },
     {
       "name": "Class_T.html",
@@ -225,8 +237,8 @@
     {
       "name": "Code.gs",
       "type": "SERVER_JS",
-      "sha256": "a4be37534408c8fa",
-      "bytes": 121884
+      "sha256": "d6fae361b2c45779",
+      "bytes": 125329
     },
     {
       "name": "Eval_S.html",
@@ -279,8 +291,8 @@
     {
       "name": "Home_T.html",
       "type": "HTML",
-      "sha256": "0d9609e2bac62dc6",
-      "bytes": 108349
+      "sha256": "e68d1d7f83696414",
+      "bytes": 108622
     },
     {
       "name": "Lib.gs",
@@ -351,8 +363,8 @@
     {
       "name": "Mod_Rope.gs",
       "type": "SERVER_JS",
-      "sha256": "5dcaebea5a2a69ba",
-      "bytes": 83365
+      "sha256": "72ca2b093c5840d4",
+      "bytes": 85128
     },
     {
       "name": "PAPS_Data.gs",
@@ -375,14 +387,14 @@
     {
       "name": "Rope_S.html",
       "type": "HTML",
-      "sha256": "e41ee2352d7444ce",
-      "bytes": 45909
+      "sha256": "d4f7921a5f698840",
+      "bytes": 52017
     },
     {
       "name": "Rope_T.html",
       "type": "HTML",
-      "sha256": "8f09721eaa4e7162",
-      "bytes": 88965
+      "sha256": "2f7deabe41a4b7e8",
+      "bytes": 88044
     },
     {
       "name": "Updater.gs",
@@ -397,5 +409,5 @@
       "bytes": 407
     }
   ],
-  "usage": "https://script.google.com/macros/s/AKfycbyWTbzRWdRW01RG5pTFkKp4Rws2-62LEMg9-vFJJ41JvZZnpopSB7Y7-vaXcHqsIEv3qg/exec?api=core_x_usage"
+  "usage": "https://script.google.com/macros/s/AKfycbyZeM6RXq3f1jnTKvsLnQhNZV098c_L98Qs9oB1FmPezf17U7ayjoEaJ5NMeOC19st32A/exec?api=core_x_usage"
 }
