@@ -1,5 +1,16 @@
 <!-- 줄넘기 · 학생 화면 (모듈 ROPE, 역할 S) -->
 <style>
+/* 내 줄넘기로 뛰기 (JUMPITNOW 블루투스, v3.3.2) */
+.ble-box{max-width:420px !important;padding:22px;text-align:center;}
+.ble-box h3{margin:0 0 4px;font-size:18px;}
+.ble-who{color:var(--ink-3);font-size:13px;margin-bottom:10px;}
+.ble-cnt{font-size:88px;font-weight:900;line-height:1;color:var(--ink);letter-spacing:-.04em;}
+.ble-cnt small{font-size:.3em;color:var(--ink-3);font-weight:700;margin-left:4px;}
+.ble-st{margin:10px 0 16px;font-weight:700;color:#0E8F85;min-height:1.4em;}
+.ble-st.bad{color:var(--danger,#DC2626);}
+.ble-help{margin:-6px 0 14px;padding:10px 12px;border-radius:10px;background:var(--soft);color:var(--ink-2);font-size:12.5px;line-height:1.55;text-align:left;}
+.ble-help b{color:var(--ink);}
+.ble-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
 #rope_S .ring{position:relative;width:110px;height:110px;flex-shrink:0;}
 #rope_S .ring svg{width:110px;height:110px;transform:rotate(-90deg);}
 #rope_S .ring .bg{fill:none;stroke:rgba(255,255,255,.28);stroke-width:10;}
@@ -81,23 +92,6 @@
 #rope_S .lv-steps .lv-chip{font-size:11px;padding:2px 8px;opacity:.45;}
 #rope_S .lv-steps .lv-chip.got{opacity:1;}
 #rope_S .lv-dist{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-.jr-wrap{padding:4px 0 2px;}
-.jr-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:28px;}
-.jr-head h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.02em;}
-.jr-head h3 small{font-size:12px;color:var(--ink-3);font-weight:600;margin-left:6px;}
-.jr-head .jr-num{font-size:14px;color:var(--ink-2);}
-.jr-head .jr-num b{font-size:20px;color:var(--accent-ink);letter-spacing:-.03em;}
-.jr-track{position:relative;height:14px;border-radius:99px;background:var(--soft);margin:0 14px 34px;}
-.jr-fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,var(--accent-dk),var(--accent));transition:width .6s ease;}
-.jr-me{position:absolute;top:-22px;transform:translateX(-50%);font-size:22px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2));}
-.jr-stop{position:absolute;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;}
-.jr-stop i{display:block;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--line);box-sizing:border-box;}
-.jr-stop.on i{background:var(--accent);border-color:var(--accent);}
-.jr-stop b{position:absolute;top:14px;font-size:11px;color:var(--ink-3);white-space:nowrap;font-weight:700;}
-.jr-stop.on b{color:var(--ink-2);}
-.jr-stop.first b{left:0;transform:none;}
-.jr-stop.last b{right:0;}
-.jr-foot{font-size:12.5px;color:var(--ink-2);margin-top:-14px;}
 </style>
 
 <div class="mroot hide" data-mod="ROPE" data-role="S" id="rope_S">
@@ -136,7 +130,11 @@
             </div>
             <button class="bigsave" id="rsSave"><i class="ti ti-device-floppy"></i>저장하기</button>
             <div class="status" id="rsSaveStatus" style="margin-top:8px"></div>
-            <div class="hide" id="rsNatBox" style="margin-top:10px"><a class="mini ghost" id="rsNatLink" target="_blank" rel="noopener" style="text-decoration:none"><i class="ti ti-world"></i>전국 현황판 보기 →</a> <span class="unit">우리 학교가 전국 현황판에 참여하고 있어요</span></div>
+            <div class="hide" id="rsNatBox" style="margin-top:10px"><a class="mini ghost" id="rsNatLink" target="_blank" rel="noopener" style="text-decoration:none"><i class="ti ti-world"></i>Jump Earth! 현황판 →</a> <span class="unit">우리 학교가 전국 현황판에 참여하고 있어요</span></div>
+            <div class="hide" id="rsBleBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
+              <button class="bigsave" id="rsBle" style="background:#0E8F85"><i class="ti ti-bluetooth"></i>내 줄넘기로 뛰기 (스마트 줄넘기 연결)</button>
+              <div class="unit" style="margin-top:6px">JUMPITNOW 스마트 줄넘기를 블루투스로 연결하면 줄넘기가 센 횟수가 여기에 실시간으로 보이고, 끝내면 그대로 기록돼요. 안드로이드 크롬·크롬북·PC 크롬/엣지에서 돼요.</div>
+            </div>
             <div class="hide" id="rsCamBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
               <button class="bigsave" id="rsCam" style="background:var(--violet,#6b5bd2)"><i class="ti ti-camera"></i>카메라로 뛰기 (자동으로 세서 기록)</button>
               <div class="unit" style="margin-top:6px">카메라가 몸의 움직임을 보고 진짜 뛴 횟수를 세요. 새 창이 열리고, 끝나면 여기에 바로 기록돼요. 위에서 종류를 골랐으면 그 종류로 기록됩니다.</div>
@@ -156,10 +154,6 @@
         <div class="panel hide" style="margin:0 0 14px" id="rsJourneyPanel">
           <div class="panel-head"><h3><i class="ti ti-map-pin"></i>우리 반 줄넘기 여행</h3><div class="spacer"></div><span class="unit">1회 = 1m</span></div>
           <div class="panel-body" id="rsJourneyBody"></div>
-        </div>
-        <div class="panel hide" style="margin:0 0 14px" id="rsCoopPanel">
-          <div class="panel-head"><h3><i class="ti ti-users-group"></i>우리 반 공동 목표</h3></div>
-          <div class="panel-body" id="rsCoopBody"></div>
         </div>
         <div class="panel" style="margin:0">
           <div class="panel-head"><h3><i class="ti ti-award"></i>내 배지</h3><div class="spacer"></div><span class="unit" id="rsBadgeSum"></span></div>
@@ -195,6 +189,20 @@
   <div class="celebrate hide" id="rsCelebrate"></div>
 </div>
 
+<div class="modal hide" id="rsBleModal">
+  <div class="ble-box">
+    <h3>내 줄넘기로 뛰기</h3>
+    <div class="ble-who" id="rsBleWho"></div>
+    <div class="ble-cnt" id="rsBleCnt">0<small>회</small></div>
+    <div class="ble-st" id="rsBleSt">줄넘기를 켜고 "연결"을 눌러요</div>
+    <div class="ble-help hide" id="rsBleHelp"></div>
+    <div class="ble-row">
+      <button type="button" class="primary" id="rsBleConn">연결</button>
+      <button type="button" class="primary" id="rsBleDone" disabled>끝내고 기록하기</button>
+      <button type="button" class="ghost" id="rsBleCancel">닫기</button>
+    </div>
+  </div>
+</div>
 <script>
 /* 줄넘기 · 학생 — MODS.ROPE.student */
 MODS.ROPE = MODS.ROPE || {};
@@ -306,6 +314,13 @@ MODS.ROPE.student = (function () {
       setStatus('rsSaveStatus', '판정기 창에서 뛰고 "끝내고 기록하기"를 누르면 여기에 기록돼요. 이 화면으로 돌아오면 자동으로 새로 불러와요.', '');
       G_camOpened = Date.now();
     };
+    // 내 줄넘기로 뛰기 (v3.3.2): 설정에서 켰고 이 브라우저가 블루투스를 지원할 때만
+    var bleOk = !!(s.스마트줄넘기 && navigator.bluetooth);
+    $('rsBleBox').classList.toggle('hide', !bleOk);
+    $('rsBle').onclick = function () {
+      if (s.종류사용 && !TYPE) { setStatus('rsSaveStatus', '먼저 어떤 줄넘기를 할지 골라 주세요.', 'err'); return; }
+      bleOpen(TYPE);
+    };
     // 짝 체크: 같은 반 친구 고르기
     $('rsPeerBox').classList.toggle('hide', !s.짝체크);
     if (s.짝체크) {
@@ -317,9 +332,7 @@ MODS.ROPE.student = (function () {
       b.onclick = function () { if (!confirm('이 기록을 지울까요?')) return; api('rope_s_deleteRecord', TOKEN, b.dataset.del).then(function (d) { D = d; renderHome(); toast('지웠어요.'); }).catch(handleErr); };
     });
     var c = D.학급;
-    $('rsCoopPanel').classList.toggle('hide', !c.학급목표);
-    if (c.학급목표) $('rsCoopBody').innerHTML = '<div class="goal-line"><div class="prog"><i style="width:' + c.진행 + '%"></i></div><b>' + c.진행 + '%</b></div>' +
-      '<div class="unit" style="margin-top:6px">우리 반 ' + c.인원 + '명이 함께 ' + fmt(c.총) + '회 / 목표 ' + fmt(c.학급목표) + '회' + (c.총 >= c.학급목표 ? ' · 달성했어요! 🎉' : ' · ' + fmt(c.학급목표 - c.총) + '회 남았어요') + ' · 오늘 ' + c.오늘기록인원 + '명 참여</div>';
+    // 우리 반 공동 목표 칸은 3.3.3 에서 뺌 (우리 반 줄넘기 여행으로 대신)
     // 나의 급수 (v3.1.9)
     var L = D.급수;
     $('rsLevelPanel').classList.toggle('hide', !L);
@@ -337,7 +350,7 @@ MODS.ROPE.student = (function () {
     }
     // 우리 반 줄넘기 여행 (v3.1.9)
     $('rsJourneyPanel').classList.toggle('hide', !D.여행);
-    if (D.여행) $('rsJourneyBody').innerHTML = journeyHtml(D.여행);
+    if (D.여행) { $('rsJourneyBody').innerHTML = journeyHtml(D.여행); JOURNEY.fit($('rsJourneyBody')); }
     var got = D.배지.filter(function (b) { return b.달성; });
     $('rsBadgeSum').textContent = got.length + ' / ' + D.배지.length + '개';
     var unit = { 누적: '회', 달성일: '일', 연속: '일', 기록일: '일', 하루최고: '회' };
@@ -365,19 +378,94 @@ MODS.ROPE.student = (function () {
       if (d.요약.오늘 >= d.요약.하루목표 && before < d.요약.하루목표) celebrate();
     }).catch(function (e) { $('rsSave').disabled = false; setStatus('rsSaveStatus', (e && e.message) || String(e), 'err'); });
   };
+  /* ---- 내 줄넘기로 뛰기: 스마트 줄넘기(JUMPITNOW) 블루투스 (v3.3.2, 줄넘기 기록 관리 2.4 와 같음) ----
+     서비스 FFF0 · 쓰기 FFF6 · 알림 FFF7 · 명령 16바이트(끝 = 앞 15바이트 합)
+     09 04 = 자유 시작 / 09 99 = 멈춤 / 01 YY MM DD hh mm ss = 시간 · 뛰는 동안 1초마다 09 04 [초 2바이트] [횟수 4바이트]
+     기록은 rope_s_addRecord(스마트:true) — 자동 확인이 꺼져 있으면 선생님 확인 뒤 반영 */
+  var BLE = { dev: null, tx: null, rx: null, cnt: 0, sec: 0, running: false, done: false, type: '' };
+  function bleFrame(b) { var f = new Uint8Array(16); b.forEach(function (x, i) { f[i] = x; }); var sum = 0; for (var i = 0; i < 15; i++) sum += f[i]; f[15] = sum & 255; return f; }
+  function bleBcd(n) { return parseInt(('0' + n).slice(-2), 16); }
+  function bleSend(b) { return BLE.tx ? BLE.tx.writeValue(bleFrame(b)).catch(function (e) { console.warn('ble', e); }) : Promise.resolve(); }
+  function bleSt(t, bad) { var el = $('rsBleSt'); el.textContent = t; el.className = 'ble-st' + (bad ? ' bad' : ''); }
+  function bleShow() { $('rsBleCnt').innerHTML = BLE.cnt + '<small>회</small>'; }
+  function bleHelp(show) {   // 안드로이드: 브라우저에 '근처 기기' 권한이 없으면 줄넘기 목록이 비어 있음
+    var el = $('rsBleHelp'), ua = navigator.userAgent;
+    if (!/Android/i.test(ua)) { el.classList.add('hide'); return; }
+    var br = /SamsungBrowser/i.test(ua) ? '삼성 인터넷(삼성 브라우저)' : /Whale/i.test(ua) ? '네이버 웨일' : 'Chrome';
+    el.innerHTML = (show ? '<b>줄넘기 목록이 안 보였나요?</b><br>' : '<b>처음이면 확인해요</b> — 창에 "권한(permission)" 안내가 뜨면<br>') +
+      '휴대폰 <b>설정 → 애플리케이션 → ' + br + ' → 권한</b>에서 <b>근처 기기</b>(와 <b>위치</b>)를 <b>허용</b>으로 바꾼 뒤, 이 화면으로 돌아와 다시 "연결"을 눌러요. 홈 화면에 설치한 앱이 아니라 <b>' + br + '</b> 앱에서 바꿔야 해요. 블루투스도 켜져 있어야 해요.';
+    el.classList.remove('hide');
+  }
+  function bleOpen(type) {
+    BLE.type = type || ''; BLE.cnt = 0; BLE.sec = 0; BLE.done = false; BLE.running = false; bleShow();
+    $('rsBleWho').textContent = (D && D.학생 ? D.학생.이름 : '') + (BLE.type ? ' · ' + BLE.type : '');
+    $('rsBleDone').disabled = true; $('rsBleConn').disabled = false;
+    bleSt('줄넘기를 켜고 "연결"을 눌러요 — 목록에서 JUMPITNOW를 골라요'); bleHelp(false);
+    $('rsBleModal').classList.remove('hide');
+  }
+  function bleClose() {
+    var p = Promise.resolve();
+    if (BLE.tx) p = bleSend([0x09, 0x99]).then(function () { return new Promise(function (r) { setTimeout(r, 300); }); }).then(function () { return bleSend([0x09, 0x04]); });   // 멈췄다가 다시 혼자 세는 상태로
+    return p.catch(function () {}).then(function () { try { if (BLE.dev && BLE.dev.gatt.connected) BLE.dev.gatt.disconnect(); } catch (e) {} BLE.running = false; BLE.tx = BLE.rx = null; });
+  }
+  $('rsBleConn').onclick = function () {
+    var btn = this; btn.disabled = true;
+    bleSt('줄넘기 찾는 중…');
+    navigator.bluetooth.requestDevice({ filters: [{ namePrefix: 'JUMPITNOW' }], optionalServices: [0xfff0] }).then(function (dev) {
+      BLE.dev = dev;
+      dev.addEventListener('gattserverdisconnected', function () { if (BLE.running) bleSt('연결이 끊겼어요 — 지금까지 ' + BLE.cnt + '회. "끝내고 기록하기"로 저장하거나 다시 연결해요', true); BLE.tx = BLE.rx = null; btn.disabled = false; });
+      bleSt('연결하는 중…');
+      return dev.gatt.connect();
+    }).then(function (g) { return g.getPrimaryService(0xfff0); }).then(function (sv) {
+      return sv.getCharacteristic(0xfff6).then(function (tx) { BLE.tx = tx; return sv.getCharacteristic(0xfff7); });
+    }).then(function (rx) {
+      BLE.rx = rx;
+      rx.addEventListener('characteristicvaluechanged', function (ev) {
+        var v = new Uint8Array(ev.target.value.buffer);
+        if (BLE.done) return;
+        if (v[0] === 0x09 && v[1] === 0x04 && v.length >= 8) { BLE.sec = (v[2] << 8) | v[3]; BLE.cnt = ((v[4] << 24) | (v[5] << 16) | (v[6] << 8) | v[7]) >>> 0; bleShow(); bleSt('세는 중 · ' + BLE.sec + '초'); }
+        else if (v[0] === 0x0b && v[1] === 0x04) { BLE.running = true; BLE.cnt = 0; bleShow(); bleSt('시작! 뛰어 보세요'); $('rsBleDone').disabled = false; }
+      });
+      return rx.startNotifications();
+    }).then(function () {
+      var d = new Date();
+      return bleSend([0x01, bleBcd(d.getFullYear() % 100), bleBcd(d.getMonth() + 1), bleBcd(d.getDate()), bleBcd(d.getHours() % 12), bleBcd(d.getMinutes()), bleBcd(d.getSeconds())]);
+    }).then(function () { return bleSend([0x09, 0x04]); }).then(function () {
+      setTimeout(function () { if (!BLE.running && BLE.tx) { BLE.running = true; $('rsBleDone').disabled = false; bleSt('연결됐어요 — 뛰어 보세요'); } }, 1500);
+    }).catch(function (e) {
+      btn.disabled = false;
+      bleSt(e && e.name === 'NotFoundError' ? '줄넘기를 고르지 않았어요 — 줄넘기를 켜고 다시 "연결"' : '연결하지 못했어요: ' + ((e && e.message) || e) + ' (앱에 연결돼 있으면 끊어 주세요)', true);
+      bleHelp(true);
+    });
+  };
+  $('rsBleDone').onclick = function () {
+    var btn = this; btn.disabled = true;
+    var p = BLE.tx ? bleSend([0x09, 0x99]).then(function () { return new Promise(function (r) { setTimeout(r, 700); }); }) : Promise.resolve();   // 멈춤 → 마지막 숫자
+    p.then(function () {
+      var cnt = BLE.cnt, sec = BLE.sec; BLE.done = true;
+      return bleClose().then(function () {
+        if (!(cnt > 0)) { bleSt('뛴 횟수가 0이에요 — 기록하지 않았어요', true); return; }
+        bleSt('기록하는 중… ' + cnt + '회');
+        return api('rope_s_addRecord', TOKEN, { 횟수: cnt, 스마트: true, 초: sec, 종류: D.설정.종류사용 ? BLE.type : '' }).then(function (d) {
+          var before = D ? D.요약.오늘 : 0; D = d;
+          bleSt(fmt(cnt) + '회 기록했어요!' + (d.방금.상태 === '확인' ? '' : ' 선생님이 확인하면 반영돼요.'));
+          setStatus('rsSaveStatus', '내 줄넘기로 ' + fmt(cnt) + '회 기록했어요.' + (d.방금.상태 === '확인' ? '' : ' 선생님 확인 뒤 반영돼요.'), '');
+          renderHome();
+          if (d.요약.오늘 >= d.요약.하루목표 && before < d.요약.하루목표) celebrate();
+          setTimeout(function () { $('rsBleModal').classList.add('hide'); }, 1800);
+        }).catch(function (e) { bleSt('기록하지 못했어요: ' + ((e && e.message) || e), true); btn.disabled = false; });
+      });
+    });
+  };
+  $('rsBleCancel').onclick = function () {
+    if (BLE.running && BLE.cnt > 0 && !confirm('지금까지 ' + BLE.cnt + '회를 기록하지 않고 닫을까요?')) return;
+    BLE.done = true; bleClose().then(function () { $('rsBleModal').classList.add('hide'); });
+  };
+
   /* 급수 칩 글자색 · 여행 막대 (교사 화면과 같은 그림, v3.1.9) */
   function lvDark(c) { if (!/^#(?:[0-9a-f]{2}){3}$/i.test(c || '')) return false; var n = parseInt(c.slice(1), 16); return (((n >> 16) & 255) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 < 150; }
   function kmText(m) { return m >= 100000 ? Math.round(m / 1000).toLocaleString() : (m / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }); }
-  function journeyHtml(j) {
-    var goal = j.km * 1000, m = Math.max(0, Number(j.총) || 0), laps = Math.floor(m / goal), cur = m - laps * goal, p = Math.min(100, cur / goal * 100);
-    var at = j.정거장[0][0], next = j.정거장[j.정거장.length - 1];
-    j.정거장.forEach(function (s) { if (cur >= s[1] * 1000) at = s[0]; });
-    for (var i = 0; i < j.정거장.length; i++) if (j.정거장[i][1] * 1000 > cur) { next = j.정거장[i]; break; }
-    var stops = j.정거장.map(function (s, i) { return '<span class="jr-stop' + (cur >= s[1] * 1000 ? ' on' : '') + (i === 0 ? ' first' : i === j.정거장.length - 1 ? ' last' : '') + '" style="left:' + (s[1] / j.km * 100) + '%"><i></i><b>' + esc(s[0]) + '</b></span>'; }).join('');
-    return '<div class="jr-wrap"><div class="jr-head"><h3>' + esc(j.이름) + '<small>약 ' + j.km.toLocaleString() + 'km</small></h3><div class="jr-num"><b>' + kmText(cur) + 'km</b> 왔어요' + (laps ? ' · <b>' + laps + '번</b> 완주!' : '') + '</div></div>' +
-      '<div class="jr-track"><div class="jr-fill" style="width:' + p.toFixed(2) + '%"></div><span class="jr-me" style="left:' + p.toFixed(2) + '%">🏃</span>' + stops + '</div>' +
-      '<div class="jr-foot">우리 반이 지금 <b>' + esc(at) + '</b> 지나는 중 · 다음 <b>' + esc(next[0]) + '</b>까지 <b>' + fmt(Math.max(0, next[1] * 1000 - cur)) + '회</b> 남았어요</div></div>';
-  }
+  function journeyHtml(j) { return JOURNEY.html(j); }   // 국토 대장정 그림은 App.html JOURNEY (v3.3.2)
   function celebrate() {
     var box = $('rsCelebrate'), em = ['🎉', '✨', '🏅', '💪', '⭐'], h = '';
     for (var i = 0; i < 24; i++) h += '<span style="left:' + Math.random() * 100 + '%;animation-delay:' + (Math.random() * .6) + 's">' + em[i % em.length] + '</span>';

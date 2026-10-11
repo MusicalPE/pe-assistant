@@ -51,27 +51,11 @@
 #rope_T .lv-table td{text-align:center;}
 #rope_T .lv-table td.name{text-align:left;white-space:nowrap;}
 #rope_T .lv-table input[type=checkbox]{width:20px;height:20px;}
+#rope_T .lv-table td.allcell{border-right:1px solid var(--line-2);}
+#rope_T .lv-table td.allcell input{accent-color:var(--accent);}
 #rope_T .lv-table tr.locked td{color:var(--ink-3);}
 #rope_T .lv-table tr.locked td.name::after{content:' 🔒';font-size:11px;}
 #rope_T .lv-table tr.up td.name{color:var(--accent-ink);}
-/* 우리 반 줄넘기 여행 — 교사·학생 화면 공통 */
-.jr-wrap{padding:4px 0 2px;}
-.jr-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:28px;}
-.jr-head h3{margin:0;font-size:16px;font-weight:800;letter-spacing:-.02em;}
-.jr-head h3 small{font-size:12px;color:var(--ink-3);font-weight:600;margin-left:6px;}
-.jr-head .jr-num{font-size:14px;color:var(--ink-2);}
-.jr-head .jr-num b{font-size:20px;color:var(--accent-ink);letter-spacing:-.03em;}
-.jr-track{position:relative;height:14px;border-radius:99px;background:var(--soft);margin:0 14px 34px;}
-.jr-fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,var(--accent-dk),var(--accent));transition:width .6s ease;}
-.jr-me{position:absolute;top:-22px;transform:translateX(-50%);font-size:22px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2));}
-.jr-stop{position:absolute;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;}
-.jr-stop i{display:block;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--line);box-sizing:border-box;}
-.jr-stop.on i{background:var(--accent);border-color:var(--accent);}
-.jr-stop b{position:absolute;top:14px;font-size:11px;color:var(--ink-3);white-space:nowrap;font-weight:700;}
-.jr-stop.on b{color:var(--ink-2);}
-.jr-stop.first b{left:0;transform:none;}
-.jr-stop.last b{right:0;}
-.jr-foot{font-size:12.5px;color:var(--ink-2);margin-top:-14px;}
 /* 인증서·상장 (A4 가로) — 미리보기와 인쇄(.print-area) 공통 */
 .rp-certs{display:grid;gap:16px;}
 .rp-cert{width:100%;aspect-ratio:297/210;background:#fff;border:1px solid var(--line);border-radius:8px;padding:3.2%;box-sizing:border-box;container-type:inline-size;page-break-after:always;break-after:page;}
@@ -121,16 +105,12 @@
           <div class="panel-head"><h3><i class="ti ti-chart-bar"></i>최근 2주 학급 합계</h3></div>
           <div class="panel-body" style="padding-top:4px"><div class="bars" id="rpDashBars"></div></div>
         </div>
-        <div class="panel" style="margin:0 0 14px">
-          <div class="panel-head"><h3><i class="ti ti-target-arrow"></i>학급 공동 목표</h3></div>
-          <div class="panel-body" id="rpDashClassGoal"></div>
-        </div>
         <div class="panel hide" style="margin:0 0 14px" id="rpDashJourneyPanel">
-          <div class="panel-head"><h3><i class="ti ti-map-pin"></i>우리 반 줄넘기 여행</h3><div class="spacer"></div><span class="unit">1회 = 1m · 확인된 기록만</span></div>
+          <div class="panel-head"><h3 id="rpDashJourneyTitle"><i class="ti ti-map-pin"></i>우리 반 줄넘기 여행</h3><div class="spacer"></div><span class="unit">1회 = 1m · 확인된 기록만</span></div>
           <div class="panel-body" id="rpDashJourney"></div>
         </div>
         <div class="panel hide" style="margin:0 0 14px" id="rpDashLevelPanel">
-          <div class="panel-head"><h3><i class="ti ti-stairs-up"></i>우리 반 급수</h3><div class="spacer"></div><button class="mini ghost" id="rpDashLevelGo"><i class="ti ti-pencil"></i>급수 인증</button></div>
+          <div class="panel-head"><h3 id="rpDashLevelTitle"><i class="ti ti-stairs-up"></i>우리 반 급수</h3><div class="spacer"></div><button class="mini ghost" id="rpDashLevelGo"><i class="ti ti-pencil"></i>급수 인증</button></div>
           <div class="panel-body"><div class="lv-dist" id="rpDashLevels"></div><div class="lv-names" id="rpDashLevelNames"></div></div>
         </div>
         <div class="panel" style="margin:0">
@@ -258,7 +238,6 @@
       <div class="panel-body">
         <div class="grid g3" style="margin-bottom:12px">
           <div class="field"><label>하루 목표 (회)</label><input type="number" id="rpSetGoal" min="1"></div>
-          <div class="field"><label>학급 공동 목표 (누적 회)</label><input type="number" id="rpSetClassGoal" min="0" step="100"></div>
           <div class="field"><label>학생 하루 입력 횟수 제한</label><input type="number" id="rpSetMaxIn" min="1" max="50"></div>
           <div class="field"><label>한 번에 입력 가능한 최대 횟수</label><input type="number" id="rpSetMaxCnt" min="1"></div>
           <div class="field"><label>대상 학년</label><div class="chks" id="rpSetGrades" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
@@ -267,7 +246,8 @@
         </div>
         <div class="panel-head" style="padding:10px 0 6px;border:0"><h3><i class="ti ti-map-pin"></i>우리 반 줄넘기 여행</h3><div class="spacer"></div><span class="unit">확인된 줄넘기를 1회 = 1m 로 바꿔 여행 코스를 따라 나아가요. 학급 현황과 학생 화면에 진행 막대가 보여요.</span></div>
         <div class="grid g3" style="margin-bottom:12px">
-          <div class="field"><label>코스</label><select id="rpSetJourney"><option value="">(안 함)</option><option value="busan">서울 → 부산 (400km)</option><option value="korea">국토 한 바퀴 (1,200km)</option><option value="jeju">서울 → 제주, 배 타고 (560km)</option><option value="earth">지구 한 바퀴 (40,075km)</option></select></div>
+          <div class="field"><label>여행</label><select id="rpSetJourney"><option value="">(안 함)</option><option value="korea">국토 대장정 — 출발 도시에서 한 바퀴 (약 1,600km)</option></select><span class="unit">전국 현황판의 지구 대장정과 이어져요. 제주는 여수에서 배를 타고 들렀다 목포로.</span></div>
+          <div class="field"><label>우리 학교 출발 도시</label><select id="rpSetJourneyStart"></select><span class="unit">가까운 큰길 도시로 나가 한 바퀴 돌고 출발 도시로 돌아와요.</span></div>
           <div class="field"><label>세기 시작한 날 (비우면 모든 기록)</label><input type="date" id="rpSetJourneyFrom"><span class="unit">새로 출발하려면 오늘 날짜를 넣어요. 그 전 기록은 거리에 들어가지 않아요.</span></div>
         </div>
         <div class="panel-head" style="padding:10px 0 6px;border:0"><h3><i class="ti ti-list-details"></i>줄넘기 종류</h3><div class="spacer"></div><span class="unit">학생이 기록을 넣을 때 고르는 종류입니다. 위에서부터 순서대로 선택지·그래프에 나옵니다.</span></div>
@@ -286,6 +266,7 @@
           <div class="field" style="grid-column:span 2"><label>판정기 주소 (https · 비우면 버튼 숨김)</label><input type="text" id="rpSetCamUrl" placeholder="https://…/jump-rope-checker/"></div>
           <div class="field"><label>기록할 최소 횟수</label><input type="number" id="rpSetCamMin" min="1" max="1000"></div>
           <div class="field" style="grid-column:span 3"><label class="chk sm"><input type="checkbox" id="rpSetCamFit"><span>건강체력교실에서 카메라로 뛴 줄넘기도 <b>줄넘기 기록에 함께</b> 넣기 (끄면 건강체력교실에만 기록)</span></label></div>
+          <div class="field" style="grid-column:span 3"><label class="chk sm"><input type="checkbox" id="rpSetBle"><span><b>내 줄넘기로 뛰기</b> — JUMPITNOW 스마트 줄넘기를 블루투스로 연결해 뛰면 줄넘기가 센 횟수가 바로 기록돼요 (학생 화면에 버튼 · 안드로이드 크롬·크롬북·PC 크롬/엣지 · 자동 확인이 꺼져 있으면 선생님 확인 뒤 반영)</span></label></div>
           <div class="field" style="grid-column:span 3"><label>민감도 (6~16 · 기본 10 — 작을수록 살짝 떠도 세고, 클수록 높이 떠야 셉니다. 학생은 못 바꿈)</label><div style="display:flex;align-items:center;gap:12px"><input type="range" id="rpSetCamSens" min="6" max="16" step="1" style="flex:1;max-width:320px"><b id="rpSetCamSensV">10</b><span class="unit" id="rpSetCamSensT">보통</span></div></div>
         </div>
         <div class="field"><label>AI 응원 문구 (AI 키는 설정 → AI 키 한 곳에서)</label>
@@ -318,8 +299,8 @@
     </div>
     <div class="savebar">
       <span class="status" id="rpNatStatus"></span><div class="spacer"></div>
-      <a class="mini ghost hide" id="rpNatBoard" target="_blank" rel="noopener" style="text-decoration:none"><i class="ti ti-trophy"></i>현황판 보기 →</a>
-      <a class="mini ghost hide" id="rpNatHall" target="_blank" rel="noopener" style="text-decoration:none"><i class="ti ti-building-bank"></i>기록실 →</a>
+      <a class="mini ghost hide" id="rpNatBoard" target="_blank" rel="noopener" style="text-decoration:none"><i class="ti ti-world"></i>Jump Earth! 현황판 →</a>
+      <a class="mini ghost hide" id="rpNatHall" target="_blank" rel="noopener" style="text-decoration:none"><i class="ti ti-building-bank"></i>Jumpers! 기록실 →</a>
       <button class="ghost" id="rpNatSend"><i class="ti ti-send"></i>지금 보내기</button>
       <button id="rpNatSave"><i class="ti ti-device-floppy"></i>저장</button>
     </div>
@@ -346,6 +327,7 @@ MODS.ROPE.teacher = (function () {
   ];
   /* 옛 라이브러리(50 미만)면 급수·인증서 서버 기능이 없음 — SERVER_API 6 부터 */
   function api6() { var s = CTX && CTX.설정 ? CTX.설정 : {}; return s.SERVER_API === undefined || (s.SERVER_API || 0) >= 6; }
+  function api9() { var s = CTX && CTX.설정 ? CTX.설정 : {}; return s.SERVER_API === undefined || (s.SERVER_API || 0) >= 9; }   // 라이브러리 53: 출발 도시·스마트 줄넘기
   var ROOT = $('rope_T');
   function qa(sel, root) { return Array.prototype.slice.call((root || ROOT).querySelectorAll(sel)); }
   function roster() { return (CTX && CTX.학생 ? CTX.학생 : []).filter(function (s) { return s.상태 === '재학'; }); }
@@ -427,12 +409,17 @@ MODS.ROPE.teacher = (function () {
     $('rpDashBars').innerHTML = d.일별.map(function (x) {
       return '<div class="b' + (x.날짜 === B.오늘 ? ' today' : '') + '" title="' + x.날짜 + ' · ' + x.인원 + '명 ' + fmt(x.횟수) + '회"><b>' + (x.횟수 ? fmt(x.횟수) : '') + '</b><i style="height:' + Math.round(x.횟수 / max * 84) + 'px"></i><span>' + md(x.날짜) + '</span></div>';
     }).join('');
-    var goal = d.학급목표;
-    $('rpDashClassGoal').innerHTML = goal ? '<div class="goal-line"><div class="prog"><i style="width:' + pct(d.총, goal) + '%"></i></div><b>' + pct(d.총, goal) + '%</b></div><div class="unit">누적 ' + fmt(d.총) + '회 / 목표 ' + fmt(goal) + '회' + (d.총 >= goal ? ' · 달성! 🎉' : ' · ' + fmt(goal - d.총) + '회 남음') + '</div>'
-      : '<div class="unit">설정에서 학급 공동 목표를 정하면 여기에 진행률이 보입니다.</div>';
+    // 학급 공동 목표 칸은 3.3.3 에서 뺌 (우리 반 줄넘기 여행과 같은 숫자)
+    // 제목 범위: 한 반이면 "우리 반", 한 학년 여러 반이면 "우리 N학년", 그 밖은 "우리 학교" (3.3.2)
+    var tcls = {}, tgrs = {};
+    d.학생.forEach(function (s) { tcls[s.학년 + '-' + s.반] = 1; tgrs[s.학년] = 1; });
+    var nC = Object.keys(tcls).length, nG = Object.keys(tgrs).length;
+    var who = nC <= 1 ? '우리 반' : (nG === 1 ? '우리 ' + Object.keys(tgrs)[0] + '학년' : '우리 학교');
+    $('rpDashJourneyTitle').innerHTML = '<i class="ti ti-map-pin"></i>' + who + ' 줄넘기 여행';
+    $('rpDashLevelTitle').innerHTML = '<i class="ti ti-stairs-up"></i>' + who + ' 급수';
     // 우리 반 줄넘기 여행 (v3.1.9)
     $('rpDashJourneyPanel').classList.toggle('hide', !d.여행);
-    if (d.여행) $('rpDashJourney').innerHTML = journeyHtml(d.여행);
+    if (d.여행) { $('rpDashJourney').innerHTML = journeyHtml(d.여행); JOURNEY.fit($('rpDashJourney')); }
     // 우리 반 급수 분포 (v3.1.9)
     $('rpDashLevelPanel').classList.toggle('hide', !d.급수);
     if (d.급수) {
@@ -551,17 +538,7 @@ MODS.ROPE.teacher = (function () {
     return '<span class="lv-chip" style="background:' + l.색 + ';color:' + (lvDark(l.색) ? '#fff' : '#1F2937') + '">' + esc(l.이름) + (small ? '' : ' 줄넘기') + (cnt !== undefined ? ' <span class="cnt">' + cnt + '명</span>' : '') + '</span>';
   }
   function kmText(m) { return m >= 100000 ? Math.round(m / 1000).toLocaleString() : (m / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }); }
-  /* j = { 이름, km, 정거장:[[이름,km]], 총(회), 시작일 } — 1회 = 1m */
-  function journeyHtml(j) {
-    var goal = j.km * 1000, m = Math.max(0, Number(j.총) || 0), laps = Math.floor(m / goal), cur = m - laps * goal, p = Math.min(100, cur / goal * 100);
-    var at = j.정거장[0][0], next = j.정거장[j.정거장.length - 1];
-    j.정거장.forEach(function (s) { if (cur >= s[1] * 1000) at = s[0]; });
-    for (var i = 0; i < j.정거장.length; i++) if (j.정거장[i][1] * 1000 > cur) { next = j.정거장[i]; break; }
-    var stops = j.정거장.map(function (s, i) { return '<span class="jr-stop' + (cur >= s[1] * 1000 ? ' on' : '') + (i === 0 ? ' first' : i === j.정거장.length - 1 ? ' last' : '') + '" style="left:' + (s[1] / j.km * 100) + '%"><i></i><b>' + esc(s[0]) + '</b></span>'; }).join('');
-    return '<div class="jr-wrap"><div class="jr-head"><h3>' + esc(j.이름) + '<small>약 ' + j.km.toLocaleString() + 'km</small></h3><div class="jr-num"><b>' + kmText(cur) + 'km</b> 왔어요' + (laps ? ' · <b>' + laps + '번</b> 완주!' : '') + '</div></div>' +
-      '<div class="jr-track"><div class="jr-fill" style="width:' + p.toFixed(2) + '%"></div><span class="jr-me" style="left:' + p.toFixed(2) + '%">🏃</span>' + stops + '</div>' +
-      '<div class="jr-foot">지금 <b>' + esc(at) + '</b> 지나는 중 · 다음 <b>' + esc(next[0]) + '</b>까지 <b>' + fmt(Math.max(0, next[1] * 1000 - cur)) + '회</b> 남았어요' + (j.시작일 ? ' · ' + j.시작일 + '부터' : '') + '</div></div>';
-  }
+  function journeyHtml(j) { return JOURNEY.html(j); }   // 국토 대장정 그림은 App.html JOURNEY (v3.3.2)
 
   /* ================= 급수 인증 (v3.1.9) ================= */
   var LV = null, lvInit = false;   // LV = { 표, 사용자표, 통과, 급수사용, 급수메인 }
@@ -628,18 +605,28 @@ MODS.ROPE.teacher = (function () {
     $('rpLvEmpty').classList.toggle('hide', !!list.length);
     if (!L) return;
     $('rpLvTitle').innerHTML = '<i class="ti ti-stairs-up"></i>' + lvChip({ 급수: lv, 이름: L.이름, 색: L.색 }) + ' 인증표';
-    $('rpLvHead').innerHTML = '<tr><th style="text-align:left">번호 · 이름<small>지금 급수</small></th>' + L.항목.map(function (it, j) { return '<th>' + esc(it[0]) + '<small>' + esc(lvGoal(it[1])) + '</small><input type="checkbox" data-col="' + j + '" title="이 항목을 모두 체크" style="margin-top:4px"></th>'; }).join('') + '<th>모두</th></tr>';
+    $('rpLvHead').innerHTML = '<tr><th style="text-align:left">번호 · 이름<small>지금 급수</small></th><th>모두<small>한 줄 전체</small><input type="checkbox" data-col="all" title="모든 학생의 모든 항목 체크 / 해제" style="margin-top:4px"></th>' + L.항목.map(function (it, j) { return '<th>' + esc(it[0]) + '<small>' + esc(lvGoal(it[1])) + '</small><input type="checkbox" data-col="' + j + '" title="이 항목을 모두 체크" style="margin-top:4px"></th>'; }).join('') + '</tr>';
     var locked = 0;
     $('rpLvRows').innerHTML = list.map(function (s) {
       var me = lvOf(s.학생ID), lock = me.급수 < lv - 1; if (lock) locked++;
+      var allOn = L.항목.every(function (it, j) { return me.통과[lv + '|' + j] !== undefined; });
       return '<tr data-sid="' + s.학생ID + '"' + (lock ? ' class="locked"' : '') + '><td class="name">' + s.번호 + '. ' + esc(s.이름) + ' ' + lvChip(me.급수 >= 0 ? { 급수: me.급수, 이름: LV.표[me.급수].이름, 색: LV.표[me.급수].색 } : null, undefined, true) + '</td>' +
-        L.항목.map(function (it, j) { var on = me.통과[lv + '|' + j] !== undefined; return '<td><input type="checkbox" data-item="' + j + '"' + (on ? ' checked' : '') + (lock && !on ? ' disabled title="앞 급수를 먼저 따야 해요"' : '') + '></td>'; }).join('') +
-        '<td><button class="mini ghost" data-all' + (lock ? ' disabled' : '') + ' title="이 학생의 모든 항목 체크 / 다시 누르면 모두 해제"><i class="ti ti-checks"></i></button></td></tr>';
+        '<td class="allcell"><input type="checkbox" data-all' + (allOn ? ' checked' : '') + (lock ? ' disabled title="앞 급수를 먼저 따야 해요"' : ' title="이 학생의 모든 항목 체크 / 해제"') + '></td>' +
+        L.항목.map(function (it, j) { var on = me.통과[lv + '|' + j] !== undefined; return '<td><input type="checkbox" data-item="' + j + '"' + (on ? ' checked' : '') + (lock && !on ? ' disabled title="앞 급수를 먼저 따야 해요"' : '') + '></td>'; }).join('') + '</tr>';
     }).join('');
     $('rpLvInfo').textContent = list.length + '명' + (locked ? ' · 잠김 ' + locked + '명 (앞 급수를 못 땀)' : '') + ' · 모든 항목을 통과하면 ' + lvLabel(lv) + ' 급수';
     // 한 학생 "모두": 다 체크돼 있으면 모두 해제, 아니면 모두 체크 (잠긴 칸은 건드리지 않음)
-    qa('#rpLvRows [data-all]').forEach(function (b) { b.onclick = function () { var cs = qa('input[data-item]', b.closest('tr')).filter(function (c) { return !c.disabled; }); var all = cs.length && cs.every(function (c) { return c.checked; }); cs.forEach(function (c) { c.checked = !all; }); }; });
-    qa('#rpLvHead [data-col]').forEach(function (h) { h.onchange = function () { qa('#rpLvRows input[data-item="' + h.dataset.col + '"]').forEach(function (c) { if (!c.disabled) c.checked = h.checked; }); }; });
+    // 이름 옆 "모두" 체크: 그 학생의 모든 항목을 켜고 끔. 항목을 하나씩 바꾸면 "모두"가 따라옴
+    var syncAll = function (tr) { var a = tr.querySelector('[data-all]'), cs = qa('input[data-item]', tr); if (a) a.checked = cs.length > 0 && cs.every(function (c) { return c.checked; }); };
+    qa('#rpLvRows [data-all]').forEach(function (a) { a.onchange = function () { qa('input[data-item]', a.closest('tr')).forEach(function (c) { if (!c.disabled) c.checked = a.checked; }); syncAll(a.closest('tr')); }; });
+    qa('#rpLvRows input[data-item]').forEach(function (c) { c.onchange = function () { syncAll(c.closest('tr')); }; });
+    qa('#rpLvHead [data-col]').forEach(function (h) {
+      h.onchange = function () {
+        if (h.dataset.col === 'all') qa('#rpLvRows input[data-item]').forEach(function (c) { if (!c.disabled) c.checked = h.checked; });
+        else qa('#rpLvRows input[data-item="' + h.dataset.col + '"]').forEach(function (c) { if (!c.disabled) c.checked = h.checked; });
+        qa('#rpLvRows tr').forEach(syncAll);
+      };
+    });
     setStatus('rpLvStatus', '');
   }
   $('rpLvSave').onclick = function () {
@@ -851,7 +838,7 @@ MODS.ROPE.teacher = (function () {
     natLoad();
     api('rope_t_getSettings', TOKEN).then(function (r) {
       var s = r.설정;
-      $('rpSetGoal').value = s.하루목표; $('rpSetClassGoal').value = s.학급목표; $('rpSetMaxIn').value = s.하루최대입력; $('rpSetMaxCnt').value = s.한번최대횟수; $('rpSetAuto').checked = s.자동확인;
+      $('rpSetGoal').value = s.하루목표; $('rpSetMaxIn').value = s.하루최대입력; $('rpSetMaxCnt').value = s.한번최대횟수; $('rpSetAuto').checked = s.자동확인;
       $('rpSetAuto').parentNode.classList.toggle('on', s.자동확인);
       $('rpSetPeer').checked = s.짝체크; $('rpSetPeer').parentNode.classList.toggle('on', s.짝체크);
       $('rpSetPeerPhoto').checked = s.짝사진; $('rpSetPeerPhoto').parentNode.classList.toggle('on', s.짝사진);
@@ -862,7 +849,9 @@ MODS.ROPE.teacher = (function () {
       $('rpSetCamSens').value = s.판정기민감도 || 10; paintSens();
       $('rpSetCamFit').checked = !!s.체력합산; $('rpSetCamFit').parentNode.classList.toggle('on', !!s.체력합산);
       $('rpSetLevels').checked = s.급수사용 !== false; $('rpSetLevels').parentNode.classList.toggle('on', s.급수사용 !== false);
-      $('rpSetJourney').value = s.여행코스 || ''; $('rpSetJourneyFrom').value = s.여행시작일 || '';
+      $('rpSetJourney').value = s.여행코스 ? 'korea' : ''; $('rpSetJourneyFrom').value = s.여행시작일 || '';
+      $('rpSetJourneyStart').innerHTML = JOURNEY.options(s.여행출발 || '대전');
+      $('rpSetBle').checked = !!s.스마트줄넘기; $('rpSetBle').parentNode.classList.toggle('on', !!s.스마트줄넘기);
       api('rope_t_mediaInfo', TOKEN).then(function (m) { $('rpSetPeerInfo').innerHTML = m.파일수 ? '사진 ' + m.파일수 + '장' + (m.폴더URL ? ' · <a href="' + esc(m.폴더URL) + '" target="_blank">드라이브 폴더 열기</a>' : '') : '아직 올라온 사진이 없습니다. 첫 사진이 올라오면 시트 옆에 "줄넘기 짝 확인 사진" 폴더가 생깁니다.'; }).catch(function () {});
       $('rpSetGrades').innerHTML = allGrades().map(function (g) { var on = s.대상학년.indexOf(g) > -1; return '<label class="chk sm' + (on ? ' on' : '') + '"><input type="checkbox" value="' + g + '"' + (on ? ' checked' : '') + '><span>' + g + '학년</span></label>'; }).join('');
       $('rpSetGemini').value = ''; $('rpSetGemini').placeholder = r.gemini ? '(등록됨 · 바꾸려면 새 키 입력, 지우려면 "삭제")' : 'AIza…';
@@ -916,12 +905,13 @@ MODS.ROPE.teacher = (function () {
     }).catch(function (e) { b.disabled = false; setStatus('rpSetStatus', (e && e.message) || String(e), 'err'); });
   };
   $('rpSetSave').onclick = function () {
-    var m = { 하루목표: Number($('rpSetGoal').value), 학급목표: Number($('rpSetClassGoal').value), 하루최대입력: Number($('rpSetMaxIn').value), 한번최대횟수: Number($('rpSetMaxCnt').value), 자동확인: $('rpSetAuto').checked,
+    var m = { 하루목표: Number($('rpSetGoal').value), 하루최대입력: Number($('rpSetMaxIn').value), 한번최대횟수: Number($('rpSetMaxCnt').value), 자동확인: $('rpSetAuto').checked,
               대상학년: qa('#rpSetGrades input:checked').map(function (i) { return Number(i.value); }),
               짝체크: $('rpSetPeer').checked, 짝사진: $('rpSetPeerPhoto').checked, 짝사진보관: $('rpSetPeerKeep').value,
               종류사용: $('rpSetTypeOn').checked, 종류: $('rpSetTypes').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean),
               판정기주소: $('rpSetCamUrl').value.trim(), 판정기최소: Number($('rpSetCamMin').value) || 10, 판정기민감도: Number($('rpSetCamSens').value) || 10, 체력합산: $('rpSetCamFit').checked };
     if (api6()) { m.급수사용 = $('rpSetLevels').checked; m.여행코스 = $('rpSetJourney').value; m.여행시작일 = $('rpSetJourneyFrom').value; }
+    if (api9()) { m.여행출발 = $('rpSetJourneyStart').value; m.스마트줄넘기 = $('rpSetBle').checked; }
     var k = $('rpSetGemini').value.trim();
     if (k === '삭제') m.geminiKey = ''; else if (k) m.geminiKey = k;
     setStatus('rpSetStatus', '저장 중…');

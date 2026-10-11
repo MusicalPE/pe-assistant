@@ -993,7 +993,8 @@ MODS.core.teacher = (function () {
     var web = !!(window.WEB && WEB.history && WEB.history.length);
     var hist = web ? WEB.history : (D.판내역 || []), ver = web ? WEB.version : D.버전;
     var seenK = newsKey(web ? 'web' : 'lib'), seen = lsGet(seenK), list = [];
-    if (seen !== ver) {
+    var vnum = function (v) { return String(v || '').split('.').map(function (x) { return ('000' + (parseInt(x, 10) || 0)).slice(-3); }).join(''); };
+    if (seen !== ver && !(seen && vnum(seen) > vnum(ver))) {   // 본 판이 지금 판보다 크면(번호를 되돌린 경우) 새 소식 없음
       for (var i = 0; i < hist.length && list.length < 4; i++) { if (hist[i].version === seen) break; list.push(hist[i]); if (!seen) break; }
     }
     var u = D.업데이트, updK = u && u.새버전 ? newsKey('upd:' + u.최신) : '', updShow = false;
