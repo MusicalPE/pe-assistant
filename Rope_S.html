@@ -132,11 +132,19 @@
             <div class="status" id="rsSaveStatus" style="margin-top:8px"></div>
             <div class="hide" id="rsNatBox" style="margin-top:10px"><a class="mini ghost" id="rsNatLink" target="_blank" rel="noopener" style="text-decoration:none"><i class="ti ti-world"></i>Jump Earth! 현황판 →</a> <span class="unit">우리 학교가 전국 현황판에 참여하고 있어요</span></div>
             <div class="hide" id="rsBleBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
-              <button class="bigsave" id="rsBle" style="background:#0E8F85"><i class="ti ti-bluetooth"></i>내 줄넘기로 뛰기 (스마트 줄넘기 연결)</button>
-              <div class="unit" style="margin-top:6px">JUMPITNOW 스마트 줄넘기를 블루투스로 연결하면 줄넘기가 센 횟수가 여기에 실시간으로 보이고, 끝내면 그대로 기록돼요. 안드로이드 크롬·크롬북·PC 크롬/엣지에서 돼요.</div>
+              <button class="bigsave" id="rsBle" style="background:#0E8F85"><i class="ti ti-bluetooth"></i>스마트 줄넘기로 뛰기 (블루투스 연결)</button>
+              <div class="unit" style="margin-top:6px">JUMPITNOW 스마트 줄넘기를 블루투스로 연결하면 줄넘기가 센 횟수와 뛴 시간이 여기에 실시간으로 보이고, 끝내면 그대로 기록돼요. 안드로이드 크롬·크롬북·PC 크롬/엣지에서 돼요.</div>
             </div>
             <div class="hide" id="rsCamBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
               <button class="bigsave" id="rsCam" style="background:var(--violet,#6b5bd2)"><i class="ti ti-camera"></i>카메라로 뛰기 (자동으로 세서 기록)</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+                <button type="button" class="ghost hide" id="rsCam2" style="flex:1;min-width:150px"><i class="ti ti-device-ipad-horizontal"></i>한 대로 둘이</button>
+                <button type="button" class="ghost hide" id="rsCamDuel" style="flex:1;min-width:150px"><i class="ti ti-devices"></i>각자 기기로 대결</button>
+              </div>
+              <div class="hide" id="rsCam2Box" style="margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--soft)">
+                <div class="unit" style="margin-bottom:6px"><b>한 대로 둘이</b> — 화면 왼쪽은 나, 오른쪽은 친구. 같이 뛸 친구를 고르면 판정기가 2인으로 열리고 끝나면 두 사람 기록이 각자 저장돼요. (태블릿·노트북처럼 넓은 화면에서)</div>
+                <div class="peer-grid" id="rsCam2Grid"></div>
+              </div>
               <div class="unit" style="margin-top:6px">카메라가 몸의 움직임을 보고 진짜 뛴 횟수를 세요. 새 창이 열리고, 끝나면 여기에 바로 기록돼요. 위에서 종류를 골랐으면 그 종류로 기록됩니다.</div>
             </div>
           </div>
@@ -191,7 +199,7 @@
 
 <div class="modal hide" id="rsBleModal">
   <div class="ble-box">
-    <h3>내 줄넘기로 뛰기</h3>
+    <h3>스마트 줄넘기로 뛰기</h3>
     <div class="ble-who" id="rsBleWho"></div>
     <div class="ble-cnt" id="rsBleCnt">0<small>회</small></div>
     <div class="ble-st" id="rsBleSt">줄넘기를 켜고 "연결"을 눌러요</div>
@@ -269,6 +277,7 @@ MODS.ROPE.student = (function () {
   /* ================= 오늘 줄넘기 ================= */
   /* 판정기 창에서 돌아오면 기록을 다시 불러옴 (카메라로 뛰기 뒤 3시간 안) */
   var G_camOpened = 0, G_camReloading = false;
+  function camOpen(u) { return (window.WEB && WEB.cam && WEB.cam.open) ? WEB.cam.open(u) : window.open(u, '_blank'); }   // 새 화면이면 앱 위 전체 화면 틀, 기존 화면이면 새 창
   function camReturn() {
     if (!G_camOpened || Date.now() - G_camOpened > 3 * 3600 * 1000 || G_camReloading) return;
     if (!(CURRENT && CURRENT.mod === 'ROPE') || document.hidden) return;
@@ -314,7 +323,36 @@ MODS.ROPE.student = (function () {
       setStatus('rsSaveStatus', '판정기 창에서 뛰고 "끝내고 기록하기"를 누르면 여기에 기록돼요. 이 화면으로 돌아오면 자동으로 새로 불러와요.', '');
       G_camOpened = Date.now();
     };
-    // 내 줄넘기로 뛰기 (v3.3.2): 설정에서 켰고 이 브라우저가 블루투스를 지원할 때만
+    // 한 대로 둘이 (v3.4): 넓은 화면(900px 이상)에서만 · 같은 반 친구를 고르면 친구용 제한 표(t2)를 받아 판정기를 2인으로 엶
+    var wide = window.innerWidth >= 900, api10 = (CTX && CTX.설정 && CTX.설정.SERVER_API !== undefined) ? CTX.설정.SERVER_API >= 10 : !!(window.WEB && WEB.info && WEB.info.SERVER_API >= 10);   // 라이브러리 53 부터
+    $('rsCam2').classList.toggle('hide', !(camUrl && wide && api10 && D.짝후보 && D.짝후보.length));
+    $('rsCam2').onclick = function () {
+      if (s.종류사용 && !TYPE) { setStatus('rsSaveStatus', '먼저 어떤 줄넘기를 할지 골라 주세요.', 'err'); return; }
+      var box = $('rsCam2Box'); box.classList.toggle('hide');
+      if (box.classList.contains('hide')) return;
+      $('rsCam2Grid').innerHTML = (D.짝후보 || []).map(function (x) { return '<button type="button" data-pair="' + esc(x.학생ID) + '">' + esc(x.이름) + '<small>' + x.번호 + '번</small></button>'; }).join('');
+      qa('#rsCam2Grid [data-pair]').forEach(function (b) {
+        b.onclick = function () {
+          b.disabled = true; setStatus('rsSaveStatus', '친구와 연결하는 중…', '');
+          api('rope_s_peerToken', TOKEN, b.dataset.pair).then(function (r) {
+            var u = camUrl + (camUrl.indexOf('?') >= 0 ? '&' : '?') + 'app=' + encodeURIComponent(D.앱URL) + '&t=' + encodeURIComponent(TOKEN) + '&t2=' + encodeURIComponent(r.t2) + '&sens=' + (s.판정기민감도 || 10) + (TYPE ? '&kind=' + encodeURIComponent(TYPE) : '');
+            var w = camOpen(u); if (!w) { setStatus('rsSaveStatus', '새 창이 막혔어요. 팝업을 허용해 주세요.', 'err'); return; }
+            setStatus('rsSaveStatus', '왼쪽은 나, 오른쪽은 ' + esc(r.이름) + ' — 끝내고 기록하기를 누르면 두 사람 기록이 각자 저장돼요.', '');
+            box.classList.add('hide'); G_camOpened = Date.now();
+          }).catch(function (e) { setStatus('rsSaveStatus', (e && e.message) || String(e), 'err'); }).then(function () { b.disabled = false; });
+        };
+      });
+    };
+    // 각자 기기로 대결 (v3.4): 판정기가 방 만들기·들어가기 창을 띄운 채로 열림 (학생 방 — 설정에서 끌 수 있음)
+    $('rsCamDuel').classList.toggle('hide', !(camUrl && s.학생방));
+    $('rsCamDuel').onclick = function () {
+      if (s.종류사용 && !TYPE) { setStatus('rsSaveStatus', '먼저 어떤 줄넘기를 할지 골라 주세요.', 'err'); return; }
+      var u = camUrl + (camUrl.indexOf('?') >= 0 ? '&' : '?') + 'app=' + encodeURIComponent(D.앱URL) + '&t=' + encodeURIComponent(TOKEN) + '&duel=1&sens=' + (s.판정기민감도 || 10) + (TYPE ? '&kind=' + encodeURIComponent(TYPE) : '');
+      var w = camOpen(u); if (!w) { setStatus('rsSaveStatus', '새 창이 막혔어요. 팝업을 허용해 주세요.', 'err'); return; }
+      setStatus('rsSaveStatus', '한 사람이 방을 만들고 친구들은 방 번호 4자리로 들어와요. 끝나면 결과를 함께 보고, 기록은 선생님이 확인한 뒤 들어가요.', '');
+      G_camOpened = Date.now();
+    };
+    // 스마트 줄넘기로 뛰기 (v3.3.2): 설정에서 켰고 이 브라우저가 블루투스를 지원할 때만
     var bleOk = !!(s.스마트줄넘기 && navigator.bluetooth);
     $('rsBleBox').classList.toggle('hide', !bleOk);
     $('rsBle').onclick = function () {
@@ -373,12 +411,19 @@ MODS.ROPE.student = (function () {
       $('rsSave').disabled = false; var before = D ? D.요약.오늘 : 0, had = D ? D.배지.filter(function (b) { return b.달성; }).length : 0; D = d; $('rsCount').value = '';
       var now = d.배지.filter(function (b) { return b.달성; });
       if (now.length > had) setTimeout(function () { toast('새 배지! ' + now[now.length - 1].이름 + ' 🏅'); }, 1200);
+      pbToast(d.방금);
       setStatus('rsSaveStatus', d.방금.상태 === '확인' ? fmt(n) + '회를 저장했어요!' : d.방금.상태 === '짝대기' ? fmt(n) + '회를 저장했어요. ' + esc(조사(d.방금.짝이름, '이가')) + ' 자기 화면에서 맞다고 해 주면 선생님께 가요.' : fmt(n) + '회를 저장했어요. 선생님이 확인하면 그래프에 들어가요.', 'ok');
       renderHome();
       if (d.요약.오늘 >= d.요약.하루목표 && before < d.요약.하루목표) celebrate();
     }).catch(function (e) { $('rsSave').disabled = false; setStatus('rsSaveStatus', (e && e.message) || String(e), 'err'); });
   };
-  /* ---- 내 줄넘기로 뛰기: 스마트 줄넘기(JUMPITNOW) 블루투스 (v3.3.2, 줄넘기 기록 관리 2.4 와 같음) ----
+  /* 나와의 대결 (v3.4): 저장 응답에 하루 최고·연속 넘기 최고 갱신이 오면 축하 */
+  function pbToast(r) {
+    if (!r) return;
+    if (r.하루최고) setTimeout(function () { toast('축! 하루 최고 기록 갱신! 오늘 ' + fmt(r.하루최고.오늘) + '회 — 전 최고 ' + fmt(r.하루최고.전) + '회보다 ' + fmt(r.하루최고.오늘 - r.하루최고.전) + '회 더 🏆'); }, 600);
+    if (r.연속최고) setTimeout(function () { toast('축! 연속 넘기 최고 기록 갱신! 걸리지 않고 ' + fmt(r.연속최고.연속) + '회 — 전 최고 ' + fmt(r.연속최고.전) + '회 🔥'); }, r.하루최고 ? 2600 : 600);
+  }
+  /* ---- 스마트 줄넘기로 뛰기: 스마트 줄넘기(JUMPITNOW) 블루투스 (v3.3.2, 줄넘기 기록 관리 2.4 와 같음) ----
      서비스 FFF0 · 쓰기 FFF6 · 알림 FFF7 · 명령 16바이트(끝 = 앞 15바이트 합)
      09 04 = 자유 시작 / 09 99 = 멈춤 / 01 YY MM DD hh mm ss = 시간 · 뛰는 동안 1초마다 09 04 [초 2바이트] [횟수 4바이트]
      기록은 rope_s_addRecord(스마트:true) — 자동 확인이 꺼져 있으면 선생님 확인 뒤 반영 */
@@ -388,6 +433,7 @@ MODS.ROPE.student = (function () {
   function bleSend(b) { return BLE.tx ? BLE.tx.writeValue(bleFrame(b)).catch(function (e) { console.warn('ble', e); }) : Promise.resolve(); }
   function bleSt(t, bad) { var el = $('rsBleSt'); el.textContent = t; el.className = 'ble-st' + (bad ? ' bad' : ''); }
   function bleShow() { $('rsBleCnt').innerHTML = BLE.cnt + '<small>회</small>'; }
+  function bleTime() { var t = BLE.t0 ? Math.round((Date.now() - BLE.t0) / 1000) : 0; return Math.floor(t / 60) + '분 ' + (t % 60) + '초'; }
   function bleHelp(show) {   // 안드로이드: 브라우저에 '근처 기기' 권한이 없으면 줄넘기 목록이 비어 있음
     var el = $('rsBleHelp'), ua = navigator.userAgent;
     if (!/Android/i.test(ua)) { el.classList.add('hide'); return; }
@@ -397,7 +443,7 @@ MODS.ROPE.student = (function () {
     el.classList.remove('hide');
   }
   function bleOpen(type) {
-    BLE.type = type || ''; BLE.cnt = 0; BLE.sec = 0; BLE.done = false; BLE.running = false; bleShow();
+    BLE.type = type || ''; BLE.cnt = 0; BLE.sec = 0; BLE.done = false; BLE.running = false; BLE.t0 = 0; BLE.run = 0; BLE.best = 0; BLE.lastJump = 0; bleShow();
     $('rsBleWho').textContent = (D && D.학생 ? D.학생.이름 : '') + (BLE.type ? ' · ' + BLE.type : '');
     $('rsBleDone').disabled = true; $('rsBleConn').disabled = false;
     bleSt('줄넘기를 켜고 "연결"을 눌러요 — 목록에서 JUMPITNOW를 골라요'); bleHelp(false);
@@ -423,7 +469,15 @@ MODS.ROPE.student = (function () {
       rx.addEventListener('characteristicvaluechanged', function (ev) {
         var v = new Uint8Array(ev.target.value.buffer);
         if (BLE.done) return;
-        if (v[0] === 0x09 && v[1] === 0x04 && v.length >= 8) { BLE.sec = (v[2] << 8) | v[3]; BLE.cnt = ((v[4] << 24) | (v[5] << 16) | (v[6] << 8) | v[7]) >>> 0; bleShow(); bleSt('세는 중 · ' + BLE.sec + '초'); }
+        if (v[0] === 0x09 && v[1] === 0x04 && v.length >= 8) {
+          var sec = (v[2] << 8) | v[3], cnt = ((v[4] << 24) | (v[5] << 16) | (v[6] << 8) | v[7]) >>> 0, now = Date.now();
+          if (cnt > BLE.cnt) {   // 첫 줄을 넘는 순간부터 시간을 재고, 2.5초 넘게 멈추면 연속을 새로 셈 (한 번에 최고 연속, v3.4)
+            if (!BLE.t0) BLE.t0 = now;
+            if (BLE.lastJump && now - BLE.lastJump > 2500) BLE.run = 0;
+            BLE.run = (BLE.run || 0) + (cnt - BLE.cnt); if (BLE.run > (BLE.best || 0)) BLE.best = BLE.run; BLE.lastJump = now;
+          }
+          BLE.sec = sec; BLE.cnt = cnt; bleShow(); bleSt('세는 중 · ' + bleTime());
+        }
         else if (v[0] === 0x0b && v[1] === 0x04) { BLE.running = true; BLE.cnt = 0; bleShow(); bleSt('시작! 뛰어 보세요'); $('rsBleDone').disabled = false; }
       });
       return rx.startNotifications();
@@ -434,7 +488,8 @@ MODS.ROPE.student = (function () {
       setTimeout(function () { if (!BLE.running && BLE.tx) { BLE.running = true; $('rsBleDone').disabled = false; bleSt('연결됐어요 — 뛰어 보세요'); } }, 1500);
     }).catch(function (e) {
       btn.disabled = false;
-      bleSt(e && e.name === 'NotFoundError' ? '줄넘기를 고르지 않았어요 — 줄넘기를 켜고 다시 "연결"' : '연결하지 못했어요: ' + ((e && e.message) || e) + ' (앱에 연결돼 있으면 끊어 주세요)', true);
+      var em = String((e && e.message) || e);
+      bleSt(e && e.name === 'NotFoundError' ? '줄넘기를 고르지 않았어요 — 줄넘기를 켜고 다시 "연결"' : /GATT|disconnected|Disconnected|connection/i.test(em) ? '연결하는 동안 줄넘기에서 멀어지면 안 돼요. 줄넘기를 껐다가 켜면 다시 연결할 수 있어요.' : '연결하지 못했어요: ' + em + ' (앱에 연결돼 있으면 끊어 주세요)', true);
       bleHelp(true);
     });
   };
@@ -446,10 +501,12 @@ MODS.ROPE.student = (function () {
       return bleClose().then(function () {
         if (!(cnt > 0)) { bleSt('뛴 횟수가 0이에요 — 기록하지 않았어요', true); return; }
         bleSt('기록하는 중… ' + cnt + '회');
-        return api('rope_s_addRecord', TOKEN, { 횟수: cnt, 스마트: true, 초: sec, 종류: D.설정.종류사용 ? BLE.type : '' }).then(function (d) {
+        var secs = BLE.t0 ? Math.round((Date.now() - BLE.t0) / 1000) : sec;
+        return api('rope_s_addRecord', TOKEN, { 횟수: cnt, 스마트: true, 초: secs, 연속: Math.min(BLE.best || 0, cnt), 종류: D.설정.종류사용 ? BLE.type : '' }).then(function (d) {
           var before = D ? D.요약.오늘 : 0; D = d;
-          bleSt(fmt(cnt) + '회 기록했어요!' + (d.방금.상태 === '확인' ? '' : ' 선생님이 확인하면 반영돼요.'));
-          setStatus('rsSaveStatus', '내 줄넘기로 ' + fmt(cnt) + '회 기록했어요.' + (d.방금.상태 === '확인' ? '' : ' 선생님 확인 뒤 반영돼요.'), '');
+          bleSt(fmt(cnt) + '회 · ' + Math.floor(secs / 60) + '분 ' + (secs % 60) + '초 기록했어요!' + (d.방금.상태 === '확인' ? '' : ' 선생님이 확인하면 반영돼요.'));
+          setStatus('rsSaveStatus', '스마트 줄넘기로 ' + fmt(cnt) + '회 · ' + Math.floor(secs / 60) + '분 ' + (secs % 60) + '초 기록했어요.' + (d.방금.상태 === '확인' ? '' : ' 선생님 확인 뒤 반영돼요.'), '');
+          pbToast(d.방금);
           renderHome();
           if (d.요약.오늘 >= d.요약.하루목표 && before < d.요약.하루목표) celebrate();
           setTimeout(function () { $('rsBleModal').classList.add('hide'); }, 1800);

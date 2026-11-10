@@ -25,7 +25,7 @@
 
 var ROPE = { 기록: '줄넘기_기록', 급수: '줄넘기_급수' };
 var ROPE_H = { 기록: ['기록ID', '입력일시', '날짜', '시각', '학생ID', '횟수', '상태', '확인일시', '입력자', '메모',
-                     '짝학생ID', '짝확인일시', '짝메모', '사진파일ID', '사진썸네일ID', '사진파일명', '종류'],
+                     '짝학생ID', '짝확인일시', '짝메모', '사진파일ID', '사진썸네일ID', '사진파일명', '종류', '연속', '초'],   // 연속·초: v3.4 한 번에 최고 연속(카메라·스마트 줄넘기만) · 뛴 시간(초)
                급수: ['학생ID', '급수', '항목', '통과일', '입력자'] };   // 급수 인증 (v3.1.9): 누가 몇 급 몇 번 항목을 언제 통과했는지 한 줄씩
 var ROPE_기본종류 = '모아뛰기,엇갈아뛰기,이중뛰기,십자뛰기';
 var ROPE_종류없음 = '(종류 없음)';   // 종류 기능이 생기기 전에 넣은 기록
@@ -76,6 +76,7 @@ function rope_기본설정_() {
     ['여행코스',     '',     '우리 반 줄넘기 여행: korea(국토 대장정 — 출발 도시에서 한 바퀴, 약 1,600km) · 비우면 안 씀. 줄넘기 1회 = 1m. (옛 값 busan/jeju/earth 도 국토 대장정으로 이어 감, v3.3.2)'],
     ['여행출발',     '',     '국토 대장정 출발 도시 (전국 시·군 이름, 비우면 대전). 설정 화면에서 고름 (v3.3.2)'],
     ['여행시작일',   '',     '여행 거리를 세기 시작한 날 (yyyy-mm-dd · 비우면 모든 확인 기록)'],
+    ['학생방',       'Y',    'Y 면 학생이 카메라 판정기에서 친구들과 방을 열어 함께 뛸 수 있음(각자 기기로 대결 · 다 같이·1대1·2대2). 기록은 선생님 확인 대기로 (v3.4)'],
     ['스마트줄넘기', 'N',    'Y 면 학생 화면에 "내 줄넘기로 뛰기"(JUMPITNOW 스마트 줄넘기 블루투스 연결) 버튼이 나옴. 기록은 자동 확인이 꺼져 있으면 선생님 확인 뒤 반영 (v3.3.2)']
   ];
 }
@@ -215,6 +216,7 @@ function rope_설정_() {
     여행출발: str_(out.여행출발).slice(0, 20),
     여행시작일: 날짜정리_(out.여행시작일) || '',
     스마트줄넘기: str_(out.스마트줄넘기).toUpperCase() === 'Y',
+    학생방: str_(out.학생방).toUpperCase() !== 'N',
     학년도: str_(all.학년도)
   };
 }
@@ -249,7 +251,8 @@ function rope_기록전체_() {
                횟수: Math.max(0, Math.round(num_(r.횟수) || 0)), 상태: ROPE_상태.indexOf(str_(r.상태)) >= 0 ? str_(r.상태) : '대기',
                확인일시: 시각문자_(r.확인일시), 입력자: str_(r.입력자) || '학생', 메모: str_(r.메모),
                짝학생ID: str_(r.짝학생ID), 짝확인일시: 시각문자_(r.짝확인일시), 짝메모: str_(r.짝메모),
-               사진파일ID: str_(r.사진파일ID), 사진썸네일ID: str_(r.사진썸네일ID), 사진파일명: str_(r.사진파일명), 종류: str_(r.종류), _row: r._row };
+               사진파일ID: str_(r.사진파일ID), 사진썸네일ID: str_(r.사진썸네일ID), 사진파일명: str_(r.사진파일명), 종류: str_(r.종류),
+               연속: Math.max(0, Math.round(num_(r.연속) || 0)), 초: Math.max(0, Math.round(num_(r.초) || 0)), _row: r._row };
     }).filter(function (r) { return r.기록ID && r.날짜 && r.학생ID; })
       .sort(function (a, b) { return (a.날짜 + a.시각 + a.입력일시).localeCompare(b.날짜 + b.시각 + b.입력일시); });
   });
@@ -463,9 +466,10 @@ function rope_t_testGemini(token) {
 
 /* ================= 기록 쓰기 (공통) ================= */
 
-function rope_기록추가_(학생ID, 날짜, 시각, 횟수, 상태, 입력자, 메모, 종류) {
+function rope_기록추가_(학생ID, 날짜, 시각, 횟수, 상태, 입력자, 메모, 종류, 더) {   // 더 = { 연속, 초 } (v3.4)
   var now = 지금_();
   var rec = { 기록ID: makeId_('R'), 입력일시: now, 날짜: 날짜, 시각: 시각, 학생ID: 학생ID, 횟수: 횟수, 상태: 상태, 확인일시: 상태 === '확인' ? now : '', 입력자: 입력자, 메모: str_(메모).slice(0, 100), 종류: str_(종류).slice(0, 20) };
+  if (더) { rec.연속 = Math.max(0, Math.min(Math.round(num_(더.연속) || 0), 횟수)) || ''; rec.초 = Math.max(0, Math.round(num_(더.초) || 0)) || ''; }
   appendRow_(ROPE.기록, ROPE_H.기록, rec);
   rope_캐시지우기_();
   return rec;
@@ -624,6 +628,7 @@ function rope_t_saveSettings(token, map) {
   if (map.여행코스 !== undefined) put['줄넘기.여행코스'] = ROPE_여행코스[str_(map.여행코스)] ? 'korea' : ' ';
   if (map.여행출발 !== undefined) put['줄넘기.여행출발'] = str_(map.여행출발).slice(0, 20) || ' ';
   if (map.스마트줄넘기 !== undefined) put['줄넘기.스마트줄넘기'] = map.스마트줄넘기 ? 'Y' : 'N';
+  if (map.학생방 !== undefined) put['줄넘기.학생방'] = map.학생방 ? 'Y' : 'N';
   if (map.여행시작일 !== undefined) put['줄넘기.여행시작일'] = 날짜정리_(map.여행시작일) || ' ';
   if (map.종류 !== undefined) {
     var 목록 = rope_종류정리_(map.종류);
@@ -805,13 +810,15 @@ function nat_days_(o, 날짜들) {
     var ym = r.날짜.slice(0, 7); if (ym !== 이달 && ym !== 지난달) return;
     if (only && !only[r.날짜]) return;
     var st = 학생[r.학생ID]; if (!st || (s.대상학년.length && s.대상학년.indexOf(Number(st.학년)) < 0)) return;
-    var d = byDay[r.날짜] || (byDay[r.날짜] = {}), e = d[r.학생ID] || (d[r.학생ID] = { st: st, n: 0, cam: 0 });
+    var d = byDay[r.날짜] || (byDay[r.날짜] = {}), e = d[r.학생ID] || (d[r.학생ID] = { st: st, n: 0, cam: 0, best: 0 });
     e.n += r.횟수; if (r.입력자 === '카메라') e.cam += r.횟수;
+    if ((r.입력자 === '카메라' || r.입력자 === '스마트줄넘기') && r.연속 > e.best) e.best = r.연속;   // 한 번에 최고 연속 (수집기 '한 번에 최고 연속' 순위, v3.4)
   });
   if (only) Object.keys(only).forEach(function (d) { if (!byDay[d]) byDay[d] = {}; });   // 그날 기록이 다 지워졌으면 빈 날로 덮어씀
   return Object.keys(byDay).sort().slice(-70).map(function (d) {
     return { date: d, students: Object.keys(byDay[d]).map(function (id) { var e = byDay[d][id];
-      return [nat_studentKey_(o.key, id), nat_mask_(e.st.이름), String(e.st.학년).slice(0, 4), Math.min(30000, e.n), Math.min(30000, e.cam)]; }).slice(0, 1200) };
+      var row = [nat_studentKey_(o.key, id), nat_mask_(e.st.이름), String(e.st.학년).slice(0, 4), Math.min(30000, e.n), Math.min(30000, e.cam)];
+      if (e.best) row.push(Math.min(e.best, e.n)); return row; }).slice(0, 1200) };
   });
 }
 /** 등록 학생 수 (대상 학년만) — 전체와 학년별 (학년별은 수집기 4판의 학년별 순위용, v3.1.9) */
@@ -927,14 +934,15 @@ function rope_s_view_(me) {
   var 반 = rope_학급현황_(me.학년, me.반, 기록, s);
   // 짝 체크: 같은 반 친구 목록 + 나에게 온 확인 요청 수
   var 짝후보 = [], 짝요청수 = 0;
+  // 같은 반 친구 목록: 짝 체크뿐 아니라 "한 대로 둘이"(v3.4)에서도 씀
+  짝후보 = 학생목록_(false).filter(function (st) { return st.학생ID !== me.학생ID && Number(st.학년) === Number(me.학년) && Number(st.반) === Number(me.반); })
+    .sort(function (a, b) { return a.번호 - b.번호; }).map(function (st) { return { 학생ID: st.학생ID, 이름: st.이름, 번호: st.번호 }; });
   if (s.짝체크) {
-    짝후보 = 학생목록_(false).filter(function (st) { return st.학생ID !== me.학생ID && Number(st.학년) === Number(me.학년) && Number(st.반) === Number(me.반); })
-      .sort(function (a, b) { return a.번호 - b.번호; }).map(function (st) { return { 학생ID: st.학생ID, 이름: st.이름, 번호: st.번호 }; });
     짝요청수 = 기록.filter(function (r) { return r.짝학생ID === me.학생ID && r.상태 === '짝대기'; }).length;
   }
   return {
     학생: me, 오늘: 오늘, 설정: { 하루목표: s.하루목표, 하루최대입력: s.하루최대입력, 한번최대횟수: s.한번최대횟수, 자동확인: s.자동확인, 학급목표: s.학급목표, 짝체크: s.짝체크, 짝사진: s.짝사진,
-                            종류사용: s.종류사용 && s.종류.length > 0, 종류: s.종류, 판정기주소: s.판정기주소, 판정기민감도: s.판정기민감도, 스마트줄넘기: s.스마트줄넘기 },
+                            종류사용: s.종류사용 && s.종류.length > 0, 종류: s.종류, 판정기주소: s.판정기주소, 판정기민감도: s.판정기민감도, 스마트줄넘기: s.스마트줄넘기, 학생방: s.학생방 },
     앱URL: 앱주소_(),
     요약: y, 기록: 내기록.slice().reverse(), 오늘입력: 오늘입력, 배지: rope_배지_(y),
     학급: { 총: 반.총, 오늘총: 반.오늘총, 인원: 반.학생.length, 오늘기록인원: 반.오늘기록인원, 달성: 반.달성, 학급목표: s.학급목표, 진행: rope_pct_(반.총, s.학급목표) },
@@ -991,11 +999,13 @@ function rope_s_addRecord(token, m) {
     if (!짝 || Number(짝.학년) !== Number(me.학년) || Number(짝.반) !== Number(me.반)) throw new Error('같은 반 친구를 짝으로 골라 주세요.');
   }
   return withLock_(function () {
-    var rec = rope_기록추가_(me.학생ID, 오늘, 시각, n, 짝 ? '짝대기' : (s.자동확인 ? '확인' : '대기'), 스마트 ? '스마트줄넘기' : '학생', 스마트 ? '내 줄넘기(블루투스) ' + (num_(m.초) ? Math.round(num_(m.초)) + '초' : '') : m.메모, 종류);
+    var rec = rope_기록추가_(me.학생ID, 오늘, 시각, n, 짝 ? '짝대기' : (s.자동확인 ? '확인' : '대기'), 스마트 ? '스마트줄넘기' : '학생', 스마트 ? '스마트 줄넘기(블루투스) ' + (num_(m.초) ? Math.round(num_(m.초)) + '초' : '') : m.메모, 종류, 스마트 ? { 연속: num_(m.연속), 초: num_(m.초) } : null);
     if (짝) { setCells_(ROPE.기록, ROPE_H.기록, rope_행찾기_(rec.기록ID)._row, { 짝학생ID: 짝.학생ID }); rope_캐시지우기_(); }
     if (rec.상태 === '확인') nat_하루보고_([오늘]);
     var v = rope_s_view_(me);
     v.방금 = { 기록ID: rec.기록ID, 횟수: n, 상태: rec.상태, 짝이름: 짝 ? 짝.이름 : '' };
+    var pb = rope_최고갱신_(me.학생ID, 오늘, 스마트 ? Math.round(num_(m.연속) || 0) : 0, rec.기록ID);   // 나와의 대결 (v3.4)
+    if (pb.하루최고) v.방금.하루최고 = pb.하루최고; if (pb.연속최고) v.방금.연속최고 = pb.연속최고;
     return v;
   });
 }
@@ -1003,12 +1013,29 @@ function rope_s_addRecord(token, m) {
 
 /** 판정기가 처음 열릴 때: 누구인지 + 오늘 상황. p = { t: 학생 토큰 } */
 function rope_x_who(p) {
-  var me = 학생확인_(p.t), s = rope_설정_();
+  var me = 학생확인_(p.t, true), s = rope_설정_();
   if (!rope_hooks_().학생참여(me.학생ID)) throw new Error('줄넘기 대상 학년이 아니에요.');
   var 오늘 = 오늘_(), 오늘합 = 0;
   rope_기록전체_().forEach(function (r) { if (r.학생ID === me.학생ID && r.날짜 === 오늘 && r.상태 === '확인') 오늘합 += r.횟수; });
   return { 이름: me.이름, 학년: me.학년, 반: me.반, 번호: me.번호, 오늘: 오늘합, 하루목표: s.하루목표, 최소: s.판정기최소, 최대: s.한번최대횟수,
-           종류: s.종류사용 ? s.종류 : [], 학교명: str_(설정_().학교명) };
+           종류: s.종류사용 ? s.종류 : [], 학교명: str_(설정_().학교명),
+           방: !!(s.학생방 && s.판정기주소), 판: APP_VERSION };   // 방: 학생 방(각자 기기로 대결)을 판정기가 띄워도 되는지 (v3.4)
+}
+/* ---- 나와의 대결 (v3.4, 줄넘기 기록 관리 2.8.3): 기록을 넣은 뒤 하루 최고·연속 넘기 최고 갱신이면 알려 줌 ----
+   전 = 오늘을 뺀 날 중 확인된 하루 합계 최고 · 연속 = 카메라·스마트 줄넘기 기록의 연속 중 최고(이번 기록 빼고) */
+function rope_최고갱신_(학생ID, 오늘, 이번연속, 이번기록ID) {
+  var 날별 = {}, 연속전 = 0, 오늘합 = 0;
+  rope_기록전체_().forEach(function (r) {
+    if (r.학생ID !== 학생ID) return;
+    if (r.기록ID !== 이번기록ID && r.상태 !== '반려' && r.연속 > 연속전) 연속전 = r.연속;
+    if (r.상태 !== '확인') return;
+    if (r.날짜 === 오늘) 오늘합 += r.횟수; else 날별[r.날짜] = (날별[r.날짜] || 0) + r.횟수;
+  });
+  var 전 = 0; Object.keys(날별).forEach(function (d) { if (날별[d] > 전) 전 = 날별[d]; });
+  var out = { 오늘합: 오늘합 };
+  if (전 > 0 && 오늘합 > 전) out.하루최고 = { 오늘: 오늘합, 전: 전 };
+  if (이번연속 > 0 && 연속전 > 0 && 이번연속 > 연속전) out.연속최고 = { 연속: 이번연속, 전: 연속전 };
+  return out;
 }
 /** 건강체력교실에서 카메라로 뛴 것을 줄넘기 기록에도 (설정 줄넘기.체력합산 = Y 일 때). 실패해도 조용히 */
 function rope_체력합산_(me, n, 메모) {
@@ -1023,9 +1050,11 @@ function rope_체력합산_(me, n, 메모) {
 }
 /** 판정기가 보낸 결과를 기록으로. p = { t, count, sec?, hand?, norope?, kind?, ver? } — 카메라가 센 횟수라 바로 확인 상태 */
 function rope_x_save(p) {
-  var me = 학생확인_(p.t), s = rope_설정_();
+  var me = 학생확인_(p.t, true), s = rope_설정_();
   if (!rope_hooks_().학생참여(me.학생ID)) throw new Error('줄넘기 대상 학년이 아니에요.');
   var n = Math.round(num_(p.count) || 0);
+  var 방 = str_(p.room) === '1', run = str_(p.run).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);   // 방: 학생 방에서 뛴 기록(승인 대기) · run: 같은 판 두 번 저장 방지 (v3.4)
+  if (run) { var rk = 'rope_run_' + me.학생ID + '_' + run; if (캐시읽기_(rk)) return { 기록ID: '', 횟수: n, 이미: true, 오늘: 0 }; 캐시쓰기_(rk, 1, 21600); }
   if (n < s.판정기최소) throw new Error(s.판정기최소 + '회 이상일 때만 기록해요. (이번 ' + n + '회)');
   if (n > s.한번최대횟수) throw new Error('한 번에 ' + s.한번최대횟수 + '회까지만 기록할 수 있어요.');
   var 오늘 = 오늘_();
@@ -1036,13 +1065,25 @@ function rope_x_save(p) {
   var sec = Math.round(num_(p.sec) || 0), hand = Math.round(num_(p.hand) || 0), norope = Math.round(num_(p.norope) || 0);
   var 메모 = '카메라 판정' + (p.ver ? ' v' + str_(p.ver).replace(/^v/, '') : '') + (sec ? ' · ' + Math.floor(sec / 60) + '분 ' + (sec % 60) + '초' : '') +
              (hand ? ' · 팔만 돌림 ' + hand + '초' : '') + (norope ? ' · 줄 없이 뜀 ' + norope + '회' : '');
+  var best = Math.max(0, Math.min(Math.round(num_(p.best) || 0), n));   // 한 번에 최고 연속 (판정기 1.3+, v3.4)
   return withLock_(function () {
-    var rec = rope_기록추가_(me.학생ID, 오늘, 지금_().slice(11), n, '확인', '카메라', 메모, 종류);
-    nat_하루보고_([오늘]);
-    var 오늘합 = 0;
-    rope_기록전체_().forEach(function (r) { if (r.학생ID === me.학생ID && r.날짜 === 오늘 && r.상태 === '확인') 오늘합 += r.횟수; });
-    return { 기록ID: rec.기록ID, 횟수: n, 종류: 종류, 오늘: 오늘합, 하루목표: s.하루목표, 달성: 오늘합 >= s.하루목표 };
+    var rec = rope_기록추가_(me.학생ID, 오늘, 지금_().slice(11), n, 방 ? '대기' : '확인', '카메라', (방 ? '학생 방 · ' : '') + 메모, 종류, { 연속: best, 초: sec });
+    if (rec.상태 === '확인') nat_하루보고_([오늘]);
+    var pb = rope_최고갱신_(me.학생ID, 오늘, best, rec.기록ID);
+    var out = { 기록ID: rec.기록ID, 횟수: n, 종류: 종류, 상태: rec.상태, 오늘: pb.오늘합, 하루목표: s.하루목표, 달성: pb.오늘합 >= s.하루목표 };
+    if (pb.하루최고) out.하루최고 = pb.하루최고; if (pb.연속최고) out.연속최고 = pb.연속최고;
+    return out;
   });
+}
+/** 한 대로 둘이 (v3.4): 같은 반 친구를 골라 판정기 2인 모드로 — 친구용 제한 표(카메라 기록에만 쓰임, 3시간) */
+function rope_s_peerToken(token, 친구ID) {
+  var me = 학생확인_(token), s = rope_설정_();
+  if (!s.판정기주소) throw new Error('카메라 판정기가 꺼져 있어요.');
+  var 친구 = 학생찾기_(str_(친구ID));
+  if (!친구 || 친구.학생ID === me.학생ID) throw new Error('함께 뛸 친구를 골라 주세요.');
+  if (Number(친구.학년) !== Number(me.학년) || Number(친구.반) !== Number(me.반)) throw new Error('같은 반 친구만 고를 수 있어요.');
+  if (!rope_hooks_().학생참여(친구.학생ID)) throw new Error('줄넘기 대상 학년이 아니에요.');
+  return { t2: 세션저장_({ 역할: '학생', 학생: 친구, 제한: '카메라' }, 학생세션시간), 이름: 친구.이름 };
 }
 
 function rope_행찾기_(기록ID) {
@@ -1178,4 +1219,178 @@ function rope_파일데이터_(ids, 허용) {
     catch (e) { out[id] = ''; }
   });
   return out;
+}
+
+/* ================= 점프 Live (Lite) · 학생 방 — 줄넘기 기록 관리 2.6~2.8 과 같은 방 (v3.4, 라이브러리 53) =================
+   바깥 서버 없이 이 학교의 캐시(6시간)에만 두고 방을 닫으면 지움. 시트에는 쓰지 않음(끝난 회차 결과는 선생님 화면이 addLiveRecordsAdmin 으로 한꺼번에 기록).
+   선생님 화면 = 점퍼스의 monitor.html?lite=1&s=<학교 주소>  ·  학생 기기 = 카메라 판정기(jump-rope-checker) — 둘 다 줄넘기 기록 관리 껍데기와 같은 이름의 함수를
+   POST {fn,args} 로 부르고 {ok,result} 를 기다리므로, 여기 함수들은 그 이름·모양을 그대로 따른다 (doPost 의 JL_호환_). 캐시 열쇠는 학교별(ck_). */
+var LITE_TTL_ = 6 * 60 * 60, LITE_ST_ = ['ready', 'away', 'hand', 'jump', 'stop', 'hidden', 'off'], LITE_MODE_ = { all: 40, '1v1': 2, '2v2': 4 };
+function liteC_() { return CacheService.getScriptCache(); }
+function liteKey_(room, k) { return 'JL_' + ck_(room) + '_' + k; }
+function liteRoom_(room) { var r = String(room || ''); if (!/^[A-Za-z0-9_-]{16,64}$/.test(r)) throw new Error('방 번호가 올바르지 않습니다.'); return r; }
+function liteOwner_(room, owner) { var c = liteC_().get(liteKey_(room, 'own')); if (!c || c !== String(owner || '')) throw new Error('방이 닫혔거나 방 열쇠가 맞지 않습니다.'); }
+function liteJson_(s, d) { try { return s ? JSON.parse(s) : d; } catch (e) { return d; } }
+function liteLock_(fn) { var lock = LockService.getScriptLock(); if (!lock.tryLock(5000)) throw new Error('잠시 뒤에 다시 해 주세요.'); try { return fn(); } finally { lock.releaseLock(); } }
+function liteOpenRoom(token, room, meta) {
+  교사확인_(token); room = liteRoom_(room);
+  var m = { at: Date.now() };
+  ['g', 'c', 'max'].forEach(function (k) { m[k] = Math.max(0, Math.min(60, Math.round(Number(meta && meta[k]) || 0))); });
+  if (meta && typeof meta.list === 'string' && /^[0-9,:\-]{0,200}$/.test(meta.list)) m.list = meta.list;
+  var owner = Utilities.getUuid().replace(/-/g, ''), put = {};
+  put[liteKey_(room, 'own')] = owner; put[liteKey_(room, 'meta')] = JSON.stringify(m); put[liteKey_(room, 'ctl')] = JSON.stringify({ ph: 'open' }); put[liteKey_(room, 'devs')] = '[]';
+  liteC_().putAll(put, LITE_TTL_);
+  return { owner: owner, t: Date.now() };
+}
+function liteSetControl(room, owner, ctl) {
+  room = liteRoom_(room); liteOwner_(room, owner);
+  if (!ctl || typeof ctl !== 'object' || !/^(open|go|end)$/.test(String(ctl.ph))) throw new Error('신호 형식이 올바르지 않습니다.');
+  var s = JSON.stringify(ctl); if (s.length > 2000) throw new Error('신호가 너무 깁니다.');
+  liteC_().put(liteKey_(room, 'ctl'), s, LITE_TTL_);
+  return { t: Date.now() };
+}
+function liteDevList_(room) { return liteJson_(liteC_().get(liteKey_(room, 'devs')), []); }
+function liteDevs_(room) {
+  var ids = liteDevList_(room), out = {}; if (!ids.length) return out;
+  var got = liteC_().getAll(ids.map(function (d) { return liteKey_(room, 'd_' + d); }));
+  ids.forEach(function (d) { var v = got[liteKey_(room, 'd_' + d)]; if (v) out[d] = liteJson_(v, null); });
+  return out;
+}
+function litePull(room, owner) { room = liteRoom_(room); liteOwner_(room, owner); return { t: Date.now(), devs: liteDevs_(room) }; }
+function liteCloseRoom(room, owner) {
+  room = liteRoom_(room); liteOwner_(room, owner);
+  var meta = liteJson_(liteC_().get(liteKey_(room, 'meta')), {});
+  var keys = ['own', 'meta', 'ctl', 'devs', 'ppl'].map(function (k) { return liteKey_(room, k); })
+    .concat(liteDevList_(room).map(function (d) { return liteKey_(room, 'd_' + d); }))
+    .concat(meta && meta.code ? ['JL_code_' + ck_(meta.code)] : []);
+  liteC_().removeAll(keys);
+  return { t: Date.now() };
+}
+function liteInfo(room) {
+  room = liteRoom_(room);
+  var c = liteC_(), got = c.getAll([liteKey_(room, 'meta'), liteKey_(room, 'ctl')]);
+  var meta = liteJson_(got[liteKey_(room, 'meta')], null);
+  if (!meta) return { t: Date.now(), closed: true };
+  var devs = liteDevs_(room), taken = [];
+  Object.keys(devs).forEach(function (k) { var d = devs[k]; if (d && d.st !== 'off' && Date.now() - (d.t || 0) < 30000) taken.push({ g: d.g, c: d.c, n: d.n }); });
+  return { t: Date.now(), meta: meta, ctl: liteJson_(got[liteKey_(room, 'ctl')], null), taken: taken };
+}
+function liteSend(room, dev, data, wantMeta) {
+  room = liteRoom_(room); dev = String(dev || '');
+  if (!/^[a-z0-9]{8,16}$/.test(dev)) throw new Error('기기 번호가 올바르지 않습니다.');
+  var c = liteC_(), got = c.getAll([liteKey_(room, 'meta'), liteKey_(room, 'ctl')]), meta = got[liteKey_(room, 'meta')];
+  if (!meta) return { t: Date.now(), closed: true };
+  var d = data || {}, num = function (v, lo, hi) { var x = Math.round(Number(v) || 0); return Math.max(lo, Math.min(hi, x)); };
+  var st = LITE_ST_.indexOf(String(d.st)) >= 0 ? String(d.st) : 'ready';
+  var rec = { g: num(d.g, 0, 6), c: num(d.c, 0, 30), n: num(d.n, 0, 99), cnt: num(d.cnt, 0, 5000), best: num(d.best, 0, 5000), st: st, run: d.run === true, ctl: String(d.ctl || '').slice(0, 32), v: String(d.v || '').slice(0, 16), t: Date.now() };
+  c.put(liteKey_(room, 'd_' + dev), JSON.stringify(rec), LITE_TTL_);
+  if (liteDevList_(room).indexOf(dev) < 0) {
+    try { liteLock_(function () { var now = liteDevList_(room); if (now.indexOf(dev) < 0 && now.length < 120) { now.push(dev); c.put(liteKey_(room, 'devs'), JSON.stringify(now), LITE_TTL_); } }); } catch (e) {}
+  }
+  var out = { t: rec.t, ctl: liteJson_(got[liteKey_(room, 'ctl')], null) };
+  if (wantMeta) out.meta = liteJson_(meta, null);
+  return out;
+}
+/* ---- 학생 방 (학생 누구나) — 앱의 "카메라로 뛰기"로 받은 표(t)로 누구인지 확인, 4자리 방 번호로 친구들이 들어옴. 기록은 rope_x_save(room=1) 로 확인 대기 */
+function liteStu_(t) {
+  var s = rope_설정_(); if (!s.판정기주소 || !s.학생방) throw new Error('학생 방이 꺼져 있어요. (줄넘기 설정)');
+  var me = 학생확인_(t, true);
+  return { g: Number(me.학년) || 0, c: Number(me.반) || 0, n: Number(me.번호) || 0, name: String(me.이름 || '').slice(0, 20) };
+}
+function liteStuAdd_(room, who) {
+  var c = liteC_(), k = liteKey_(room, 'ppl');
+  liteLock_(function () {
+    var p = liteJson_(c.get(k), {}), key = who.g + '-' + who.c + '-' + who.n;
+    var meta = liteJson_(c.get(liteKey_(room, 'meta')), {}), cap = LITE_MODE_[meta.mode] || 40;
+    if (!(key in p) && Object.keys(p).length >= cap) throw new Error(cap < 40 ? '방이 꽉 찼어요 (' + (meta.mode === '1v1' ? '1대1' : '2대2') + '는 ' + cap + '명까지). 다른 방에 들어가거나 방을 만들어요.' : '방이 꽉 찼어요 (40명까지).');
+    p[key] = who.name; c.put(k, JSON.stringify(p), LITE_TTL_);
+  });
+}
+function liteStuOpen(t, opt) {
+  var who = liteStu_(t), c = liteC_(), hk = 'JL_host_' + ck_(String(t)), mode = opt && LITE_MODE_[opt.mode] ? String(opt.mode) : 'all';
+  var prev = liteJson_(c.get(hk), null), pm = prev && prev.room ? liteJson_(c.get(liteKey_(prev.room, 'meta')), null) : null;
+  if (pm) { if (pm.mode !== mode) { pm.mode = mode; c.put(liteKey_(prev.room, 'meta'), JSON.stringify(pm), LITE_TTL_); } return { room: prev.room, owner: prev.owner, code: prev.code, mode: mode, t: Date.now() }; }
+  var code = '';
+  for (var i = 0; i < 30 && !code; i++) { var k = String(1000 + Math.floor(Math.random() * 9000)); if (!c.get('JL_code_' + ck_(k))) code = k; }
+  if (!code) throw new Error('지금은 열린 방이 너무 많아요. 잠시 뒤에 다시 해 주세요.');
+  var room = 'S' + Utilities.getUuid().replace(/-/g, ''), owner = Utilities.getUuid().replace(/-/g, ''), put = {};
+  put[liteKey_(room, 'own')] = owner;
+  put[liteKey_(room, 'meta')] = JSON.stringify({ at: Date.now(), g: who.g, c: who.c, max: 60, stu: 1, code: code, host: who.name, mode: mode });
+  put[liteKey_(room, 'ctl')] = JSON.stringify({ ph: 'open' }); put[liteKey_(room, 'devs')] = '[]';
+  put['JL_code_' + ck_(code)] = room; put[hk] = JSON.stringify({ room: room, owner: owner, code: code });
+  c.putAll(put, LITE_TTL_);
+  liteStuAdd_(room, who);
+  return { room: room, owner: owner, code: code, mode: mode, t: Date.now() };
+}
+function liteStuJoin(t, code) {
+  var who = liteStu_(t), c = liteC_();
+  code = String(code || '').replace(/\D/g, '');
+  var room = /^\d{4}$/.test(code) ? c.get('JL_code_' + ck_(code)) : null;
+  if (!room || !c.get(liteKey_(room, 'meta'))) throw new Error('그 방 번호를 찾지 못했어요. 번호를 다시 확인해 주세요.');
+  liteStuAdd_(room, who);
+  return { room: room, code: code, t: Date.now() };
+}
+function liteStuBoard(room) {
+  room = liteRoom_(room);
+  var c = liteC_(), got = c.getAll([liteKey_(room, 'meta'), liteKey_(room, 'ctl'), liteKey_(room, 'ppl')]), meta = liteJson_(got[liteKey_(room, 'meta')], null);
+  if (!meta) return { t: Date.now(), closed: true };
+  if (!meta.stu) throw new Error('학생 방이 아닙니다.');
+  var ppl = liteJson_(got[liteKey_(room, 'ppl')], {}), devs = liteDevs_(room), now = Date.now(), list = [];
+  Object.keys(devs).forEach(function (k) { var d = devs[k]; if (!d) return; var key = d.g + '-' + d.c + '-' + d.n; if (!(key in ppl)) return;
+    list.push({ k: key, name: ppl[key], cnt: d.cnt, best: d.best, run: d.run, ctl: d.ctl, st: now - (d.t || 0) > 30000 ? 'off' : d.st }); });
+  return { t: now, ppl: ppl, devs: list, ctl: liteJson_(got[liteKey_(room, 'ctl')], null), host: meta.host, code: meta.code, mode: meta.mode || 'all', cap: LITE_MODE_[meta.mode] || 40 };
+}
+function liteStuLeave(t, room) {
+  var who = liteStu_(t); room = liteRoom_(room);
+  var c = liteC_(), k = liteKey_(room, 'ppl');
+  if (!c.get(liteKey_(room, 'meta'))) return { t: Date.now() };
+  liteLock_(function () { var p = liteJson_(c.get(k), {}), key = who.g + '-' + who.c + '-' + who.n; if (key in p) { delete p[key]; c.put(k, JSON.stringify(p), LITE_TTL_); } });
+  return { t: Date.now() };
+}
+/* ---- 점퍼스 선생님 화면(monitor.html)이 부르는 껍데기 함수들 — 같은 이름·같은 모양 ---- */
+function jl_ping() { var s = 설정_(); return { shell: 8, lite: 2, appUrl: 앱주소_(), self: 앱주소_(), title: str_(s.학교명) || '체육 매니저', app: 'pe-assistant ' + APP_VERSION }; }
+function jl_getJumpTypes() { var s = rope_설정_(); return s.종류사용 && s.종류.length ? s.종류 : ['줄넘기']; }
+function jl_verifyAdminPassword(pw) { var r = loginTeacher(pw); return r.ok ? { ok: true, token: r.토큰 } : { ok: false, message: r.message }; }
+function jl_getAllStudents(token) {
+  교사확인_(token); var s = rope_설정_(), i = 0;
+  return 학생목록_(false).filter(function (st) { return !s.대상학년.length || s.대상학년.indexOf(Number(st.학년)) >= 0; })
+    .sort(function (a, b) { return (a.학년 - b.학년) || (a.반 - b.반) || (a.번호 - b.번호); })
+    .map(function (st) { return { id: st.학생ID, grade: Number(st.학년), cls: Number(st.반), number: Number(st.번호), name: st.이름, order: ++i }; });
+}
+function jl_getExtraSettingsAdmin(token) { 교사확인_(token); var s = rope_설정_(); return { bleRope: !!s.스마트줄넘기, app: 'pe-assistant' }; }
+function jl_getLiveBestsAdmin(token, durSec) {
+  교사확인_(token); var dur = Math.round(Number(durSec) || 0), out = {}; if (!dur) return out;
+  rope_기록전체_().forEach(function (r) { if (r.초 === dur && r.상태 !== '반려' && r.횟수 > (out[r.학생ID] || 0)) out[r.학생ID] = r.횟수; });
+  return out;
+}
+function jl_addLiveRecordsAdmin(token, typeStr, rows, runId, durSec) {
+  교사확인_(token); var s = rope_설정_();
+  if (!Array.isArray(rows) || rows.length > 100) throw new Error('결과 형식이 올바르지 않습니다.');
+  var 종류 = s.종류사용 && s.종류.indexOf(str_(typeStr)) >= 0 ? str_(typeStr) : '';
+  var key = runId ? 'rope_live_' + String(runId).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) : '';
+  if (key && 캐시읽기_(key)) return { saved: 0, already: true };
+  var ids = {}; 학생목록_(false).forEach(function (st) { ids[st.학생ID] = true; });
+  var 오늘 = 오늘_(), 시각 = 지금_().slice(11), dur = Math.round(Number(durSec) || 0), skipped = [], saved = 0;
+  return withLock_(function () {
+    rows.forEach(function (r) {
+      var sid = str_(r && r.id), cnt = Math.round(Number(r && r.count));
+      if (!ids[sid]) { skipped.push(sid); return; }
+      if (!cnt || cnt < 1 || cnt > 5000) { if (cnt > 5000) skipped.push(sid); return; }
+      rope_기록추가_(sid, 오늘, 시각, cnt, '확인', '카메라', '점프 Live' + (dur ? ' · ' + Math.floor(dur / 60) + '분' + (dur % 60 ? ' ' + (dur % 60) + '초' : '') : ''), 종류, { 연속: Number(r && r.best) || 0, 초: dur >= 10 && dur <= 600 ? dur : 0 });
+      saved++;
+    });
+    if (saved) nat_하루보고_([오늘]);
+    if (key) 캐시쓰기_(key, 1, LITE_TTL_);
+    return { saved: saved, skipped: skipped };
+  });
+}
+/** doPost 에서: 점퍼스 화면·판정기가 부르는 껍데기 함수면 여기서 처리 (응답은 {ok,result}) — 없으면 null */
+var JL_호환_ = { ping: 'jl_ping', getJumpTypes: 'jl_getJumpTypes', verifyAdminPassword: 'jl_verifyAdminPassword', getAllStudents: 'jl_getAllStudents', getExtraSettingsAdmin: 'jl_getExtraSettingsAdmin',
+  getLiveBestsAdmin: 'jl_getLiveBestsAdmin', addLiveRecordsAdmin: 'jl_addLiveRecordsAdmin',
+  liteOpenRoom: 'liteOpenRoom', liteSetControl: 'liteSetControl', litePull: 'litePull', liteCloseRoom: 'liteCloseRoom', liteInfo: 'liteInfo', liteSend: 'liteSend',
+  liteStuOpen: 'liteStuOpen', liteStuJoin: 'liteStuJoin', liteStuBoard: 'liteStuBoard', liteStuLeave: 'liteStuLeave' };
+function jl_호출_(fn, args) {
+  var name = JL_호환_[fn]; if (!name) return null;
+  if (!모듈상태_().ROPE) throw new Error('줄넘기 모듈이 꺼져 있어요.');
+  return { ok: true, result: 전역_()[name].apply(null, Array.isArray(args) ? args : []) };
 }

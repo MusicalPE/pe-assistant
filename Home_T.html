@@ -211,7 +211,7 @@
             <button class="ghost" id="btnPwChange"><i class="ti ti-lock"></i>변경</button>
             <span class="status" id="pwStatus"></span>
           </div>
-          <div class="panel-body unit" style="padding-top:0">잊어버리면 스프레드시트 메뉴 <code>체육교사 보조 → 교사 비밀번호 초기화</code>로 1234로 되돌립니다.</div>
+          <div class="panel-body unit" style="padding-top:0">잊어버리면 스프레드시트 메뉴 <code>체육 매니저 → 교사 비밀번호 초기화</code>로 1234로 되돌립니다.</div>
         </div>
         <div class="panel" id="setAiPanel">
           <div class="panel-head"><h3><i class="ti ti-sparkles"></i>AI 키 (Gemini)</h3><div class="spacer"></div><span class="unit" id="aiBadge"></span></div>
@@ -800,7 +800,7 @@ MODS.core.teacher = (function () {
       '<div class="note sun"><i class="ti ti-list-numbers"></i><div><b>적용 순서 (2분)</b><br>1. 스프레드시트 → 확장 프로그램 → <b>Apps Script</b><br>2. 왼쪽 "라이브러리" 아래 <b>PE</b> 를 눌러 버전을 <b>' + (u.라이브러리버전 ? esc(u.라이브러리버전) : '가장 큰 숫자') + '</b> 로 바꾸고 저장<br>3. 오른쪽 위 <b>배포 → 배포 관리</b> → 연필 → 버전 "새 버전" → 배포<br><b style="color:var(--coral,#E5484D)">⚠ "새 배포"는 누르지 마세요</b> — 학생용 주소가 새로 생겨 교실 QR·즐겨찾기를 다시 만들어야 해요. 꼭 <b>배포 관리</b> → 연필로.<br><span class="unit">자료도 주소도 그대로입니다. 끝나면 이 화면을 새로 고치세요.</span></div></div>';
     else h += '<div class="note ok"><i class="ti ti-circle-check"></i><div>최신 버전입니다.</div></div>';
     h += '<div class="chks" style="margin-top:8px"><button class="ghost mini" id="btnUpdCheck"><i class="ti ti-refresh"></i>새 버전 확인</button><span class="status" id="updStatus"></span></div>' +
-      '<div class="unit" style="margin-top:8px">스프레드시트 메뉴 <b>체육교사 보조 → 업데이트 확인</b>에서도 같은 안내를 볼 수 있습니다.</div>';
+      '<div class="unit" style="margin-top:8px">스프레드시트 메뉴 <b>체육 매니저 → 업데이트 확인</b>에서도 같은 안내를 볼 수 있습니다.</div>';
     box.innerHTML = h;
     $('btnUpdCheck').onclick = function () {
       setStatus('updStatus', '확인 중…');
